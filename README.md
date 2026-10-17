@@ -4,7 +4,13 @@ The signed TestFlight release and Apple processing/tester status are recorded in
 
 Native iPhone RGB-D capture and a local Mac processing service for a two-mount bridge handle, curved saddle cup handle, and flat/L repair bracket. The app keeps observed geometry, design assumptions, manual measurements and physical test results distinct.
 
-Open **`ios/ReverseCAD.xcodeproj`**, scheme **ReverseCAD**, bundle **com.pranav.ReverseCAD**, deployment target **iOS17.0**. The tested build host is Apple silicon, macOS26.6.2, Xcode26.6 with the iOS26.5 SDK/runtime. Signing and an actual LiDAR iPhone are separate from unsigned compilation.
+## Missing cubie exterior demo
+
+The app opens as a camera. Tap **Start scan**, slowly move the phone or cube, and the app collects eight silent image frames. The Mac automatically detects a mostly same-colored 3×3 face and a missing edge, selecting the strongest accepted view. A photo-library button runs the same automatic detection on one photo. Manual corners are a fallback in the result menu. This is frame selection, not multiview reconstruction. Multiple missing pieces and scrambled faces are not supported yet.
+
+Enter only the independently measured width of the full cube face. The app estimates visible outline spacing from consistent intact pieces; when that cannot be resolved it uses a labeled cube prior. Three-dimensional rounding remains a labeled prior. These estimates are not mechanical fit tolerances. The Mac makes an exterior-envelope STEP solid, STL mesh, editable CadQuery source and dimension record. **The photo does not establish millimeter scale or hidden locking geometry. This first model is an exterior prototype, not a fitted working cubie.** The cube analysis is deterministic computer vision; it does not call a model provider. The app renders the exported STL and shares five files, including a replayable `repair_plan.json` with detection provenance and per-operation CAD checks.
+
+Open **`ios/ReverseCAD.xcodeproj`**, scheme **ReverseCAD**, development team **Sivasaran Babu**, bundle **com.sivasaran.reversecad.trial**, deployment target **iOS17.0**. Signing and actual phone capture are separate from unsigned compilation.
 
 Automated evidence is in [reports/TEST_REPORT.md](reports/TEST_REPORT.md). Synthetic/replay performance does **not** establish phone sensing accuracy, real dimensions, printed fit or strength. The [phone and print test plan](PHONE_TEST_PLAN.md) is the physical acceptance procedure.
 
@@ -38,9 +44,9 @@ This uses a dedicated **ReverseCAD Trial** simulator and does not reset unrelate
 1. Open **Service**, enter the loopback URL and private pairing token, and check the connection.
 2. Create a **Synthetic sample** project and load the replay. The source is labeled synthetic; Simulator never claims live LiDAR.
 3. Process the scan. The app uploads original calibrated RGB/depth/poses, then downloads the real reconstruction.
-4. Review the object. Select damage/contact points, correct the crop, review scale and enter critical manual dimensions in **Evidence**. Save evidence; reprocess after crop/scale changes.
-5. In **Design**, select a supported family and attachment method. Request evidence-based candidates when available, inspect assumptions and choose/edit bounded parameters. Default dimensions are design proposals, not measured holes or verified interfaces.
-6. Acknowledge unresolved fit for prototype generation/export. Generate and inspect **Results**, the scan/part comparison, validity, missing dimensions, collisions, assembly and printer checks.
+4. In the single guided project screen, mark damage and surviving attachment surfaces. Add critical manual dimensions when available. Crop, scale and raw evidence controls are under disclosures.
+5. Choose a supported repair type and attachment method. Request evidence-based candidates, inspect assumptions and edit bounded parameters as needed. Default dimensions are design proposals, not measured holes or verified interfaces.
+6. Acknowledge unresolved fit for prototype generation/export. Generate and compare the blue scan with the orange proposed part, then review validation and unresolved measurements.
 7. Export verified STEP, STL,3MF, editable source/parameters, fit coupon and reports through the native share sheet. Each new generation is a new revision. Save/reopen the project and record physical results only for the revision actually printed.
 
 A valid BREP is allowed to remain **Needs measurements** for fit. Acknowledged prototype export does not turn it into a fit-validated part. Unresolved or unsupported attachment geometry must receive more evidence.
@@ -95,3 +101,5 @@ Every accepted CAD revision includes genuine STEP, watertight STL, tested millim
 - **Failed/cancelled job:** saved raw data remains. Resume missing uploads or start/retry processing; explicit cancel reaches the subprocess. A terminal result must still have intact artifacts.
 - **Provider missing/unavailable:** use manual mode. Configure a server key and explicitly consent before live image reasoning; provider failures do not become simulated success.
 - **Invalid geometry:** fix the reported bounded parameter/attachment conflict. No automatic resizing of a confirmed measurement is allowed.
+
+See [reconstruction options and VideoCAD assessment](docs/RECONSTRUCTION_OPTIONS.md) for the next pipeline stage.

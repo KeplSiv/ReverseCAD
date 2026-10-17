@@ -10,6 +10,7 @@ final class WorkflowTests:XCTestCase {
         if token.isEmpty {throw NSError(domain:"ReverseCADIntegration",code:1,userInfo:[NSLocalizedDescriptionKey:"Start scripts/start_service.sh; a real paired service token is required for this non-mocked integration test."])}
         app.launchEnvironment["REVERSECAD_TEST_TOKEN"]=token
         app.launchEnvironment["REVERSECAD_TEST_URL"]="http://127.0.0.1:8767"
+        app.launchArguments.append("-legacyWorkflow")
         app.launch()
     }
     func scrollTo(_ element:XCUIElement,up:Bool=true) {
@@ -38,6 +39,7 @@ final class WorkflowTests:XCTestCase {
         let replay=app.buttons["loadReplay"];scrollTo(replay);replay.tap()
         let saved=app.otherElements["scanSaved"]
         XCTAssertTrue(app.buttons["processScan"].waitForExistence(timeout:30))
+        app.buttons["Scan tips and project tools"].tap()
         scrollTo(app.buttons["exportScan"]);app.buttons["exportScan"].tap()
         XCTAssertTrue(app.buttons["Close"].waitForExistence(timeout:15) || app.buttons["Save to Files"].exists)
         screenshot("00-native-scan-package-export")
@@ -51,28 +53,29 @@ final class WorkflowTests:XCTestCase {
         }
         waitForSuccess(app.staticTexts["Scan reconstructed"],timeout:180)
         screenshot("01-reconstructed-synthetic-scan")
-        app.buttons["Evidence"].tap()
         let preview=app.descendants(matching:.any).matching(NSPredicate(format:"identifier IN %@",["scanPreview","geometryPreview"])).firstMatch
         XCTAssertTrue(preview.waitForExistence(timeout:15))
+        app.buttons["mark_contact"].tap()
         scrollTo(preview)
         for position in [CGVector(dx:0.39,dy:0.39),CGVector(dx:0.64,dy:0.45)] {
             preview.coordinate(withNormalizedOffset:position).tap()
         }
-        XCTAssertTrue(app.staticTexts["annotationCount"].label.hasPrefix("2 contacts"),"Two spatially separate observed surface taps must create two contacts.")
+        XCTAssertTrue(app.staticTexts["annotationCount"].label.contains("2 attachment marks"),"Two spatially separate observed surface taps must create two contacts.")
         screenshot("01b-two-observed-contact-patches")
+        app.buttons["Add a measured dimension"].tap()
         let manual=app.textFields["manualValue"];scrollTo(manual);text(manual,"80")
         scrollTo(app.buttons["saveMeasurement"]);app.buttons["saveMeasurement"].tap()
+        app.buttons["More scan evidence"].tap()
         scrollTo(app.buttons["saveEvidence"]);app.buttons["saveEvidence"].tap()
-        app.buttons["Design"].tap()
         let suggest=app.buttons["suggestCandidates"];scrollTo(suggest);suggest.tap()
-        waitForSuccess(app.buttons["Apply candidate"].firstMatch,timeout:30)
-        scrollTo(app.buttons["Apply candidate"].firstMatch);screenshot("01c-evidence-linked-candidates");app.buttons["Apply candidate"].firstMatch.tap()
+        waitForSuccess(app.buttons["applyCandidate"].firstMatch,timeout:30)
+        scrollTo(app.buttons["applyCandidate"].firstMatch);screenshot("01c-evidence-linked-candidates");app.buttons["applyCandidate"].firstMatch.tap()
+        app.buttons["Edit dimensions and advanced options"].tap()
         scrollTo(app.textFields["param_hole_diameter"]);text(app.textFields["param_hole_diameter"],"0")
         let ack=app.switches["acknowledgeFit"];scrollTo(ack);ack.tap()
         let generate=app.buttons["generateRepair"];scrollTo(generate);XCTAssertTrue(generate.isEnabled);generate.tap()
         waitForSuccess(app.staticTexts["CAD checks passed"],timeout:180)
-        app.buttons["Results"].tap()
-        XCTAssertTrue(app.staticTexts["Repair revision 1"].waitForExistence(timeout:10))
+        XCTAssertTrue(app.staticTexts["Repair revision 1 · proposed geometry"].waitForExistence(timeout:10))
         screenshot("02-cad-comparison-validation")
         let export=app.buttons["exportCAD"];scrollTo(export);XCTAssertTrue(export.isEnabled);export.tap()
         XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout:10) || app.buttons["Copy"].exists || app.buttons["Save to Files"].exists,app.debugDescription)
@@ -81,15 +84,15 @@ final class WorkflowTests:XCTestCase {
         app.terminate();app.launch()
         let sample=app.buttons.matching(NSPredicate(format:"label CONTAINS 'Synthetic sample' AND label CONTAINS 'Bridge handle'")).firstMatch
         XCTAssertTrue(sample.waitForExistence(timeout:10));sample.tap()
-        app.buttons["Results"].tap()
-        XCTAssertTrue(app.staticTexts["Repair revision 1"].waitForExistence(timeout:10))
-        app.buttons["Design"].tap()
+        XCTAssertTrue(app.staticTexts["Repair revision 1 · proposed geometry"].waitForExistence(timeout:10))
+        app.buttons["editRepair"].tap()
+        app.buttons["Edit dimensions and advanced options"].tap()
         scrollTo(app.textFields["param_standoff"]);text(app.textFields["param_standoff"],"34")
         scrollTo(app.buttons["generateRepair"]);app.buttons["generateRepair"].tap()
         waitForSuccess(app.staticTexts["CAD checks passed"],timeout:180)
-        app.buttons["Results"].tap()
-        XCTAssertTrue(app.staticTexts["Repair revision 2"].waitForExistence(timeout:10))
+        XCTAssertTrue(app.staticTexts["Repair revision 2 · proposed geometry"].waitForExistence(timeout:10))
         screenshot("04-edited-revision-preserved-scan")
+        app.buttons["Record a print and fit test"].tap()
         let note="Synthetic software UI test note; no print performed"
         let feedback=app.descendants(matching:.any)["fitFeedback"]
         scrollTo(feedback);text(feedback,note)
@@ -97,7 +100,8 @@ final class WorkflowTests:XCTestCase {
         XCTAssertTrue(app.staticTexts["Saved locally"].waitForExistence(timeout:5))
         app.terminate();app.launch()
         let reopened=app.buttons.matching(NSPredicate(format:"label CONTAINS 'Synthetic sample' AND label CONTAINS 'Bridge handle'")).firstMatch
-        XCTAssertTrue(reopened.waitForExistence(timeout:10));reopened.tap();app.buttons["Results"].tap()
+        XCTAssertTrue(reopened.waitForExistence(timeout:10));reopened.tap()
+        app.buttons["Record a print and fit test"].tap()
         let persisted=app.descendants(matching:.any)["fitFeedback"];scrollTo(persisted)
         XCTAssertEqual(persisted.value as? String,note)
         XCTAssertTrue(app.buttons["Not tested"].exists || app.staticTexts.matching(NSPredicate(format:"label CONTAINS 'Physical fit: not tested'")).firstMatch.exists)

@@ -20,6 +20,7 @@
 		9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */; };
 		919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */; };
 		99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
+		F0E1D2C3B4A5968778695A4B /* CubeDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E1D2C3B4A5968778695A4C /* CubeDemoView.swift */; };
 		9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
 		A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD495AA0DD470634824266B4 /* CaptureTests.swift */; };
 		AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC6703596E6A072522048B /* WorkflowTests.swift */; };
@@ -45,14 +46,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifacts.swift; sourceTree = "<group>"; };
 		44149E87E66872F41062845F /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
 		4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceView.swift; sourceTree = "<group>"; };
 		56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePatchNormalTests.swift; sourceTree = "<group>"; };
 		5F233DECD28562188E374166 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		62C4B8D600B0E72F9EF6D166 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F0E1D2C3B4A5968778695A4C /* CubeDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeDemoView.swift; sourceTree = "<group>"; };
+		66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		69E20958356C2A7F12BCBCFE /* ReverseCADUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverseCADUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B2216233562031C3EFE9C22 /* ReverseCADTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverseCADTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifactsTests.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
 				CD62E45CC23E859803453CF8 /* CaptureController.swift */,
 				62C4B8D600B0E72F9EF6D166 /* ContentView.swift */,
+				F0E1D2C3B4A5968778695A4C /* CubeDemoView.swift */,
 				44149E87E66872F41062845F /* DesignView.swift */,
 				4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */,
 				82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */,
@@ -218,16 +221,15 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					05278DC82E8E6634A74CB86D = {
-						DevelopmentTeam = 5B3Y68ZB2Y;
 						ProvisioningStyle = Automatic;
 					};
 					9D91E802A3252855769FC2ED = {
-						DevelopmentTeam = 5B3Y68ZB2Y;
+						DevelopmentTeam = 9ZZ88Z7G7B;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 05278DC82E8E6634A74CB86D;
 					};
 					B741F086A39095953C01965A = {
-						DevelopmentTeam = 5B3Y68ZB2Y;
+						DevelopmentTeam = 9ZZ88Z7G7B;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -278,6 +280,7 @@
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
 				99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */,
+				F0E1D2C3B4A5968778695A4B /* CubeDemoView.swift in Sources */,
 				9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */,
 				181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */,
 				919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */,
@@ -357,7 +360,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
+				DEVELOPMENT_TEAM = 9ZZ88Z7G7B;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -403,6 +406,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9ZZ88Z7G7B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ReverseCAD/Info.plist;
@@ -411,7 +415,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCAD;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sivasaran.reversecad.trial;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -470,7 +474,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
+				DEVELOPMENT_TEAM = 9ZZ88Z7G7B;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -506,6 +510,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9ZZ88Z7G7B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ReverseCAD/Info.plist;
@@ -514,7 +519,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCAD;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sivasaran.reversecad.trial;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

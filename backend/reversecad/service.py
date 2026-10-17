@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -356,7 +358,35 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     @app.get("/v1/capabilities",dependencies=[Depends(authorize)])
     def capabilities():
         from .cad import template_catalog
-        return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+        return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+
+    @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
+    def analyze_cube(body: dict[str, Any]):
+        from .cube import CubeInputError, analyze_cube_face
+        encoded = body.get("photo_base64")
+        if not isinstance(encoded, str):
+            error(422,"invalid_photo","Select a cube photo before analyzing")
+        try:
+            photo = base64.b64decode(encoded, validate=True)
+            return analyze_cube_face(photo, body.get("corners"))
+        except (ValueError, binascii.Error, CubeInputError) as exc:
+            error(422,"cube_analysis_needs_input",str(exc))
+
+    @app.post("/v1/cube/exterior",dependencies=[Depends(authorize)])
+    def make_cube_exterior(body: dict[str, Any]):
+        from .cube import CubeInputError, build_outer_cubie
+        try:
+            width = float(body["face_width_mm"])
+            analysis = body.get("analysis")
+            details = analysis.get("exterior_details", {}) if isinstance(analysis, dict) else {}
+            if not isinstance(details, dict):
+                raise CubeInputError("Invalid exterior detail estimates")
+            gap = float(body["piece_gap_mm"]) if "piece_gap_mm" in body else width * float(details.get("gap_face_fraction", .01))
+            radius = float(body["corner_radius_mm"]) if "corner_radius_mm" in body else width * float(details.get("radius_face_fraction", .02))
+            artifacts = build_outer_cubie(width, gap, radius, analysis)
+        except (KeyError, TypeError, ValueError, CubeInputError) as exc:
+            error(422,"cube_dimensions_need_input",str(exc))
+        return {"schema_version":1,"scope":"exterior_envelope_only","physical_fit":"not_tested","artifacts":artifacts}
 
     @app.post("/v1/scans",dependencies=[Depends(authorize)])
     def create_scan(body: CreateScan):

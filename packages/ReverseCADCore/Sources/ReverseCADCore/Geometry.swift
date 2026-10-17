@@ -15,7 +15,12 @@ public enum Geometry {
     public static func transform(_ point: [Double], by matrix: [Double]) throws -> [Double] {
         try validateRigidTransform(matrix)
         guard point.count == 3, point.allSatisfy(\.isFinite) else { throw CoreError.invalid("Point must contain three finite coordinates.") }
-        return (0..<3).map { r in matrix[r]*point[0] + matrix[r+4]*point[1] + matrix[r+8]*point[2] + matrix[r+12] }
+        return (0..<3).map { r in
+            let x = matrix[r] * point[0]
+            let y = matrix[r + 4] * point[1]
+            let z = matrix[r + 8] * point[2]
+            return x + y + z + matrix[r + 12]
+        }
     }
     /// Resized image pixel centers use c'=(c+0.5)*scale-0.5. Apple's native ARKit depth uses c'=c*scale.
     public static func scaledIntrinsics(_ k: [Double], fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int, mode: String = "pixel_center") throws -> [Double] {

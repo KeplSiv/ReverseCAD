@@ -8,8 +8,9 @@ struct ResultsView:View {
     @State private var feedbackSaved=false
     var body:some View {
         VStack(alignment:.leading,spacing:18) {
-            Text(project.revision>0 ? "Repair revision \(project.revision)":"Compare and validate").font(.title2.bold()).accessibilityIdentifier("revisionTitle")
-            GeometryPreview(scan:model.scanMesh,part:model.partMesh,showScan:showScan,showPart:showPart,selectionMode:"none").frame(height:300).clipShape(RoundedRectangle(cornerRadius:16)).accessibilityIdentifier("comparisonPreview")
+            Text(project.revision>0 ? "4. Review your repair":"4. Compare and validate").font(.title2.bold()).accessibilityIdentifier("revisionTitle")
+            Text("Repair revision \(project.revision) · proposed geometry").font(.subheadline).foregroundStyle(.secondary)
+            GeometryPreview(scan:model.scanMesh,part:model.partMesh,showScan:showScan,showPart:showPart,selectionMode:"none",contactPoints:project.contacts.map(\.point),damagePoints:project.damage).frame(height:300).clipShape(RoundedRectangle(cornerRadius:16)).accessibilityIdentifier("comparisonPreview")
             HStack {Toggle("Observed scan",isOn:$showScan).tint(.blue);Toggle("Proposed part",isOn:$showPart).tint(.orange)}.font(.caption)
             HStack {Label("Observed",systemImage:"circle.fill").foregroundStyle(.blue);Label("Inferred repair",systemImage:"circle.fill").foregroundStyle(.orange)}.font(.caption)
             VStack(alignment:.leading,spacing:12) {
@@ -21,10 +22,15 @@ struct ResultsView:View {
                 }
             }.card()
             if !model.artifacts.isEmpty {
-                VStack(alignment:.leading,spacing:10) {Text("Verified files").font(.headline);ForEach(model.artifacts){file in HStack {Image(systemName:file.name.hasSuffix("step") ? "cube":"doc");Text(file.name).font(.caption.monospaced());Spacer();Text(ByteCountFormatter.string(fromByteCount:Int64(file.size),countStyle:.file)).font(.caption).foregroundStyle(.secondary)}};Text("Hashes checked after download. STEP/STL use millimeters. Parameters and trusted source preserve editability.").font(.caption).foregroundStyle(.secondary)}.card()
                 Button {model.exportArtifacts()} label:{Label("Export CAD & fit coupons",systemImage:"square.and.arrow.up").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).disabled(!model.validForExport).accessibilityIdentifier("exportCAD")
+                DisclosureGroup("CAD files and validation details") {
+                    VStack(alignment:.leading,spacing:10) {
+                        ForEach(model.artifacts){file in HStack {Image(systemName:file.name.hasSuffix("step") ? "cube":"doc");Text(file.name).font(.caption.monospaced());Spacer();Text(ByteCountFormatter.string(fromByteCount:Int64(file.size),countStyle:.file)).font(.caption).foregroundStyle(.secondary)}}
+                        Text("Hashes checked after download. STEP/STL use millimeters; parameters and source preserve editability.").font(.caption).foregroundStyle(.secondary)
+                    }.padding(.top,8)
+                }.card()
             }
-            VStack(alignment:.leading,spacing:12) {
+            DisclosureGroup("Record a print and fit test") {VStack(alignment:.leading,spacing:12) {
                 Text("Record a real print trial · revision \(project.revision)").font(.headline)
                 Text("Leave this untested until an actual coupon or part is printed and compared with independent measurements.").font(.caption).foregroundStyle(.secondary)
                 Picker("Physical fit",selection:binding(\.physicalFit)){Text("Not tested").tag("Not tested");Text("Coupon passed").tag("Coupon passed");Text("Part fits").tag("Part fits");Text("Adjustment needed").tag("Adjustment needed")}
@@ -34,7 +40,7 @@ struct ResultsView:View {
                 Button("Save physical-test notes"){model.save();feedbackSaved=true}.accessibilityIdentifier("saveFeedback")
                 if let history=project.trialHistory,!history.isEmpty {DisclosureGroup("Previous revision trials"){ForEach(Array(history.enumerated()),id:\.offset){_,trial in Text("Revision \(trial.revision): \(trial.fit). \(trial.feedback)").font(.caption)}}}
                 if feedbackSaved {Label("Saved locally",systemImage:"checkmark.circle").font(.caption)}
-            }.card()
+            }.padding(.top,8)}.card()
         }
     }
     var prettyValidation:String {guard let d=try? JSONSerialization.data(withJSONObject:model.validation,options:[.prettyPrinted,.sortedKeys]),let s=String(data:d,encoding:.utf8) else{return ""};return s}

@@ -45,6 +45,8 @@ struct GeometryPreview: UIViewRepresentable {
     var showScan: Bool = true
     var showPart: Bool = true
     var selectionMode: String = "contact"
+    var contactPoints: [[Double]] = []
+    var damagePoints: [[Double]] = []
     var onReject: (String) -> Void = { _ in }
     var onSelect: ([Double], [Double]) -> Void = { _, _ in }
 
@@ -86,6 +88,9 @@ struct GeometryPreview: UIViewRepresentable {
         private var scanNode: SCNNode?
         private var partNode: SCNNode?
         private var markerNode: SCNNode?
+        private var savedMarkers: [SCNNode] = []
+        private var lastContactPoints: [[Double]] = []
+        private var lastDamagePoints: [[Double]] = []
         private var points: [SIMD3<Float>] = []
         private var normals: [SIMD3<Float>?] = []
         private var radius: Float = 0.1
@@ -119,6 +124,26 @@ struct GeometryPreview: UIViewRepresentable {
             partNode?.isHidden = !newValue.showPart
             // Preserve a user's orbit while annotations, toggles, or network state change.
             if scanChanged || partChanged || !didFit { fitCamera() }
+            if scanChanged || lastContactPoints != newValue.contactPoints || lastDamagePoints != newValue.damagePoints {
+                savedMarkers.forEach { $0.removeFromParentNode() }
+                markerNode?.removeFromParentNode()
+                markerNode = nil
+                savedMarkers = []
+                for (positions, color) in [(newValue.contactPoints, UIColor.systemYellow), (newValue.damagePoints, UIColor.systemPink)] {
+                    for position in positions where position.count == 3 && position.allSatisfy(\.isFinite) {
+                        let sphere = SCNSphere(radius: CGFloat(min(0.004, max(0.001, radius * 0.025))))
+                        sphere.firstMaterial?.diffuse.contents = color
+                        sphere.firstMaterial?.lightingModel = .constant
+                        let marker = SCNNode(geometry: sphere)
+                        marker.simdPosition = SIMD3(Float(position[0]), Float(position[1]), Float(position[2]))
+                        marker.categoryBitMask = 4
+                        scene.rootNode.addChildNode(marker)
+                        savedMarkers.append(marker)
+                    }
+                }
+                lastContactPoints = newValue.contactPoints
+                lastDamagePoints = newValue.damagePoints
+            }
             view.accessibilityValue = newValue.selectionMode == "damage" ? "Select a damage location" : "Select a contact surface"
         }
 

@@ -307,7 +307,10 @@ final class AppModel: ObservableObject {
     func generate() {perform {
         guard let p=self.project,let scanID=p.scanID else{throw ServiceFailure(message:"Capture and process a scan first.")}
         _ = try await self.object("v1/scans/\(scanID)/annotations",method:"PUT",json:self.annotationJSON())
-        var body:[String:Any]=["scan_id":scanID,"family":p.family,"parameters":p.parameters,"attachment_method":p.attachment,"mode":p.mode,"provider_consent":p.mode=="live","acknowledge_uncertainty":p.acknowledged,"description":p.intent,"manufacturing":["nozzle_diameter_mm":p.nozzle,"layer_height_mm":p.layerHeight,"material":p.material,"build_volume_mm":p.buildVolume ?? [220,220,250],"minimum_wall_mm":p.minimumWall ?? 1.2]]
+        let buildVolume: [Double] = p.buildVolume ?? [220,220,250]
+        let minimumWall: Double = p.minimumWall ?? 1.2
+        let manufacturing: [String:Any] = ["nozzle_diameter_mm":p.nozzle,"layer_height_mm":p.layerHeight,"material":p.material,"build_volume_mm":buildVolume,"minimum_wall_mm":minimumWall]
+        var body:[String:Any]=["scan_id":scanID,"family":p.family,"parameters":p.parameters,"attachment_method":p.attachment,"mode":p.mode,"provider_consent":p.mode=="live","acknowledge_uncertainty":p.acknowledged,"description":p.intent,"manufacturing":manufacturing]
         if let candidate=p.candidateID {body["candidate_id"]=candidate}
         let fingerprint=CaptureIO.sha256(try JSONSerialization.data(withJSONObject:["request":body,"annotations":self.annotationJSON()],options:.sortedKeys))
         var route=p.repairID.map{"v1/repairs/\($0)/revisions"} ?? "v1/repairs"

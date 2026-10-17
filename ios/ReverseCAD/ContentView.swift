@@ -3,8 +3,16 @@ import UniformTypeIdentifiers
 import ImageIO
 
 struct ContentView: View {
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
+        else { CubeDemoView() }
+    }
+}
+
+struct LegacyContentView: View {
     @EnvironmentObject var model: AppModel
     @State private var settings = false
+    @State private var cubeDemo = false
     @State private var newProject = false
     @State private var name = ""
     var body: some View {
@@ -17,11 +25,12 @@ struct ContentView: View {
                         VStack(alignment:.leading,spacing:22) {
                             VStack(alignment:.leading,spacing:10) {
                                 Image(systemName:"cube.transparent.fill").font(.system(size:42)).foregroundStyle(.teal)
-                                Text("Measure what remains.\nDesign what’s missing.").font(.largeTitle.bold())
-                                Text("Capture a stationary object, confirm its interfaces, and make an editable repair.").foregroundStyle(.secondary)
+                                Text("Repair what’s missing").font(.largeTitle.bold())
+                                Text("Start with a missing Rubik’s cube piece, or scan a supported mechanical repair.").foregroundStyle(.secondary)
                             }.padding(.vertical)
-                            Button {newProject=true} label:{Label("New repair project",systemImage:"plus.circle.fill").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("newProject")
-                            Button {model.create(name:"Synthetic sample",synthetic:true)} label:{Label("Explore synthetic sample",systemImage:"cube.transparent").frame(maxWidth:.infinity)}.buttonStyle(.bordered).accessibilityIdentifier("sampleProject")
+                            Button {cubeDemo=true} label:{Label("Scan a cube",systemImage:"square.dashed.inset.filled").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("cubeDemo")
+                            Button {newProject=true} label:{Label("Scan another part",systemImage:"plus.circle.fill").frame(maxWidth:.infinity)}.buttonStyle(.bordered).controlSize(.large).accessibilityIdentifier("newProject")
+                            Button {model.create(name:"Synthetic sample",synthetic:true)} label:{Label("Try sample repair",systemImage:"cube.transparent").frame(maxWidth:.infinity)}.buttonStyle(.bordered).accessibilityIdentifier("sampleProject")
                             if !model.projects.isEmpty {Text("Your projects").font(.title2.bold())}
                             ForEach(model.projects) {p in
                                 Button {model.select(p)} label:{
@@ -44,6 +53,7 @@ struct ContentView: View {
             }
             .toolbar {ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}.accessibilityIdentifier("keyboardDone")}}
             .sheet(isPresented:$settings) {SettingsView()}
+            .sheet(isPresented:$cubeDemo) {CubeDemoView().environmentObject(model)}
             .sheet(isPresented:$newProject) {NavigationStack {Form {TextField("Object name",text:$name).accessibilityIdentifier("projectName");Text("Your scan stays on this phone until you choose Process scan.").font(.footnote)}.navigationTitle("New repair").toolbar {ToolbarItem(placement:.confirmationAction){Button("Create"){model.create(name:name,synthetic:false);name="";newProject=false}.accessibilityIdentifier("createProject")};ToolbarItem(placement:.cancellationAction){Button("Cancel"){newProject=false}}}}}
             .sheet(isPresented:$model.showingShare) {ShareSheet(urls:model.shareURLs)}
             .alert("Action needs attention",isPresented:Binding(get:{model.error != nil && !settings},set:{if !$0 && !settings {model.error=nil}})) {Button("OK",role:.cancel){model.error=nil}} message:{Text(model.error ?? "")}
@@ -76,41 +86,56 @@ struct ProjectView:View {
     @EnvironmentObject var model:AppModel
     @StateObject private var capture=CaptureController()
     let project:RepairProject
-    @State private var tab=0
+    @State private var editingRepair=false
     @State private var importing=false
     @State private var deleteConfirm=false
     @State private var motionDiagnostics=false
     var body:some View {
         VStack(spacing:0) {
             HStack {Text(project.source=="synthetic" ? "SYNTHETIC SAMPLE":"LOCAL SCAN").font(.caption2.bold()).padding(6).background(.teal.opacity(0.12),in:Capsule());Spacer();Text(project.stage).font(.caption).foregroundStyle(.secondary)}.padding(.horizontal).padding(.top,8)
-            Picker("Workflow",selection:$tab) {Text("Capture").tag(0);Text("Evidence").tag(1);Text("Design").tag(2);Text("Results").tag(3)}.pickerStyle(.segmented).padding().accessibilityIdentifier("workflowTabs")
             if model.busy || !model.progress.isEmpty {
                 HStack(alignment:.top) {if model.busy {ProgressView()};Text(model.progress).font(.caption);Spacer();if model.busy {Button("Cancel"){model.cancel()}.font(.caption).accessibilityIdentifier("cancelJob")}}
                     .padding(12).background(.teal.opacity(0.08)).accessibilityElement(children:.contain)
             }
             ScrollView {
                 VStack(alignment:.leading,spacing:18) {
-                    switch tab {
-                    case 0: captureTab
-                    case 1: EvidenceView(project:project)
-                    case 2: DesignView(project:project)
-                    default: ResultsView(project:project)
+                    if project.revision > 0 && !editingRepair {
+                        ResultsView(project:project)
+                        Button("Edit this repair") { editingRepair=true }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("editRepair")
+                    } else if model.scanMesh != nil {
+                        workflowIntro
+                        EvidenceView(project:project)
+                        DesignView(project:project)
+                    } else {
+                        captureTab
                     }
                     if let _=project.jobID,!model.busy {Button("Resume saved job"){model.resumeJob()}.buttonStyle(.borderedProminent).accessibilityIdentifier("resumeJob")}
                 }.padding(18).disabled(model.busy)
-            }.id(tab).background(Color(.systemGroupedBackground))
+            }.background(Color(.systemGroupedBackground))
         }
+        .onChange(of:project.revision) { _,_ in editingRepair=false }
         .onChange(of:capture.isCapturing) { _,active in model.captureActive=active }
         .onChange(of:capture.savedRevision) { _,_ in if let url=capture.packageURL {model.didCapture(url)} }
         .fileImporter(isPresented:$importing,allowedContentTypes:[.folder]) {result in if case .success(let url)=result {model.importScan(url)}}
         .confirmationDialog("Delete project data?",isPresented:$deleteConfirm,titleVisibility:.visible) {Button("Delete local project",role:.destructive){model.deleteProject(server:false)};Button("Delete local and paired server data",role:.destructive){model.deleteProject(server:true)}}
     }
+    var workflowIntro:some View {
+        VStack(alignment:.leading,spacing:8) {
+            Text("Rebuild what’s missing").font(.title.bold())
+            Text("1. Mark the break and surviving attachment surfaces. 2. Choose a proposed replacement. 3. Compare the CAD with the scan.")
+                .font(.subheadline).foregroundStyle(.secondary)
+            Label("Blue is captured geometry. Orange is a proposed repair, not a measured original shape.",systemImage:"info.circle")
+                .font(.footnote).foregroundStyle(.secondary)
+        }.card()
+    }
     var captureTab:some View {
         VStack(alignment:.leading,spacing:18) {
             VStack(alignment:.leading,spacing:10) {
-                Label(capture.hasLiDAR ? "Live LiDAR available":capture.hasAR ? "Camera / manual capture":"Replay and manual workflow",systemImage:capture.hasLiDAR ? "viewfinder":"play.rectangle")
-                    .font(.headline)
-                Text(capture.hasLiDAR ? "Native depth + RGB + ARKit visual-inertial pose":"Live LiDAR is unavailable here. Synthetic replay is labeled; camera-only capture cannot establish depth measurements.").font(.footnote).foregroundStyle(.secondary)
+                Text(project.scanID == nil ? "1. Scan the broken part" : "1. Process your scan").font(.title2.bold())
+                Text(project.scanID == nil ? "Keep the part still and move your phone around it. Include the intact places where a replacement would attach." : "The scan is saved on this phone. Process it on the paired Mac to see the captured shape and mark the break.")
+                    .font(.subheadline).foregroundStyle(.secondary)
             }.card()
             if capture.isCapturing {
                 CapturePreview(session:capture.session,onSelect:{capture.selectObject(normalizedRawImagePoint:$0)}).frame(height:280).clipShape(RoundedRectangle(cornerRadius:18)).overlay(alignment:.center){Image(systemName:"scope").font(.system(size:70,weight:.ultraLight)).foregroundStyle(.white).allowsHitTesting(false)}
@@ -119,24 +144,27 @@ struct ProjectView:View {
                 HStack {metric("Frames",String(capture.frameCount));metric("Dropped",String(capture.droppedFrames));metric("MiB",String(format:"%.1f",Double(capture.bytesWritten)/1048576))}
                 Button("Finish and save scan") {Task {do {let url=try await capture.stop();model.didCapture(url)} catch {model.error=error.localizedDescription}}}.buttonStyle(.borderedProminent).accessibilityIdentifier("finishScan")
             } else {
-                if let mesh=model.scanMesh {GeometryPreview(scan:mesh,part:nil,selectionMode:"none").frame(height:250).clipShape(RoundedRectangle(cornerRadius:16))}
-                VStack(alignment:.leading,spacing:12) {
-                    Text("Keep the object still").font(.title3.bold())
-                    instruction("1","Use diffuse light and a textured support.")
-                    instruction("2","Center the object. Move the phone around it with overlapping views at different heights.")
-                    instruction("3","Capture the attachment regions and include a measured reference.")
-                }.card()
-                if capture.hasAR {Toggle("Optional motion diagnostics",isOn:$motionDiagnostics).font(.caption);Button {Task {do {guard let dir=model.scanDirectory else{return};try await capture.start(directory:dir,scanID:UUID().uuidString,motionDiagnostics:motionDiagnostics)} catch {model.error=error.localizedDescription}}} label:{Label("Start live capture",systemImage:"camera.fill").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).disabled(project.scanID != nil).accessibilityIdentifier("startCapture")}
-                Button {model.replay(capture)} label:{Label("Load synthetic replay",systemImage:"play.rectangle.fill").frame(maxWidth:.infinity)}.buttonStyle(.bordered).disabled(model.busy || project.scanID != nil).accessibilityIdentifier("loadReplay")
-                Text("Replay follows the same CaptureFrame contract. It tests software, not iPhone sensor accuracy.").font(.caption).foregroundStyle(.secondary)
                 if project.scanID != nil {
                     Label("Scan saved on device",systemImage:"checkmark.circle.fill").foregroundStyle(.teal).accessibilityIdentifier("scanSaved")
                     Button {model.uploadAndReconstruct()} label:{Label("Process scan",systemImage:"arrow.up.doc").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy).accessibilityIdentifier("processScan")
                     Text("Uploads this scan to your paired Mac. A lost connection preserves local data; retry sends only missing files.").font(.caption).foregroundStyle(.secondary)
-                    Button("Export scan package"){model.exportScan()}.accessibilityIdentifier("exportScan")
+                } else {
+                    if capture.hasAR {Button {Task {do {guard let dir=model.scanDirectory else{return};try await capture.start(directory:dir,scanID:UUID().uuidString,motionDiagnostics:motionDiagnostics)} catch {model.error=error.localizedDescription}}} label:{Label("Start scan",systemImage:"camera.fill").frame(maxWidth:.infinity)}.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("startCapture")}
+                    Button {model.replay(capture)} label:{Label("Try a sample scan",systemImage:"play.rectangle.fill").frame(maxWidth:.infinity)}.buttonStyle(.bordered).disabled(model.busy).accessibilityIdentifier("loadReplay")
+                    Text("The sample tests the repair workflow. It does not test your phone’s scan accuracy.").font(.caption).foregroundStyle(.secondary)
                 }
-                Button("Import scan folder"){importing=true}.disabled(project.scanID != nil)
-                DisclosureGroup("Project data") {Button("Delete project…",role:.destructive){deleteConfirm=true}}
+                DisclosureGroup("Scan tips and project tools") {
+                    VStack(alignment:.leading,spacing:12) {
+                        instruction("1","Use diffuse light and a textured support.")
+                        instruction("2","Move around the still part with overlapping views.")
+                        instruction("3","Include attachment surfaces and a measured scale reference.")
+                        if !capture.hasLiDAR {Text("This device cannot capture LiDAR depth. Camera-only capture cannot establish reliable dimensions.").font(.footnote)}
+                        if capture.hasAR {Toggle("Motion diagnostics",isOn:$motionDiagnostics)}
+                        Button("Import scan folder"){importing=true}.disabled(project.scanID != nil)
+                        if project.scanID != nil {Button("Export scan package"){model.exportScan()}.accessibilityIdentifier("exportScan")}
+                        Button("Delete project…",role:.destructive){deleteConfirm=true}
+                    }.padding(.top,8)
+                }.card()
             }
         }
     }
