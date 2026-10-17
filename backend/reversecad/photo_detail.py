@@ -22,18 +22,23 @@ def stereo_pair(a, b):
     r1, r2, p1, p2, q, _, _ = cv2.stereoRectify(a['image_k'], None, b['image_k'], None,
         (w, h), relative[:3, :3], relative[:3, 3], flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
     # SGBM uses positive horizontal disparity; reverse the pair if necessary.
-    if abs(p2[1, 3]) > abs(p2[0, 3]):
-        return None
-    if p2[0, 3] >= 0:
+    vertical = abs(p2[1, 3]) > abs(p2[0, 3])
+    disparity_axis = 1 if vertical else 0
+    if p2[disparity_axis, 3] >= 0:
         return None
     maps = [cv2.initUndistortRectifyMap(f['image_k'], None, r, p[:, :3], (w, h), cv2.CV_32FC1)
             for f, r, p in ((a, r1, p1), (b, r2, p2))]
     left, right = [cv2.remap(im, *m, cv2.INTER_LINEAR) for im, m in zip((image_a, image_b), maps)]
     gray_l, gray_r = [cv2.cvtColor(im, cv2.COLOR_RGB2GRAY) for im in (left, right)]
+    if vertical:
+        # SGBM searches horizontally. Transpose only the matching images;
+        # restore the disparity map before Q reprojection in calibrated pixels.
+        gray_l, gray_r = gray_l.T.copy(), gray_r.T.copy()
+    h, w = gray_l.shape
     native = a['depth'][a['depth'] > 0]
     if native.size < 50:
         return None
-    maximum = int(np.ceil((abs(p2[0, 3]) / max(.04, np.percentile(native, 5) - .015) + 16) / 16) * 16)
+    maximum = int(np.ceil((abs(p2[disparity_axis, 3]) / max(.04, np.percentile(native, 5) - .015) + 16) / 16) * 16)
     if maximum >= w // 2 or maximum > 256:
         return None
     maximum = max(32, maximum)
@@ -70,6 +75,9 @@ def stereo_pair(a, b):
         delta = -numerator/np.maximum(denominator, 1)
         disparity = np.clip(disparity+np.clip(delta, -.25, .25), initial-.75, initial+.75)
     valid &= disparity > 1
+    if vertical:
+        disparity, valid, lr_error = disparity.T.copy(), valid.T.copy(), lr_error.T.copy()
+        h, w = disparity.shape
     xyz = cv2.reprojectImageTo3D(disparity, q)
     rect_pose = a['pose'].copy()
     rect_pose[:3, :3] = a['pose'][:3, :3] @ r1.T
@@ -122,30 +130,30 @@ def refine_photos(frames, scan_dir: Path, max_pairs=8):
     # Small overlapping baselines preserve common visibility. Never use distant
     # opposite views merely because they have similar repeated cube colors.
     selected = frames[::max(1, len(frames)//24)][:24]
-    attempts = 0
+    candidates = []
     for i, a in enumerate(selected):
-        candidates = [b for b in frames if b['frame_id'] != a['frame_id']
-                      and .006 <= np.linalg.norm(a['pose'][:3, 3]-b['pose'][:3, 3]) <= .06
-                      and np.dot(a['pose'][:3, 2], b['pose'][:3, 2]) > .97]
-        if not candidates:
-            continue
-        b = min(candidates, key=lambda b: abs(np.linalg.norm(a['pose'][:3, 3]-b['pose'][:3, 3])-.018))
+        for b in selected[i+1:]:
+            baseline = np.linalg.norm(a['pose'][:3, 3]-b['pose'][:3, 3])
+            if .006 <= baseline <= .06 and np.dot(a['pose'][:3, 2], b['pose'][:3, 2]) > .97:
+                candidates.append((abs(baseline-.018), a, b))
+    uses = {}; attempted = []
+    while candidates and len(attempted) < 12 and len(results) < max_pairs:
+        # Spend the bounded budget on distinct pairs and spread support across views.
+        candidates.sort(key=lambda item: (uses.get(item[1]['frame_id'],0)+uses.get(item[2]['frame_id'],0), item[0]))
+        _, a, b = candidates.pop(0)
+        pair = [a['frame_id'], b['frame_id']]
+        attempted.append(pair)
+        for frame_id in pair: uses[frame_id] = uses.get(frame_id,0)+1
         aa, bb = load(a), load(b)
-        if aa is None or bb is None:
-            continue
+        if aa is None or bb is None: continue
         detail = stereo_pair(aa, bb)
-        if detail is None:
-            detail = stereo_pair(bb, aa)
-        attempts += 1
+        if detail is None: detail = stereo_pair(bb, aa)
         if detail is not None:
-            pair = tuple(sorted(detail['source_frames']))
-            if not any(tuple(sorted(x['source_frames'])) == pair for x in results):
-                results.append(detail)
-                report['pairs'].append({'frame_ids': detail['source_frames'], 'pixels': int(np.count_nonzero(detail['depth'])),
-                                        'median_lr_error_px': detail['median_lr_error_px']})
+            results.append(detail)
+            report['pairs'].append({'frame_ids': detail['source_frames'], 'pixels': int(np.count_nonzero(detail['depth'])),
+                                    'median_lr_error_px': detail['median_lr_error_px']})
         cache.clear()
-        if len(results) >= max_pairs or attempts >= 12:
-            break
+    report['attempted_pairs'] = attempted
     report['accepted_pixels'] = sum(x['pixels'] for x in report['pairs'])
     report['status'] = 'photo_detail_integrated' if results else 'insufficient_photo_evidence'
     return report, results
@@ -179,3 +187,35 @@ def integration_frames(native_frames, detail_frames):
             removed += int(np.count_nonzero(supported & (target['depth'] > 0)))
             target['depth'][supported] = 0
     return derived+detail_frames, removed
+
+
+def cross_validate_details(details, tolerance_m=.001):
+    """Retain samples supported by a different stereo pair (at least 3 photos).
+
+    The tolerance is an agreement gate, not an accuracy claim. No filling,
+    smoothing or native depth substitution is performed here.
+    """
+    from .geometry import unproject
+    accepted = []
+    for i, source in enumerate(details):
+        rows, cols = np.nonzero(np.isfinite(source['depth']) & (source['depth'] > 0))
+        world, _ = unproject(source['depth'], source['k'], source['pose'])
+        supported = np.zeros(len(world), dtype=bool)
+        for j, target in enumerate(details):
+            if i == j or len(set(source['source_frames']) | set(target['source_frames'])) < 3:
+                continue
+            uv, z = project(world, target['k'], target['pose'])
+            valid = np.isfinite(uv).all(axis=1) & (z > 0)
+            h, w = target['depth'].shape
+            valid &= (uv[:,0]>=0)&(uv[:,0]<w-1)&(uv[:,1]>=0)&(uv[:,1]<h-1)
+            ids = np.flatnonzero(valid)
+            pixels = np.rint(uv[ids]).astype(int)
+            measured = target['depth'][pixels[:,1],pixels[:,0]]
+            supported[ids] |= (measured > 0) & (abs(measured-z[ids]) <= tolerance_m)
+        depth = np.zeros_like(source['depth'])
+        depth[rows[supported], cols[supported]] = source['depth'][rows[supported], cols[supported]]
+        if supported.sum() >= 100:
+            accepted.append({**source,'depth':depth})
+    count = sum(int(np.count_nonzero(f['depth'])) for f in accepted)
+    return accepted, {'cross_pair_supported_pixels':count, 'cross_pair_tolerance_mm':tolerance_m*1000,
+                     'minimum_source_photos':3,'accuracy_calibrated':False}

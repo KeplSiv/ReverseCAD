@@ -162,19 +162,36 @@ struct CubeDemoView: View {
             VStack(spacing: 18) {
                 if model.busy {
                     Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
+                } else if model.comparison != nil {
+                    ComparisonPanel().environmentObject(model)
                 } else if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
                     if !model.scanNeedsRescan || inspectFailedScan {
-                        GeometryPreview(scan: model.counterpartPrintable && showCounterpart ? nil : mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
+                        GeometryPreview(scan: mesh, part: model.patternMesh ?? (showCounterpart ? model.counterpartMesh : nil), selectionMode: "none")
                             .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
                     } else {
                         Spacer()
                         Image(systemName: "viewfinder.trianglebadge.exclamationmark").font(.system(size: 70)).foregroundStyle(.orange)
                     }
-                    Text(model.scanNeedsRescan ? model.scanFailureTitle : (model.exteriorEstimated ? "Estimated replacement" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface"))).font(.title2.bold())
+                    Text(model.selectedPattern != nil ? "Review proposed piece" : model.scanNeedsRescan ? model.scanFailureTitle : (model.exteriorEstimated ? "Estimated replacement" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface"))).font(.title2.bold())
                     if !model.repairMessage.isEmpty && !model.exteriorEstimated { Text(model.repairMessage).font(.subheadline).multilineTextAlignment(.center) }
-                    if !model.scanNeedsRescan { Text(model.exteriorEstimated ? "Exterior estimated from photos. Fine details, internal parts and fit are unverified. Cube context is inferred." : showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
+                    if !model.scanNeedsRescan && model.selectedPatternID == nil { Text(model.exteriorEstimated ? "Exterior estimated from photos. Fine details, internal parts and fit are unverified. Cube context is inferred." : showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
-                    if model.counterpartMesh != nil {
+                    if !model.scanNeedsRescan && !model.patternRepairs.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Picker("Repair proposal", selection: Binding(get: { model.selectedPatternID ?? "" }, set: { model.selectPattern($0) })) {
+                                Text("Choose a repair to inspect").tag("")
+                                ForEach(model.patternRepairs) { option in Text(option.title).tag(option.id) }
+                            }.disabled(model.busy).accessibilityIdentifier("patternPicker")
+                            if let option = model.selectedPattern {
+                                Text(option.validation.reason ?? "Orange is the proposed piece. Check that it matches the damaged area. \(option.validation.closure ?? "") · Physical fit is untested.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                                if option.validation.watertight {
+                                    Toggle("This matches the missing piece", isOn: $model.patternReviewed).font(.subheadline).accessibilityIdentifier("reviewPattern")
+                                }
+                            }
+                        }
+                    }
+                    if model.counterpartMesh != nil && model.selectedPatternID == nil {
                         Toggle("Show replacement piece", isOn: $showCounterpart)
                     }
                     if !model.photoDetailStatus.isEmpty && !model.exteriorEstimated {
@@ -189,6 +206,11 @@ struct CubeDemoView: View {
                         Button("Scan again") { resetScan() }.buttonStyle(.borderedProminent).controlSize(.large)
                         Button(inspectFailedScan ? "Hide failed scan" : "Inspect failed scan") { inspectFailedScan.toggle() }
                         Spacer()
+                    } else if let option = model.selectedPattern {
+                        Button(option.validation.watertight ? "Export test piece" : "More views needed") { model.exportPattern() }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(model.busy || !option.validation.watertight || !model.patternReviewed)
+                            .accessibilityIdentifier("exportPattern")
                     } else { Button(model.counterpartPrintable ? "Export printable piece" : (model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal")) { model.exportObservedSurface(printableOnly: model.counterpartPrintable) }
                         .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy) }
                 } else {
@@ -204,7 +226,8 @@ struct CubeDemoView: View {
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
-                            Button("Reprocess saved scan") { model.uploadAndReconstruct() }.disabled(model.busy)
+                            Button("Compare methods on saved scan") { model.uploadAndReconstruct() }.disabled(model.busy)
+                            Button("Standard reconstruction only") { model.uploadAndReconstruct(compareMethods: false) }.disabled(model.busy)
                             Button("Connection settings") { showSettings = true }
                         } label: { Image(systemName: "ellipsis.circle") }
                     }

@@ -100,3 +100,43 @@ In-app “How to capture detail” explains overlapping rings, close views of in
 ### Live repair overlay: required behavior, not yet implemented
 
 Preserve the observed full object. Once a stable candidate passes geometric and camera-consistency checks, render its mesh translucently in the current AR world coordinate frame, using its recorded donor-to-gap transform. Differentiate supported copied surfaces from inferred closures. Pause/hide the overlay when tracking or registration is lost; never reuse an old scan's world coordinates in a new session without registration. Additional views should confirm or reject a candidate. Guidance should eventually target candidate uncertainty (e.g. inspect a mating edge), rather than merely completing an orbit. The current phone build has capture coaching, not live missing-part detection or this overlay.
+
+## Local stereo recovery regression — 2026-10-17
+
+Three saved failed captures were replayed without modifying their source files. Two concrete defects were corrected: vertically rectified stereo was discarded, and reversed duplicate image pairs consumed the bounded attempt budget. Matching now transposes vertical pairs only for disparity search, restores calibrated pixel axes before 3D reprojection, and schedules distinct pairs across available views. Native scale/texture/left-right correspondence checks remain enforced.
+
+After COLMAP alignment, the inconsistent-native-scan branch now attempts photo recovery rather than only an outline estimate. A second stereo pair spanning at least three source photos must agree within a 1 mm gate before a sample enters a diagnostic partial surface. This gate is not a measured accuracy bound. Recovered patches are stored separately in `photo_recovered_surface_m.ply` and `photo_recovery.json`; native geometry, engineering measurements, and the printable-repair decision are unchanged. Unsupported gaps are not closed.
+
+Fresh full replays produced 49,282 / 60,371 / 3,790 stereo samples, with 11,583 / 15,503 / 698 surviving cross-pair agreement, and 665 / 3,709 / 79 partial-surface triangles. Before the fixes, the same captures with their saved COLMAP poses produced zero stereo samples. Fresh alignment can change exact counts. All three full runs still returned `needs_input` with no replacement generated. Reprojection of recovered patches onto a source image confirmed object-surface support, but coverage does not establish a complete intact donor or mating interface.
+
+Thirty local hybrid-detail/reconstruction tests passed, including analytic recovery of a 2 mm raised patch with vertical camera motion, rejection of textureless images and incorrect native scale, and rejection of duplicate-pair or contradictory cross-pair evidence. These are algorithm regression tests, not proof of phone dimensional accuracy. Changes remain local pending review; this test run did not install a new phone build.
+
+
+## General simple-object regression pass (2026-10-17)
+
+Expanded the bounded Open3D self-similarity search to mirror symmetry and repeated translation periods inferred from normal-variation autocorrelation. No object category or physical size is supplied. A coarse overlap check skips implausible ICP seeds. Proposal extraction now measures distance to observed triangles, not just vertices: vertex distance incorrectly classified the interiors of large flat faces as missing geometry.
+
+Synthetic mesh cases cover a radial part with a missing collared stud, a rail with a missing rib, and a bracket with a missing mounting feature, plus complete versions of each. All three broken cases yield a candidate near the withheld feature; complete cases yield none. The automated cases rotate, translate, and rescale the objects and also pass. These are mesh-level, noise-free tests, not physical accuracy or phone scanning benchmarks. The tolerance test checks the best of up to three hypotheses; it does not establish automatic selection accuracy or complete recovery of every withheld triangle.
+
+Local verification: 41 tests passed across pattern completion, hybrid photo detail, and reconstruction geometry; one additional export-contract test passed. The latter verifies millimeter conversion, source-triangle provenance, and non-printable status. A full `rgb_assisted` replay of `fixtures/sample_scan` completed in 10.0 seconds and exported two reviewable general symmetry hypotheses. Consistent scan meshes now write `pattern_hypotheses.json` plus candidate previews; inconsistent scans do not run this general search. Existing cube-specific replacement UI is unchanged. General hypotheses are diagnostic alternatives, not automatically selected replacement pieces.
+
+Remaining gates: object/background isolation, camera visibility checks to distinguish unobserved surfaces from damage, robust local symmetry outside principal axes, noisy and incomplete real-object captures, a general candidate review UI, and a justified solid/connector reconstruction. Do not claim arbitrary-object repair, tiny-detail measurement accuracy, or printable general replacements from these tests.
+
+Reproduce the regression suite:
+
+```sh
+PYTHONPATH=backend OMP_NUM_THREADS=2 .venv/bin/python -m pytest backend/tests/test_pattern_completion.py backend/tests/test_hybrid_detail.py backend/tests/test_reconstruction_geometry.py -q
+```
+
+
+## Reviewed general candidate to test-print flow (2026-10-17)
+
+General pattern results now appear in the phone's scan result screen. The user selects a proposal, compares its orange surface against the scan, and confirms that it matches the missing region. Candidate changes clear that confirmation. Saved reconstruction results reload the candidate list. The general path no longer requires the cube-specific preview or `printable_edge.stl` filename.
+
+`printable_pattern.py` preserves donor triangles and closes only simple planar boundary loops. It rejects disconnected surfaces, curved boundaries, zero-volume patches, non-manifold vertices/edges, and self-intersections. It exports millimeter STL and 3MF, reopens both files, and rechecks solid validity and dimensions. Reports explicitly label inferred caps and untested fit. Closure is not evidence that a scan gap is broken material, and the extracted patch need not cover the full original feature. No automatic thickness, connector, clearance, or strength claim is made.
+
+The phone verifies the complete downloaded artifact revision before preview selection and again before sharing. Export requires a closed candidate, a consistent scan, a reviewed selection, and every declared print/report file. Fragmented candidates remain viewable with a specific capture message; they cannot be exported as a test piece.
+
+Validation: 48 focused Python tests passed, followed by seven closure tests including a newly added vertex-pinch rejection (49 distinct focused tests). The isolated-process bracket upload/reconstruction/CAD export/reimport integration passed. Ten iOS tests passed covering candidate review/export and verified artifacts. The signed device build succeeded. The sample RGB-D scan replay finished in 10.5 seconds but its two general candidates were fragmented, so neither became a print file. The mesh benchmark exported two rail surface closures; the fragmented radial fixture and top-only bracket patch were rejected. These results demonstrate the bounded software path, not general phone reconstruction accuracy or a physical fit test.
+
+The current saved failed phone scans still lack sufficient consistent donor geometry for a reliable replacement. General repair remains limited to supported observed patterns and closures; live damage confirmation, robust recovery of arbitrary curved missing surfaces, inner mechanisms, and print-fit validation remain unfinished.

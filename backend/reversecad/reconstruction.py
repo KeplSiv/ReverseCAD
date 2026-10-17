@@ -739,8 +739,11 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                    "colors": fused_colors[indices].tolist(), "normals": [], "unit": "mm"}
         warnings.append("surface_mesh_unavailable: observed colored point cloud retained")
     _json(output_dir / "scan_preview.json", preview)
-    counterpart = {"status": "blocked_inconsistent_scan", "reason": "The captured views do not agree in 3D. No replacement piece was generated. Keep the cube stationary on a textured surface and move the phone slowly around it; start about 30 cm away."} if not geometry_consistent else {"status": "not_requested"}
+    counterpart = {"status": "blocked_inconsistent_scan", "reason": "The captured views do not agree in 3D. No replacement piece was generated. Keep the object stationary on a textured surface and move the phone slowly around it; start about 30 cm away."} if not geometry_consistent else {"status": "not_requested"}
     if stage == "rgb_assisted" and geometry_consistent:
+        if mesh is not None and len(mesh.triangles) >= 100:
+            from .pattern_completion import export_pattern_hypotheses
+            base["pattern_hypotheses"] = export_pattern_hypotheses(mesh, output_dir, scale)
         from .cube_counterpart import propose_counterpart
         counterpart = propose_counterpart(frames, scan_dir, mesh, output_dir, scale)
         proposal_preview = counterpart.pop("preview", None)
@@ -784,6 +787,28 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
         try:
             photo_frames, photo_alignment = align_photos(scan_dir, frames, capture_frames, output_dir)
             if photo_frames:
+                # Native poses/depth failing is not a reason to skip independently
+                # aligned photographs. Recover diagnostic patches without mixing
+                # inconsistent native geometry back into them or claiming a repair.
+                from .photo_detail import refine_photos, cross_validate_details
+                recovery, stereo_frames = refine_photos(photo_frames, scan_dir)
+                supported, checks = cross_validate_details(stereo_frames)
+                recovery.update(checks)
+                recovery["scale_source"] = "COLMAP_camera_baselines_scaled_by_native_depth_correspondences"
+                recovery["status"] = "partial_photo_samples" if supported else "insufficient_photo_evidence_after_alignment"
+                recovery["replacement_generated"] = False
+                if supported:
+                    from tempfile import TemporaryDirectory
+                    import open3d as o3d
+                    with TemporaryDirectory(prefix="reversecad-photo-surface-") as temp:
+                        recovered_mesh = _tsdf(supported, .00035, Path(temp))
+                        recovery["surface_triangles"] = len(recovered_mesh.triangles)
+                        if len(recovered_mesh.triangles):
+                            o3d.io.write_triangle_mesh(str(output_dir / "photo_recovered_surface_m.ply"), recovered_mesh)
+                            recovery["surface_artifact"] = "photo_recovered_surface_m.ply"
+                            recovery["surface_unit"] = "m"
+                base["photo_recovery"] = recovery
+                _json(output_dir / "photo_recovery.json", recovery)
                 estimate = estimate_cube(photo_frames, scan_dir, output_dir, photo_alignment)
                 base["counterpart"] = estimate
                 base["status"] = "proposal_needs_review"

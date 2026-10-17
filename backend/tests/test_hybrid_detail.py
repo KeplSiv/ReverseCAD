@@ -5,7 +5,7 @@ from reversecad.photo_detail import stereo_pair
 from reversecad.cube_counterpart import face_frame, transfer_edge
 
 
-def stereo_observations(textured=True):
+def stereo_observations(textured=True, vertical=False):
     h, w, focal = 320, 480, 600.
     k = np.array([[focal, 0, (w-1)/2], [0, focal, (h-1)/2], [0, 0, 1.]])
     rng = np.random.default_rng(42)
@@ -14,16 +14,16 @@ def stereo_observations(textured=True):
     frames = []
     for position in (0, .018):
         # Independent analytic ray intersections with a 2 mm raised patch.
-        x_top = (xx-k[0, 2])/focal*.238+position
-        y_top = (yy-k[1, 2])/focal*.238
+        x_top = (xx-k[0, 2])/focal*.238+(0 if vertical else position)
+        y_top = (yy-k[1, 2])/focal*.238+(position if vertical else 0)
         top = (abs(x_top)<.018) & (abs(y_top)<.018)
         z = np.where(top, .238, .24)
-        x = (xx-k[0, 2])/focal*z+position
-        y = (yy-k[1, 2])/focal*z
+        x = (xx-k[0, 2])/focal*z+(0 if vertical else position)
+        y = (yy-k[1, 2])/focal*z+(position if vertical else 0)
         gray = cv2.remap(texture, (x*4000+600).astype(np.float32), (y*4000+600).astype(np.float32), cv2.INTER_LINEAR)
         if not textured:
             gray[:] = 120
-        pose = np.eye(4); pose[0, 3] = position
+        pose = np.eye(4); pose[1 if vertical else 0, 3] = position
         frames.append({'frame_id': str(position), 'image': np.repeat(gray[:, :, None], 3, axis=2),
                        'image_k': k, 'k': k, 'depth': np.full((h, w), .24), 'pose': pose})
     return frames
@@ -160,3 +160,31 @@ def test_closure_rejects_insufficient_donor_support(tmp_path):
     with pytest.raises(ClosureUnavailable):
         close_edge(surface,geometry,missing,tmp_path)
     assert not (tmp_path/'printable_edge.stl').exists()
+
+
+def test_vertical_camera_motion_recovers_relief_and_calibrated_pixel_axes():
+    result=stereo_pair(*stereo_observations(vertical=True))
+    assert result is not None
+    depth=result['depth']
+    assert depth.shape==(320,480)
+    top=depth[140:180,220:260];top=top[top>0]
+    base=depth[140:180,320:360];base=base[base>0]
+    assert len(top)>100 and len(base)>100
+    assert abs(np.median(top)-.238)<.0008
+    assert abs(np.median(base)-.24)<.0008
+    assert np.median(base)-np.median(top)>.0012
+    assert stereo_pair(*stereo_observations(False,vertical=True)) is None
+
+
+def test_cross_pair_support_rejects_duplicate_pairs_and_inconsistent_depth():
+    from reversecad.photo_detail import cross_validate_details
+    k=np.array([[100.,0,10],[0,100.,10],[0,0,1.]])
+    a={'depth':np.full((22,22),.3,dtype=np.float32),'k':k,'pose':np.eye(4),'source_frames':['a','b']}
+    duplicate={**a,'source_frames':['b','a']}
+    assert cross_validate_details([a,duplicate])[0]==[]
+    disagree={**a,'depth':np.full((22,22),.32,dtype=np.float32),'source_frames':['b','c']}
+    assert cross_validate_details([a,disagree])[0]==[]
+    agree={**a,'source_frames':['b','c']}
+    supported,report=cross_validate_details([a,agree])
+    assert len(supported)==2 and report['cross_pair_supported_pixels']>200
+    assert np.all(a['depth']==.3)  # original evidence remains immutable

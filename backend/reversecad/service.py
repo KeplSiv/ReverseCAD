@@ -120,8 +120,9 @@ def validate_capture(root: Path, scan: dict, max_bytes: int):
 
 
 class JobRunner:
-    def __init__(self, store: Store, timeout_s: float, max_memory_bytes: int):
+    def __init__(self, store: Store, timeout_s: float, max_memory_bytes: int, comparison_timeout_s: float = 600, comparison_memory_bytes: int = 10*1024**3):
         self.store, self.timeout_s, self.max_memory_bytes = store,timeout_s,max_memory_bytes
+        self.comparison_timeout_s, self.comparison_memory_bytes = comparison_timeout_s, comparison_memory_bytes
         self.stop = threading.Event()
         self.wake = threading.Event()
         self.thread = None
@@ -176,7 +177,10 @@ class JobRunner:
         folder = self.store.root / "jobs" / job_id
         folder.mkdir(parents=True,exist_ok=True)
         payload = json.loads(row["request"])
-        payload["cpu_limit_s"] = max(1,int(self.timeout_s))
+        comparison = bool(payload.get("compare_methods"))
+        timeout_s = self.comparison_timeout_s if comparison else self.timeout_s
+        memory_bytes = self.comparison_memory_bytes if comparison else self.max_memory_bytes
+        payload["cpu_limit_s"] = max(1,int(timeout_s))
         atomic_json(folder / "input.json",payload)
         self.store.update_job(job_id,"validating_input",0.01,"Starting isolated worker")
         env = os.environ.copy()
@@ -195,13 +199,20 @@ class JobRunner:
             if self.stop.is_set() or not state or state["state"] == "cancelled":
                 self.terminate(job_id)
                 break
-            if time.monotonic()-started > self.timeout_s:
+            if time.monotonic()-started > timeout_s:
                 failure = {"code":"worker_timeout","message":"Processing exceeded its time budget; reduce scan size and retry"}
                 self.terminate(job_id)
                 break
             try:
-                rss = subprocess.check_output(["/bin/ps","-o","rss=","-p",str(process.pid)],timeout=1,text=True).strip()
-                if rss and int(rss)*1024 > self.max_memory_bytes:
+                rows = subprocess.check_output(["/bin/ps","-axo","pid=,ppid=,rss="],timeout=1,text=True)
+                processes = [tuple(map(int,line.split())) for line in rows.splitlines() if line.strip()]
+                children = {process.pid}
+                for _ in range(10):
+                    expanded = children | {pid for pid,ppid,rss in processes if ppid in children}
+                    if expanded == children:break
+                    children = expanded
+                rss = sum(rss for pid,ppid,rss in processes if pid in children)
+                if rss*1024 > memory_bytes:
                     failure = {"code":"worker_memory_limit","message":"Processing exceeded its memory budget; reduce scan size and retry"}
                     self.terminate(job_id)
                     break
@@ -260,7 +271,7 @@ class JobRunner:
         self.store.update_job(job_id,outcome["state"],1,"CAD checks passed; physical fit remains untested" if row["kind"] == "repair" and outcome["state"] == "complete" else "Reconstruction complete" if outcome["state"] == "complete" else "More measurements or views are required",result=result)
 
 
-def create_app(data_dir: str | Path | None = None, pairing_token: str | None = None, *, worker_timeout_s: float = 240, max_scan_bytes: int = 512*1024*1024, max_asset_bytes: int = 128*1024*1024, max_memory_bytes: int = 4*1024*1024*1024, workers_enabled: bool = True):
+def create_app(data_dir: str | Path | None = None, pairing_token: str | None = None, *, worker_timeout_s: float = 240, max_scan_bytes: int = 512*1024*1024, max_asset_bytes: int = 128*1024*1024, max_memory_bytes: int = 4*1024*1024*1024, workers_enabled: bool = True, comparison_timeout_s: float = 600, comparison_memory_bytes: int = 10*1024**3):
     root = Path(data_dir or os.getenv("REVERSECAD_DATA_DIR",".reversecad-data")).resolve()
     store = Store(root)
     token = pairing_token or os.getenv("REVERSECAD_PAIRING_TOKEN")
@@ -276,7 +287,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     if len(token) < 16:
         raise ValueError("Pairing token must contain at least 16 characters")
     owner = hashlib.sha256(token.encode()).hexdigest()
-    runner = JobRunner(store,worker_timeout_s,max_memory_bytes)
+    runner = JobRunner(store,worker_timeout_s,max_memory_bytes,comparison_timeout_s,comparison_memory_bytes)
     upload_lock = asyncio.Lock()
 
     @asynccontextmanager
@@ -494,12 +505,15 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
             db.execute("UPDATE scans SET annotation_revision=?,reconstruction=? WHERE scan_id=?",(revision,None if changed_geometry else scan["reconstruction"],scan_id))
         return {"scan_id":scan_id,"annotation_revision":revision,"annotations":body.model_dump(exclude_none=True)}
 
-    def enqueue(scan,kind,repair=None,repair_id=None,reconstruction_request_id=None):
+    def enqueue(scan,kind,repair=None,repair_id=None,reconstruction_request_id=None,compare_methods=False):
         if not scan["committed"]:
             error(409,"scan_not_committed","Commit a complete, validated upload before processing")
         payload = {"kind":kind,"scan_id":scan["scan_id"],"scan_dir":str(store.scan_dir(scan["scan_id"])),"annotations":store.annotations(scan),"annotation_revision":scan["annotation_revision"]}
+        payload["compare_methods"] = bool(compare_methods)
         request_id = repair.get("request_id") if repair else reconstruction_request_id
-        request_hash = hashlib.sha256(json.dumps({"kind":kind,"scan_id":scan["scan_id"],"repair":repair,"repair_id":repair_id,"annotation_revision":scan["annotation_revision"]},sort_keys=True).encode()).hexdigest()
+        hash_input={"kind":kind,"scan_id":scan["scan_id"],"repair":repair,"repair_id":repair_id,"annotation_revision":scan["annotation_revision"]}
+        if compare_methods:hash_input["compare_methods"]=True
+        request_hash = hashlib.sha256(json.dumps(hash_input,sort_keys=True).encode()).hexdigest()
         with store.connect() as db:
             if request_id:
                 previous = db.execute("SELECT * FROM jobs WHERE owner=? AND request_id=?",(owner,request_id)).fetchone()
@@ -545,7 +559,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
 
     @app.post("/v1/scans/{scan_id}/reconstruction",dependencies=[Depends(authorize)])
     def reconstruction(scan_id: str, body: ReconstructionRequest | None = Body(default=None)):
-        return enqueue(scan_for(scan_id),"reconstruction",reconstruction_request_id=body.request_id if body else None)
+        return enqueue(scan_for(scan_id),"reconstruction",reconstruction_request_id=body.request_id if body else None,compare_methods=body.compare_methods if body else False)
 
     @app.post("/v1/scans/{scan_id}/candidates",dependencies=[Depends(authorize)])
     def candidates(scan_id: str,body: CandidateRequest):

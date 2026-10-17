@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		13E7F06D3BCA4785980DC341 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E7F06D3BCA4785980DC342 /* ComparisonResults.swift */; };
+		13E7F06D3BCA4785980DC331 /* PatternRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E7F06D3BCA4785980DC332 /* PatternRepairTests.swift */; };
 		0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
 		181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
@@ -46,6 +48,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		13E7F06D3BCA4785980DC342 /* ComparisonResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonResults.swift; sourceTree = "<group>"; };
+		13E7F06D3BCA4785980DC332 /* PatternRepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepairTests.swift; sourceTree = "<group>"; };
 		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifacts.swift; sourceTree = "<group>"; };
 		44149E87E66872F41062845F /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
@@ -112,6 +116,7 @@
 		C4915D5D7E645BD6A57EF676 /* ReverseCAD */ = {
 			isa = PBXGroup;
 			children = (
+				13E7F06D3BCA4785980DC342 /* ComparisonResults.swift */,
 				CE93717EBC7FBAAD9179530D /* AppModel.swift */,
 				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
@@ -147,6 +152,7 @@
 			children = (
 				CD495AA0DD470634824266B4 /* CaptureTests.swift */,
 				56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */,
+				13E7F06D3BCA4785980DC332 /* PatternRepairTests.swift */,
 				7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */,
 			);
 			path = ReverseCADTests;
@@ -276,6 +282,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13E7F06D3BCA4785980DC341 /* ComparisonResults.swift in Sources */,
 				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
@@ -304,6 +311,7 @@
 			files = (
 				A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */,
 				9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */,
+				13E7F06D3BCA4785980DC331 /* PatternRepairTests.swift in Sources */,
 				DAA42DE363BAA5D45FFEAC36 /* VerifiedArtifactsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

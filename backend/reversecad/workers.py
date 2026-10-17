@@ -41,6 +41,9 @@ def run(input_path: Path) -> int:
             result = reconstruct(scan_dir, output, annotations)
             if not isinstance(result, dict):
                 raise ValueError("Reconstruction returned an invalid result")
+            if request.get("compare_methods"):
+                from .comparison import compare_reconstructions
+                result = compare_reconstructions(scan_dir, output, result, annotations, progress)
             state = "needs_input" if result.get("status") == "needs_input" else "complete"
             result["annotations_revision"] = request.get("annotation_revision", 0)
         else:

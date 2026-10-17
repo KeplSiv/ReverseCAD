@@ -143,7 +143,7 @@ def solid_from_outline(mask, pitch_mm):
     return solid
 
 
-def estimate_cube(frames,scan_dir,output_dir,alignment):
+def detect_views(frames, scan_dir):
     views=[]
     for f in frames:
         image=cv2.imread(str(scan_dir/f['rgb_path']))
@@ -153,16 +153,64 @@ def estimate_cube(frames,scan_dir,output_dir,alignment):
         try:a=analyze_cube_face(encoded.tobytes())
         except CubeInputError:continue
         if a['confidence']=='high' and a['missing_cell']['type']=='edge':views.append((f,a))
-    # Group by physical face color and missing grid position before triangulating corners.
+    return views
+
+
+def tracked_groups(frames, views, scan_dir):
+    """Carry a supported face identity through adjacent images; no size prior."""
+    from .planar_tracking import track_region
+    from .cube import _analyze_face
+    images={}
+    for f in frames:
+        im=cv2.imread(str(scan_dir/f['rgb_path']))
+        if im is None:continue
+        factor=min(1,960/max(im.shape[:2]))
+        images[f['frame_id']]=cv2.cvtColor(cv2.resize(im,None,fx=factor,fy=factor),cv2.COLOR_BGR2RGB)
+    groups=[];indices={f['frame_id']:i for i,f in enumerate(frames)}
+    for source,analysis in views[:4]:
+        group=[(source,analysis)];index=indices[source['frame_id']]
+        for step in [-1,1]:
+            previous=source['frame_id']
+            corners=np.float32(analysis['face_corners'])*images[previous].shape[1::-1]
+            for i in range(index+step,len(frames) if step>0 else -1,step):
+                f=frames[i];fid=f['frame_id']
+                if fid not in images:break
+                track=track_region(cv2.cvtColor(images[previous],cv2.COLOR_RGB2GRAY),
+                                   cv2.cvtColor(images[fid],cv2.COLOR_RGB2GRAY),corners)
+                if track is None:break
+                quad,evidence=track
+                a=_analyze_face(images[fid],(quad/images[fid].shape[1::-1]).tolist())
+                if a['confidence']!='high' or a['missing_cell']!=analysis['missing_cell']:break
+                a['tracking']={**evidence,'source_frame':source['frame_id'],'previous_frame':previous}
+                a['detection_method']='temporally_tracked_planar_region'
+                group.append((f,a));previous=fid;corners=quad
+        groups.append(group)
+    return groups
+
+
+def estimate_cube(frames,scan_dir,output_dir,alignment, *, track_faces=False, detections=None):
+    views=detect_views(frames,scan_dir) if detections is None else detections
+    (output_dir/'face_detections.json').write_text(json.dumps([
+        {'frame_id':f['frame_id'],'analysis':a} for f,a in views]))
     groups=[]
-    for view in views:
-        f,a=view;hue=cv2.cvtColor(np.uint8([[a['face_color_rgb']]]),cv2.COLOR_RGB2HSV)[0,0,0]
-        group=next((g for g in groups if g[0][1]['missing_cell']==a['missing_cell'] and abs(int(hue)-int(cv2.cvtColor(np.uint8([[g[0][1]['face_color_rgb']]]),cv2.COLOR_RGB2HSV)[0,0,0]))<10),None)
-        if group is None:groups.append([view])
-        else:group.append(view)
+    if track_faces:
+        groups=tracked_groups(frames,views,scan_dir)
+    else:
+        for view in views:
+            f,a=view;hue=cv2.cvtColor(np.uint8([[a['face_color_rgb']]]),cv2.COLOR_RGB2HSV)[0,0,0]
+            group=next((g for g in groups if g[0][1]['missing_cell']==a['missing_cell'] and abs(int(hue)-int(cv2.cvtColor(np.uint8([[g[0][1]['face_color_rgb']]]),cv2.COLOR_RGB2HSV)[0,0,0]))<10),None)
+            if group is None:groups.append([view])
+            else:group.append(view)
     if not groups:raise ValueError('No missing edge was consistently recognized')
-    group=max(groups,key=len);geometry,supported,fit=fit_square(group)
-    missing=supported[0][1]['missing_cell'];outline,donor=donor_outline(supported,scan_dir,missing)
+    failures=[];solutions=[]
+    for group in sorted(groups,key=len,reverse=True):
+        try:
+            geometry,supported,fit=fit_square(group)
+            missing=supported[0][1]['missing_cell'];outline,donor=donor_outline(supported,scan_dir,missing)
+            solutions.append((geometry,supported,fit,missing,outline,donor))
+        except ValueError as exc:failures.append(str(exc))
+    if not solutions:raise ValueError(failures[0] if failures else 'No supported repeated face')
+    geometry,supported,fit,missing,outline,donor=min(solutions,key=lambda x:x[2]['median_held_out_error_fraction_of_face'])
     pitch=geometry['width']/3*1000
     solid=solid_from_outline(outline,pitch)
     import open3d as o3d
@@ -194,9 +242,10 @@ def estimate_cube(frames,scan_dir,output_dir,alignment):
     context=trimesh.util.concatenate(boxes)
     (output_dir/'scan_preview.json').write_text(json.dumps(preview(context)))
     (output_dir/'counterpart_preview.json').write_text(json.dumps(preview(part)))
-    report={'status':'proposal_needs_review','method':'multiview_photo_grid_and_observed_repeated_outline',
+    report={'status':'proposal_needs_review','method':('tracked_multiview_repeated_outline' if track_faces else 'multiview_photo_grid_and_observed_repeated_outline'),
         'scope':'inferred_closed_exterior','watertight_replacement':True,'hidden_geometry_reconstructed':False,
         'physical_fit':'not_tested','width_mm':geometry['width']*1000,'target_cell':missing,'donor':donor,
+        'tracked_observations':[{'frame_id':f['frame_id'],'tracking':a.get('tracking')} for f,a in supported],
         'outline_fit':solid.metadata['outline_fit'],'photo_geometry':fit,'scale':alignment['scale'],'geometry_is_estimated':True,
         'reason':'Estimated from aligned photos and intact cubie outlines. Scale is inferred from depth; fine surface relief and physical fit remain unverified.',
         'closure':{'status':'closed_exterior_estimate','watertight':True,'connected_solids':1,

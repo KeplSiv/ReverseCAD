@@ -218,6 +218,7 @@ class RepairRequest(Contract):
 
 class ReconstructionRequest(Contract):
     request_id: str | None = None
+    compare_methods: bool = False
 
     @field_validator("request_id")
     @classmethod
