@@ -745,6 +745,8 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
         if proposal_preview:
             _json(output_dir / "counterpart_preview.json", proposal_preview)
         _json(output_dir / "counterpart.json", counterpart)
+        if counterpart.get("closure", {}).get("status") == "needs_more_evidence":
+            warnings.append("printable_closure_needs_evidence: " + counterpart["closure"]["reason"])
     base["photo_detail"] = detail_report
     base["counterpart"] = counterpart
     base.update(status=status, bounds_mm=bounds, point_count=len(corrected), primitives=primitives,

@@ -62,8 +62,8 @@ struct CubeDemoView: View {
                     observedScan = true
                     model.uploadAndReconstruct()
                 }, onLibrary: { showLibrary = true }, onSettings: { showSettings = true }, onLastModel: {
-                    if let project = model.projects.first(where: { FileManager.default.fileExists(atPath: model.directory($0.id).appendingPathComponent("scan_preview.json").path) }) {
-                        model.select(project); observedScan = true
+                    if let project = model.projects.first(where: { FileManager.default.fileExists(atPath: model.directory($0.id).appendingPathComponent("scan/manifest.json").path) }) {
+                        model.select(project); observedScan = true; if model.scanMesh == nil { model.progress = "Your saved scan is ready to process." }
                     } else { restoreLastModel() }
                 })
             } else {
@@ -164,7 +164,7 @@ struct CubeDemoView: View {
                         .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
                     Text("Captured surface").font(.title2.bold())
                     Text("Drag to rotate · Pinch to zoom").font(.caption).foregroundStyle(.secondary)
-                    Text(showCounterpart ? "Orange: proposed exterior copied from an intact edge. Check the match; this is an open surface, not a fitted replacement." : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
+                    Text(showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     if model.counterpartMesh != nil {
                         Toggle("Preview missing edge", isOn: $showCounterpart)
@@ -177,7 +177,7 @@ struct CubeDemoView: View {
                             ScrollView { Text(model.warnings.joined(separator: "\n")).font(.caption) }.frame(maxHeight: 140)
                         }
                     }
-                    Button(model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal") { model.exportObservedSurface() }
+                    Button(model.counterpartPrintable ? "Export printable piece" : (model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal")) { model.exportObservedSurface(printableOnly: model.counterpartPrintable) }
                         .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy)
                 } else if model.busy {
                     Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
@@ -356,7 +356,7 @@ private struct CubeScanCapture: View {
                     Spacer()
                     Menu {
                         Button("Connection", action: onSettings)
-                        Button("Last model", action: onLastModel)
+                        Button("Last scan or model", action: onLastModel)
                     } label: { Image(systemName: "ellipsis.circle").font(.title2) }
                         .disabled(camera.isCapturing || transitioning)
                 }.padding().background(.black.opacity(0.35))

@@ -144,6 +144,7 @@ final class AppModel: ObservableObject {
     @Published var error: String?
     @Published var scanMesh: MeshPreview?
     @Published var counterpartMesh: MeshPreview?
+    @Published var counterpartPrintable = false
     @Published var photoDetailStatus = ""
     @Published var partMesh: MeshPreview?
     @Published var measurements: [[String: Any]] = []
@@ -169,6 +170,10 @@ final class AppModel: ObservableObject {
         token = arg("-pairingToken") ?? ProcessInfo.processInfo.environment["REVERSECAD_TEST_TOKEN"] ?? TokenStore.load()
         try? FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
         reload()
+        if arg("-serviceURL") != nil || ProcessInfo.processInfo.environment["REVERSECAD_TEST_URL"] != nil {
+            saveSettings()
+            checkConnection()
+        }
     }
     var project: RepairProject? { projects.first{$0.id == selectedID} }
     func directory(_ id: String) -> URL { root.appendingPathComponent(id,isDirectory:true) }
@@ -222,7 +227,7 @@ final class AppModel: ObservableObject {
     }
     func saveSettings() {UserDefaults.standard.set(serverURL,forKey:"serverURL");TokenStore.save(token)}
     func loadDerived() {
-        counterpartMesh=nil;photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
+        counterpartMesh=nil;counterpartPrintable=false;photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
         guard let dir=projectDirectory else{return}
         counterpartMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("counterpart_preview.json")))
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { updatePhotoDetail(info) }
@@ -243,7 +248,9 @@ final class AppModel: ObservableObject {
             do {try await action()}
             catch is CancellationError {progress="Cancelled. Your saved scan is preserved."}
             catch {
-                self.error=error.localizedDescription
+                if error is URLError {
+                    self.error = "Couldn’t reach \(URL(string: self.serverURL)?.host ?? self.serverURL) while \(self.progress.lowercased()). Your scan is saved. Check Connection, keep the Mac service running, and use the same reachable network."
+                } else { self.error=error.localizedDescription }
                 progress=error is URLError ? "Connection interrupted. Saved data is preserved; check the service address and connection before retrying." : "Action needs attention. Saved data is preserved; review the message before retrying."
             }
             busy=false;activeTask=nil
@@ -265,8 +272,8 @@ final class AppModel: ObservableObject {
     }
     func checkConnection() {perform {
         self.connection="Checking connection…"
-        do {let d=try await self.object("v1/health");_ = try await self.object("v1/capabilities");self.connection="Connected · \(d["status"] ?? "ready")";self.saveSettings()}
-        catch {self.connection="Not connected";throw error}
+        do {let d=try await self.object("v1/health");_ = try await self.object("v1/capabilities");self.connection="Connected · \(d["status"] ?? "ready")";self.saveSettings();UserDefaults.standard.set(self.connection,forKey:"lastConnectionStatus")}
+        catch {self.connection="Not connected";UserDefaults.standard.set(error.localizedDescription,forKey:"lastConnectionStatus");throw error}
     }}
     func didCapture(_ url:URL) {
         let data=try? Data(contentsOf:url.appendingPathComponent("manifest.json"))
@@ -292,6 +299,8 @@ final class AppModel: ObservableObject {
         guard let dir=self.scanDirectory,let p=self.project else{return}
         let manifest=(try JSONSerialization.jsonObject(with:Data(contentsOf:dir.appendingPathComponent("manifest.json")))) as! [String:Any]
         let scanID=manifest["scan_id"] as? String ?? p.id
+        self.progress="Connecting to your Mac…"
+        _ = try await self.object("v1/health")
         self.progress="Checking saved scan and resuming missing uploads…"
         self.update{$0.scanID=scanID;$0.stage="Uploading"}
         guard let url=URL(string:self.serverURL) else{throw ServiceFailure(message:"Invalid service address")}
@@ -444,13 +453,14 @@ final class AppModel: ObservableObject {
         return false
     }
     private func updatePhotoDetail(_ info: [String: Any]) {
+        counterpartPrintable = (info["counterpart"] as? [String: Any])?["watertight_replacement"] as? Bool ?? false
         let detail = info["photo_detail"] as? [String: Any] ?? [:]
         photoDetailStatus = detail["status"] as? String == "photo_detail_integrated"
             ? "Photo detail matched across views · accuracy uncalibrated"
             : "Fine photo detail unresolved. Try closer, sharp overlapping views."
     }
 
-    func exportObservedSurface() { perform {
+    func exportObservedSurface(printableOnly: Bool = false) { perform {
         guard let dir = self.projectDirectory else { return }
         let data = try Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))
         let record = try JSONSerialization.jsonObject(with: data) as? [String: Any]
@@ -461,7 +471,10 @@ final class AppModel: ObservableObject {
         let infos = try JSONDecoder().decode([ArtifactInfo].self, from: JSONSerialization.data(withJSONObject: list))
         let directory = dir.appendingPathComponent(folder)
         try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: directory) }.value
-        self.shareURLs = infos.filter { ["observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json", "input_provenance.json", "photo_detail.json", "counterpart.json", "counterpart_surface.stl"].contains($0.name) }.map { directory.appendingPathComponent($0.name) }
+        if printableOnly && !infos.contains(where: { $0.name == "printable_edge.stl" }) {
+            throw ServiceFailure(message: "No validated closed piece is available. Scan both sides of the intact edge again.")
+        }
+        self.shareURLs = infos.filter { (printableOnly ? ["printable_edge.stl", "printable_edge.3mf", "printable_edge.json", "counterpart.json"] : ["observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json", "input_provenance.json", "photo_detail.json", "counterpart.json", "counterpart_surface.stl"]).contains($0.name) }.map { directory.appendingPathComponent($0.name) }
         self.showingShare = true
     }}
 

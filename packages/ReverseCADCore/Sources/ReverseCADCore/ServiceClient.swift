@@ -34,7 +34,7 @@ public struct ServiceClient: @unchecked Sendable {
         guard path.hasPrefix("/v1/"), !path.contains(".."), !path.contains("?"), !path.contains("#"), !path.contains("%"), !path.contains("\\") else { throw CoreError.invalid("Invalid service route.") }
         var url = baseURL
         for component in path.split(separator: "/") { url.appendPathComponent(String(component)) }
-        var request = URLRequest(url: url, timeoutInterval: 45)
+        var request = URLRequest(url: url, timeoutInterval: path == "/v1/health" ? 8 : 45)
         request.httpMethod=method; request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         return request
     }

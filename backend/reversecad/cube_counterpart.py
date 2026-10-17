@@ -1,7 +1,7 @@
 """Transfer an observed intact edge's exterior surface using a cube symmetry.
 
-The output is a proposed surface patch, not a watertight replacement. No hidden
-connector, corner rounding or small bumps are invented by this module.
+The observed patch is retained; supported exteriors also receive inferred flat
+closure surfaces for a printable prototype. Hidden connectors are not modeled.
 """
 import copy
 import cv2
@@ -75,8 +75,12 @@ def transfer_edge(mesh, geometry, missing, minimum_triangles=80):
         if np.array_equal(source, target):
             continue
         source = np.array(source)
-        in_cell = np.all(abs(local[:, :2]-source*pitch) < pitch*.505, axis=1)
-        in_cell &= (local[:, 2] > -pitch*.98) & (local[:, 2] < .0015)
+        offset = local[:, :2]-source*pitch
+        radial = dot(offset, source)
+        tangential = dot(offset, np.array([-source[1], source[0]]))
+        # Keep outward relief, while excluding neighboring cubies tangentially.
+        in_cell = (abs(tangential) < pitch*.5) & (radial > -pitch*.5) & (radial < pitch*.5+.003)
+        in_cell &= (local[:, 2] > -pitch*.98) & (local[:, 2] < .003)
         selected = np.flatnonzero(np.all(in_cell[triangles], axis=1))
         if len(selected) < minimum_triangles:
             continue
@@ -137,6 +141,15 @@ def propose_counterpart(frames, scan_dir, mesh, output_dir, scale=1):
         report['reason'] = 'Need a clearly visible mostly solved face with one missing edge, plus both exterior faces of an intact edge.'
         return report
     _, frame, geometry, (proposal, provenance) = max(candidates, key=lambda x: x[0])
+    from .printable_edge import close_edge, ClosureUnavailable
+    import json
+    closed_preview = None
+    try:
+        closed_preview, closure = close_edge(proposal, geometry, provenance['target_cell'], output_dir, scale)
+        report.update(scope='closed_exterior_prototype', watertight_replacement=True, closure=closure)
+        (output_dir/'printable_edge.json').write_text(json.dumps(closure, indent=2))
+    except ClosureUnavailable as exc:
+        report['closure'] = {'status': 'needs_more_evidence', 'reason': str(exc)}
     proposal.scale(1000*scale, center=(0, 0, 0))
     proposal.compute_vertex_normals()
     if not o3d.io.write_triangle_mesh(str(output_dir/'counterpart_surface.stl'), proposal):
@@ -146,4 +159,4 @@ def propose_counterpart(frames, scan_dir, mesh, output_dir, scale=1):
                   plane_residual_mm=geometry['plane_residual_mm'], **provenance)
     preview = {'vertices': np.asarray(proposal.vertices).tolist(), 'triangles': np.asarray(proposal.triangles).tolist(),
                'colors': [], 'normals': np.asarray(proposal.vertex_normals).tolist(), 'unit': 'mm'}
-    return {**report, 'preview': preview}
+    return {**report, 'preview': closed_preview or preview}

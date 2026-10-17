@@ -5,7 +5,7 @@ description = "Metric RGB-D repair modeling companion service"
 requires-python = ">=3.11,<3.12"
 dependencies = [
  "fastapi==0.115.12", "uvicorn==0.34.2", "pydantic==2.11.4",
- "numpy==2.2.6", "scipy==1.15.3", "opencv-python-headless==4.11.0.86",
+ "numpy==2.2.6", "scipy==1.15.3", "scikit-image==0.25.2", "opencv-python-headless==4.11.0.86",
  "open3d==0.19.0", "cadquery==2.6.1", "trimesh==4.6.8", "rtree==1.4.1", "networkx==3.4.2", "lxml==5.4.0",
  "httpx==0.28.1", "Pillow==11.2.1", "python-multipart==0.0.20"
 ]
