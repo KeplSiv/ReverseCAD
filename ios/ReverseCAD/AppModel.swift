@@ -146,6 +146,7 @@ final class AppModel: ObservableObject {
     @Published var counterpartMesh: MeshPreview?
     @Published var counterpartPrintable = false
     @Published var scanNeedsRescan = false
+    @Published var scanFailureTitle = "Scan didn’t line up"
     @Published var exteriorEstimated = false
     @Published var repairMessage = ""
     @Published var photoDetailStatus = ""
@@ -460,12 +461,20 @@ final class AppModel: ObservableObject {
         let counterpart = info["counterpart"] as? [String: Any] ?? [:]
         exteriorEstimated = counterpart["geometry_is_estimated"] as? Bool == true && counterpart["watertight_replacement"] as? Bool == true
         scanNeedsRescan = !exteriorEstimated && notes.contains { $0.hasPrefix("cross_view_depth_inconsistency") || $0.hasPrefix("rgb_pose_inconsistency") }
-        repairMessage = scanNeedsRescan
-            ? "The views did not line up. No replacement piece was generated. Keep the cube still on a textured surface and move the phone slowly around it, starting about 30 cm away."
-            : (counterpart["reason"] as? String ?? "")
+        let alignment = info["photo_alignment"] as? [String: Any] ?? [:]
+        let photosAligned = alignment["status"] as? String == "aligned_photos"
+        let alignedCount = alignment["registered_frames"] as? Int ?? 0
+        scanFailureTitle = photosAligned ? "Replacement not resolved" : "Scan didn’t line up"
+        if scanNeedsRescan && photosAligned {
+            repairMessage = "The photos aligned, but depth disagreed and no reliable replacement was found. This is a reconstruction limitation, not necessarily a scanning mistake."
+        } else if scanNeedsRescan {
+            repairMessage = "The captured views could not be combined reliably. Keep the object still and take sharp, overlapping views of the intact feature and damaged opening."
+        } else {
+            repairMessage = counterpart["reason"] as? String ?? ""
+        }
         counterpartPrintable = (info["counterpart"] as? [String: Any])?["watertight_replacement"] as? Bool ?? false
         let detail = info["photo_detail"] as? [String: Any] ?? [:]
-        photoDetailStatus = exteriorEstimated ? "Photo-aligned outline estimate · fine surface relief unresolved" : scanNeedsRescan ? "Photo-detail matching was skipped because the scan was inconsistent." : detail["status"] as? String == "photo_detail_integrated"
+        photoDetailStatus = exteriorEstimated ? "Photo-aligned outline estimate · fine surface relief unresolved" : scanNeedsRescan ? (photosAligned ? "\(alignedCount) photos aligned. Fine surface geometry and the missing part remain unresolved." : "Photo alignment needs more overlapping, sharp views.") : detail["status"] as? String == "photo_detail_integrated"
             ? "Photo detail matched across views · accuracy uncalibrated"
             : "Fine photo detail unresolved. Try closer, sharp overlapping views."
     }

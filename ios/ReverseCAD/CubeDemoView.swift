@@ -170,7 +170,7 @@ struct CubeDemoView: View {
                         Spacer()
                         Image(systemName: "viewfinder.trianglebadge.exclamationmark").font(.system(size: 70)).foregroundStyle(.orange)
                     }
-                    Text(model.scanNeedsRescan ? "Scan didn’t line up" : (model.exteriorEstimated ? "Estimated replacement" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface"))).font(.title2.bold())
+                    Text(model.scanNeedsRescan ? model.scanFailureTitle : (model.exteriorEstimated ? "Estimated replacement" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface"))).font(.title2.bold())
                     if !model.repairMessage.isEmpty && !model.exteriorEstimated { Text(model.repairMessage).font(.subheadline).multilineTextAlignment(.center) }
                     if !model.scanNeedsRescan { Text(model.exteriorEstimated ? "Exterior estimated from photos. Fine details, internal parts and fit are unverified. Cube context is inferred." : showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
