@@ -722,6 +722,8 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
             warnings.append("photo_detail_unresolved: add slow overlapping close-up views with sharp, textured surfaces")
     from .photo_detail import integration_frames
     integration, replaced = integration_frames(frames, detail_frames)
+    if not geometry_consistent:
+        detail_report.update(status="blocked_inconsistent_scan", reason="Camera poses and native depth disagree; photo refinement was not attempted.")
     detail_report["coarse_integration_pixels_replaced"] = replaced
     _json(output_dir / "photo_detail.json", detail_report)
     mesh = None
@@ -737,7 +739,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                    "colors": fused_colors[indices].tolist(), "normals": [], "unit": "mm"}
         warnings.append("surface_mesh_unavailable: observed colored point cloud retained")
     _json(output_dir / "scan_preview.json", preview)
-    counterpart = {"status": "not_requested"}
+    counterpart = {"status": "blocked_inconsistent_scan", "reason": "The captured views do not agree in 3D. No replacement piece was generated. Keep the cube stationary on a textured surface and move the phone slowly around it; start about 30 cm away."} if not geometry_consistent else {"status": "not_requested"}
     if stage == "rgb_assisted" and geometry_consistent:
         from .cube_counterpart import propose_counterpart
         counterpart = propose_counterpart(frames, scan_dir, mesh, output_dir, scale)

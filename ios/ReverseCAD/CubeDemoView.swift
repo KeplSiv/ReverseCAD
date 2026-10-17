@@ -51,6 +51,7 @@ struct CubeDemoView: View {
     @State private var showShare = false
     @State private var observedScan = false
     @State private var showCounterpart = false
+    @State private var inspectFailedScan = false
 
     var body: some View {
         Group {
@@ -160,12 +161,17 @@ struct CubeDemoView: View {
         NavigationStack {
             VStack(spacing: 18) {
                 if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
-                    GeometryPreview(scan: mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
-                        .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
-                    Text("Captured surface").font(.title2.bold())
-                    Text("Drag to rotate · Pinch to zoom").font(.caption).foregroundStyle(.secondary)
-                    Text(showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
-                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    if !model.scanNeedsRescan || inspectFailedScan {
+                        GeometryPreview(scan: mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
+                            .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
+                    } else {
+                        Spacer()
+                        Image(systemName: "viewfinder.trianglebadge.exclamationmark").font(.system(size: 70)).foregroundStyle(.orange)
+                    }
+                    Text(model.scanNeedsRescan ? "Scan didn’t line up" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface")).font(.title2.bold())
+                    if !model.repairMessage.isEmpty { Text(model.repairMessage).font(.subheadline).multilineTextAlignment(.center) }
+                    if !model.scanNeedsRescan { Text(showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
                     if model.counterpartMesh != nil {
                         Toggle("Preview missing edge", isOn: $showCounterpart)
                     }
@@ -177,8 +183,12 @@ struct CubeDemoView: View {
                             ScrollView { Text(model.warnings.joined(separator: "\n")).font(.caption) }.frame(maxHeight: 140)
                         }
                     }
-                    Button(model.counterpartPrintable ? "Export printable piece" : (model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal")) { model.exportObservedSurface(printableOnly: model.counterpartPrintable) }
-                        .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy)
+                    if model.scanNeedsRescan {
+                        Button("Scan again") { resetScan() }.buttonStyle(.borderedProminent).controlSize(.large)
+                        Button(inspectFailedScan ? "Hide failed scan" : "Inspect failed scan") { inspectFailedScan.toggle() }
+                        Spacer()
+                    } else { Button(model.counterpartPrintable ? "Export printable piece" : (model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal")) { model.exportObservedSurface(printableOnly: model.counterpartPrintable) }
+                        .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy) }
                 } else if model.busy {
                     Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
                 } else {
@@ -201,7 +211,7 @@ struct CubeDemoView: View {
     }
 
     private func resetScan() {
-        observedScan = false; showCounterpart = false
+        observedScan = false; showCounterpart = false; inspectFailedScan = false
         photo = nil; finding = nil; corners = []; files = []; status = ""; manualCorners = false; selectedPhoto = nil
     }
 
@@ -370,7 +380,7 @@ private struct CubeScanCapture: View {
                     }.allowsHitTesting(false)
                 Spacer()
                 VStack(spacing: 20) {
-                    Text(failure ?? (camera.isCapturing ? camera.guidance : "Center the object and keep it still. Move your phone around it."))
+                    Text(failure ?? (camera.isCapturing ? camera.guidance : "Keep the cube still on a textured surface. Start about 30 cm away and move the phone slowly."))
                         .font(.subheadline).multilineTextAlignment(.center)
                     HStack {
                         Button(action: onLibrary) { Image(systemName: "photo.on.rectangle").font(.title2).frame(width: 52) }

@@ -145,6 +145,8 @@ final class AppModel: ObservableObject {
     @Published var scanMesh: MeshPreview?
     @Published var counterpartMesh: MeshPreview?
     @Published var counterpartPrintable = false
+    @Published var scanNeedsRescan = false
+    @Published var repairMessage = ""
     @Published var photoDetailStatus = ""
     @Published var partMesh: MeshPreview?
     @Published var measurements: [[String: Any]] = []
@@ -227,7 +229,7 @@ final class AppModel: ObservableObject {
     }
     func saveSettings() {UserDefaults.standard.set(serverURL,forKey:"serverURL");TokenStore.save(token)}
     func loadDerived() {
-        counterpartMesh=nil;counterpartPrintable=false;photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
+        counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
         guard let dir=projectDirectory else{return}
         counterpartMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("counterpart_preview.json")))
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { updatePhotoDetail(info) }
@@ -453,14 +455,21 @@ final class AppModel: ObservableObject {
         return false
     }
     private func updatePhotoDetail(_ info: [String: Any]) {
+        let notes = info["warnings"] as? [String] ?? []
+        let counterpart = info["counterpart"] as? [String: Any] ?? [:]
+        scanNeedsRescan = notes.contains { $0.hasPrefix("cross_view_depth_inconsistency") || $0.hasPrefix("rgb_pose_inconsistency") }
+        repairMessage = scanNeedsRescan
+            ? "The views did not line up. No replacement piece was generated. Keep the cube still on a textured surface and move the phone slowly around it, starting about 30 cm away."
+            : (counterpart["reason"] as? String ?? "")
         counterpartPrintable = (info["counterpart"] as? [String: Any])?["watertight_replacement"] as? Bool ?? false
         let detail = info["photo_detail"] as? [String: Any] ?? [:]
-        photoDetailStatus = detail["status"] as? String == "photo_detail_integrated"
+        photoDetailStatus = scanNeedsRescan ? "Photo-detail matching was skipped because the scan was inconsistent." : detail["status"] as? String == "photo_detail_integrated"
             ? "Photo detail matched across views · accuracy uncalibrated"
             : "Fine photo detail unresolved. Try closer, sharp overlapping views."
     }
 
     func exportObservedSurface(printableOnly: Bool = false) { perform {
+        guard !self.scanNeedsRescan else { throw ServiceFailure(message: self.repairMessage) }
         guard let dir = self.projectDirectory else { return }
         let data = try Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))
         let record = try JSONSerialization.jsonObject(with: data) as? [String: Any]
