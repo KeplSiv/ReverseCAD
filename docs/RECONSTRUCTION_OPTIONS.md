@@ -1,6 +1,23 @@
 # Reconstruction options — evaluated 2026-10-17
 
-## Working implementation
+## Real failed-scan benchmark and automatic exterior fallback (2026-10-17)
+
+The phone capture with 25 RGB frames (23 accepted native-depth frames) failed native fusion: median visible depth disagreement 10.94 mm, free-space violations 67.2%. All-pairs Open3D colored ICP on its largest 21-frame connected component reduced depth disagreement to 5.56 mm but made image reprojection worse (about 36 px at 640 px feature resolution). It was rejected. COLMAP's initial diagnostic camera alignment improved RGB reprojection to 3.64 px but did not rescue native-depth fusion (8.17 mm residual). These residuals use different matched/visible samples, so they are diagnostics, not a ground-truth accuracy leaderboard.
+
+Production now tries pinned CPU PyCOLMAP 4.2.1 after an inconsistent ARKit scan. The final run registered 17 photos, including two tracking-limited RGB images usable by independent SfM, retaining 15 accepted-depth frames for evidence. The sparse model had approximately 1.09 px reprojection error. Automatic scale comes from robust matched native-depth/photo-depth ratios, preferentially on background surfaces. No cube width, gap or radius is supplied by the user or preset for this scan. The retained scale ratios had about 5.7% p10–p90 relative half-range; this is scatter, not calibrated dimensional accuracy.
+
+For a mostly solved cube, narrower hue ranges separate nearby yellow/orange faces. Six aligned views constrained the square face, with roughly 3.7% median held-out corner error relative to face size. Multiple views of an intact edge constrain a rounded rectangular outline. The output is a **closed, idealized rounded exterior estimate**, using the repeated outline on perpendicular faces. This is not a recovered dense donor surface. Three-dimensional rounding, unseen sides and closure are inferred. Fine bumps, recesses, internal locking geometry, clearance, printed fit and editable parametric CAD remain unresolved. The app labels this path “Estimated replacement” and shows the piece first. Its context cube is explicitly inferred, not a clean scan claim.
+
+The actual failed capture now produces a single watertight, consistently oriented STL/3MF exterior with automatic dimensions. We check self-intersections and reimport the STL. No raw photos or personal scan package are committed. Reproduce registration diagnostics with:
+
+```sh
+PYTHONPATH=backend OMP_NUM_THREADS=2 .venv/bin/python scripts/compare_alignment.py /path/to/capture /path/to/output --method open3d
+PYTHONPATH=backend OMP_NUM_THREADS=2 .venv/bin/python scripts/compare_alignment.py /path/to/capture /path/to/output --method colmap
+```
+
+PyCOLMAP/COLMAP core is [BSD licensed](https://github.com/colmap/colmap/blob/main/LICENSE); third-party dependencies retain their own licenses. No code was copied from VideoCAD or a learned completion repository. This implementation uses COLMAP as a dependency and original bounded fitting/validation logic.
+
+## Earlier photo-library prototype
 
 The cube prototype uses OpenCV color segmentation, convex face boundaries, perspective rectification, and repeated 3×3 cell validation. A photo now supplies its own face corners. The photo-library prototype analyzes one image. The main camera flow now captures calibrated RGB-D/poses and fuses accepted views through the existing Open3D TSDF pipeline; it no longer selects one frame. The detector supports a mostly solved face with one dark missing edge; scrambled faces, multiple gaps, missing outer corners, occlusion, and poor light can require correction or fail.
 
@@ -19,7 +36,7 @@ A visible solved-face grid plus native plane fit establishes a cube frame. The p
 | [OpenCV](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html) | Detection, homographies, calibration | Already pinned in this repo | Used for automatic cube face detection |
 | [Open3D](https://www.open3d.org/docs/release/tutorial/pipelines/rgbd_integration.html) | Registered RGB-D integration into a mesh | [MIT](https://github.com/isl-org/Open3D/blob/main/LICENSE); already installed | Retain for metric scan fusion; inspect foreground isolation and registration quality before trusting small features |
 | [CadQuery](https://github.com/CadQuery/cadquery) | Parametric solids and STEP/STL export | Apache 2.0; already installed and generating valid solids | Retain for editable repair geometry |
-| [COLMAP](https://github.com/colmap/colmap) | Camera calibration, structure from motion and multiview stereo | BSD core; dependency licenses separate. [macOS/Homebrew supported](https://colmap.github.io/install.html), but available dense-reconstruction acceleration depends on build/hardware | Candidate for initial geometry from overlapping RGB frames; it does not infer missing material or produce a feature history |
+| [COLMAP](https://github.com/colmap/colmap) | Camera calibration, structure from motion and multiview stereo | BSD core; dependency licenses separate. [macOS/Homebrew supported](https://colmap.github.io/install.html), but available dense-reconstruction acceleration depends on build/hardware | Used for bounded CPU photo alignment in the inconsistent-scan fallback; missing geometry still requires the explicit cube model |
 | [MoGe](https://github.com/microsoft/MoGe) | Predicted depth/point maps from a photo | MIT code with Apache DINOv2 component; current MoGe-3 installation explicitly excludes macOS due to Triton/FlexGEMM | Possible GPU service experiment, not installed on this Mac; inferred depth needs measurement checks |
 | [VGGT](https://github.com/facebookresearch/vggt) | Camera parameters, depth and points from multiple views | Repository distinguishes commercial checkpoint from original noncommercial weights; commercial checkpoint access requires application | Promising reconstruction experiment once appropriate weights and compute are selected; not equivalent to editable CAD |
 | [TRELLIS](https://github.com/microsoft/TRELLIS) | Image-conditioned mesh / Gaussian / radiance-field generation | Mostly MIT code/models with separately licensed components; documented Linux and NVIDIA GPU ≥16 GB | Could propose visual geometry on a GPU server; generated shape is not evidence of dimensional accuracy or functional fit |

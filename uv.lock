@@ -1029,6 +1029,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pycolmap"
+version = "4.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/87/0ea99959c82ad918e2f4bd4bc41b2f97d3d061a83b267a2e3b8477171e69/pycolmap-4.2.1-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:73204e55c75ab637231d4ca559153d658ec7eda9dec39a1aacad96fbc0300cb9", size = 20715097, upload-time = "2026-09-29T17:04:22.759Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/b3/a8427abf840e4455611d7be99a47ddf1aab68f96b874ee0706c7e6d128bc/pycolmap-4.2.1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:7627f0bab5746d04d94f91fec0dcb4b8ae0d5592853ab7b549cbd7dd021dd90f", size = 38173037, upload-time = "2026-09-29T17:04:25.932Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/48/ca4793173198767e8e73757797346ac71e4a42d1ec5399cdf058cf5b4e22/pycolmap-4.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:9db2c0fef05cf0f9ac981a30c62a01d6bd9c67dab0fbe60a0045ff968180752e", size = 23960818, upload-time = "2026-09-29T17:04:28.727Z" },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.11.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1215,6 +1228,7 @@ dependencies = [
     { name = "open3d" },
     { name = "opencv-python-headless" },
     { name = "pillow" },
+    { name = "pycolmap" },
     { name = "pydantic" },
     { name = "python-multipart" },
     { name = "rtree" },
@@ -1242,6 +1256,7 @@ requires-dist = [
     { name = "open3d", specifier = "==0.19.0" },
     { name = "opencv-python-headless", specifier = "==4.11.0.86" },
     { name = "pillow", specifier = "==11.2.1" },
+    { name = "pycolmap", specifier = "==4.2.1" },
     { name = "pydantic", specifier = "==2.11.4" },
     { name = "python-multipart", specifier = "==0.0.20" },
     { name = "rtree", specifier = "==1.4.1" },

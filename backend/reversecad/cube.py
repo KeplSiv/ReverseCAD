@@ -168,7 +168,7 @@ def _ordered_quad(points: np.ndarray) -> np.ndarray:
     return np.roll(points, -int(np.argmin(points.sum(axis=1))), axis=0)
 
 
-def _automatic_face(image: np.ndarray) -> dict:
+def _automatic_face(image: np.ndarray, narrow: bool = False) -> dict:
     """Fit visible same-color face hulls, then validate the repeated 3x3 cells.
 
     Restricted to a mostly solved face with one dark missing cell. Never promote
@@ -179,8 +179,8 @@ def _automatic_face(image: np.ndarray) -> dict:
     hue, saturation, value = cv2.split(hsv)
     masks = [(saturation < sat) & (value > light)
              for sat in (65, 95) for light in (150, 180, 205)]
-    masks += [((np.minimum(abs(hue.astype(float) - h), 180 - abs(hue.astype(float) - h)) < 13)
-               & (saturation > 100) & (value > 90)) for h in (0, 20, 35, 60, 105, 120)]
+    masks += [((np.minimum(abs(hue.astype(float) - h), 180 - abs(hue.astype(float) - h)) < (6 if narrow else 13))
+               & (saturation > 100) & (value > 90)) for h in (range(0, 180, 5) if narrow else (0, 20, 35, 60, 105, 120))]
     candidates = []
     target = np.float32([[0, 0], [300, 0], [300, 300], [0, 300]])
     for selected in masks:
@@ -220,6 +220,8 @@ def _automatic_face(image: np.ndarray) -> dict:
                         continue
                     score = float(np.mean(intact) - coverage[missing]) * 100 + result["score_margin"]
                     candidates.append((score, result))
+    if not candidates and not narrow:
+        return _automatic_face(image, narrow=True)
     if not candidates:
         raise CubeInputError("Could not confidently find a missing piece. Show a mostly same-colored face with one gap, keep all four corners visible, and try again. You can also mark the face manually.")
     candidates.sort(key=lambda item: item[0], reverse=True)

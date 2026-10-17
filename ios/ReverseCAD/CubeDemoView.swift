@@ -50,7 +50,7 @@ struct CubeDemoView: View {
     @State private var files: [URL] = []
     @State private var showShare = false
     @State private var observedScan = false
-    @State private var showCounterpart = false
+    @State private var showCounterpart = true
     @State private var inspectFailedScan = false
 
     var body: some View {
@@ -160,22 +160,24 @@ struct CubeDemoView: View {
     private var observedResult: some View {
         NavigationStack {
             VStack(spacing: 18) {
-                if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
+                if model.busy {
+                    Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
+                } else if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
                     if !model.scanNeedsRescan || inspectFailedScan {
-                        GeometryPreview(scan: mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
+                        GeometryPreview(scan: model.counterpartPrintable && showCounterpart ? nil : mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
                             .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
                     } else {
                         Spacer()
                         Image(systemName: "viewfinder.trianglebadge.exclamationmark").font(.system(size: 70)).foregroundStyle(.orange)
                     }
-                    Text(model.scanNeedsRescan ? "Scan didn’t line up" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface")).font(.title2.bold())
-                    if !model.repairMessage.isEmpty { Text(model.repairMessage).font(.subheadline).multilineTextAlignment(.center) }
-                    if !model.scanNeedsRescan { Text(showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
+                    Text(model.scanNeedsRescan ? "Scan didn’t line up" : (model.exteriorEstimated ? "Estimated replacement" : (model.counterpartPrintable ? "Replacement exterior ready" : "Captured surface"))).font(.title2.bold())
+                    if !model.repairMessage.isEmpty && !model.exteriorEstimated { Text(model.repairMessage).font(.subheadline).multilineTextAlignment(.center) }
+                    if !model.scanNeedsRescan { Text(model.exteriorEstimated ? "Exterior estimated from photos. Fine details, internal parts and fit are unverified. Cube context is inferred." : showCounterpart ? (model.counterpartPrintable ? "Orange: closed exterior prototype. Unseen sides use flat closures; internal locking geometry and fit are untested." : "Orange: proposed exterior copied from an intact edge. More views are needed before it can be closed.") : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center) }
                     if model.counterpartMesh != nil {
-                        Toggle("Preview missing edge", isOn: $showCounterpart)
+                        Toggle("Show replacement piece", isOn: $showCounterpart)
                     }
-                    if !model.photoDetailStatus.isEmpty {
+                    if !model.photoDetailStatus.isEmpty && !model.exteriorEstimated {
                         Text(model.photoDetailStatus).font(.caption).foregroundStyle(.secondary)
                     }
                     if !model.warnings.isEmpty {
@@ -189,8 +191,6 @@ struct CubeDemoView: View {
                         Spacer()
                     } else { Button(model.counterpartPrintable ? "Export printable piece" : (model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal")) { model.exportObservedSurface(printableOnly: model.counterpartPrintable) }
                         .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy) }
-                } else if model.busy {
-                    Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
                 } else {
                     Spacer()
                     Text(model.error ?? model.progress).multilineTextAlignment(.center)
@@ -202,7 +202,12 @@ struct CubeDemoView: View {
                     ToolbarItem(placement: .topBarLeading) {
                         Button { resetScan() } label: { Image(systemName: "camera") }.disabled(model.busy).accessibilityLabel("New scan")
                     }
-                    ToolbarItem(placement: .topBarTrailing) { Button { showSettings = true } label: { Image(systemName: "ellipsis.circle") } }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Button("Reprocess saved scan") { model.uploadAndReconstruct() }.disabled(model.busy)
+                            Button("Connection settings") { showSettings = true }
+                        } label: { Image(systemName: "ellipsis.circle") }
+                    }
                 }
         }.sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
             .alert("Scan needs attention", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
@@ -211,7 +216,7 @@ struct CubeDemoView: View {
     }
 
     private func resetScan() {
-        observedScan = false; showCounterpart = false; inspectFailedScan = false
+        observedScan = false; showCounterpart = true; inspectFailedScan = false
         photo = nil; finding = nil; corners = []; files = []; status = ""; manualCorners = false; selectedPhoto = nil
     }
 

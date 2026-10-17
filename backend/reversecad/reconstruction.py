@@ -19,7 +19,7 @@ import numpy as np
 from .geometry import (AR_TO_CV, dot, fit_cylinder_frustum, fit_plane, project,
                        rigid_transform, scaled_intrinsics, transform_points, unproject)
 
-VERSION = "rgbd-1.2.0"
+VERSION = "rgbd-1.3.0"
 MAX_FRAMES = 240
 MAX_SCAN_BYTES = 512 * 1024 * 1024
 MAX_DEPTH_PIXELS = 640 * 480
@@ -775,5 +775,32 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                             "tsdf_triangles": len(preview["triangles"]), "elapsed_s": time.monotonic() - start,
                             "masked_native_samples": sum(f["native_foreground_samples"] for f in frames),
                             "segmentation_sources": sorted({f["mask_source"] for f in frames})})
+    # Native fusion stays diagnostic when inconsistent. Independently align the
+    # photographs and attempt a clearly labeled constrained exterior hypothesis.
+    if stage == "rgb_assisted" and not geometry_consistent and manifest.get("source") == "arkit":
+        from .photo_alignment import align_photos
+        from .photo_cube import estimate_cube
+        photo_alignment = {"status": "unavailable"}
+        try:
+            photo_frames, photo_alignment = align_photos(scan_dir, frames, capture_frames, output_dir)
+            if photo_frames:
+                estimate = estimate_cube(photo_frames, scan_dir, output_dir, photo_alignment)
+                base["counterpart"] = estimate
+                base["status"] = "proposal_needs_review"
+                base["surface"] = {"kind": "inferred_cube_context", "unit": "mm",
+                    "editable_parametric_cad": False, "exports": [],
+                    "note": "Structural context from photos; failed native scan is not displayed as valid geometry."}
+                base["photo_detail"] = {"status": "outline_estimate_only", "accepted_pixels": 0,
+                    "limitations": "Fine surface relief unresolved; rounded exterior and unseen sides are inferred."}
+                base["warnings"].append("estimated_exterior: Photo-aligned repeated outline; automatic scale, hidden closures and physical fit are unverified.")
+        except (ValueError, RuntimeError, ImportError) as exc:
+            photo_alignment["repair_failure"] = str(exc)
+            base["counterpart"]["reason"] += " Photo reconstruction: " + str(exc)
+            # Never leave partial printable artifacts after a failed proposal.
+            for name in ("printable_edge.stl", "printable_edge.3mf", "printable_edge.json", "counterpart_preview.json"):
+                (output_dir/name).unlink(missing_ok=True)
+        base["photo_alignment"] = photo_alignment
+        _json(output_dir / "photo_alignment.json", photo_alignment)
+    base["metrics"]["elapsed_s"] = time.monotonic() - start
     _json(output_dir / "reconstruction.json", base)
     return base
