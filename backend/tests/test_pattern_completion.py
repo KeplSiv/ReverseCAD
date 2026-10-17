@@ -113,7 +113,8 @@ def test_hypothesis_export_preserves_units_and_donor_provenance(tmp_path, monkey
                  'transform': np.eye(4), 'pattern_kind': 'reflection',
                  'overlap_fraction': .9, 'matched_surface_rmse': .0001,
                  'normal_agreement': .99}
-    monkeypatch.setattr(module, 'propose_patterns', lambda mesh: ([candidate], {'printable': False}))
+    import reversecad.geometry_prediction as prediction
+    monkeypatch.setattr(prediction, 'predict_geometry', lambda mesh: ([candidate], {'printable': False}))
     report = module.export_pattern_hypotheses(None, tmp_path, scale=2)
     preview = json.loads((tmp_path / report['candidates'][0]['preview']).read_text())
     assert preview['unit'] == 'mm'

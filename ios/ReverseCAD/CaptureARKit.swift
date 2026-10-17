@@ -34,6 +34,13 @@ struct CaptureTimeline {
 final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, @unchecked Sendable {
     var onFrame: ((CaptureFrame) -> Void)?
     var onProgress: ((CaptureProgress) -> Void)?
+    var onLiveGeometry: ((LiveGeometrySnapshot?) -> Void)?
+    private var liveEpoch = UUID().uuidString
+    private var liveTracking = false
+    private var liveSequence = 0
+    private var liveCameras: [[Double]] = []
+    private var cameraEpoch = ""
+    private var lastLiveTimestamp = -Double.infinity
     private let session: ARSession
     private let directory: URL
     private let scanID: String
@@ -114,7 +121,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     }
 
     func selectObject(point: CGPoint) {
-        lock.lock(); selectedPoint = point; lock.unlock()
+        lock.lock(); selectedPoint = point; liveEpoch = UUID().uuidString; lock.unlock()
+        onLiveGeometry?(nil)
     }
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
@@ -166,17 +174,25 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             @unknown default: trackingReason = "Tracking quality is limited"
             }
         }
+        lock.lock()
+        let invalidateGhost = tracking != "normal" && liveTracking
+        if invalidateGhost { liveEpoch = UUID().uuidString }
+        liveTracking = tracking == "normal"
+        let epoch = liveEpoch
+        lock.unlock()
+        if invalidateGhost { onLiveGeometry?(nil) }
+        let anchors = frame.anchors.compactMap { $0 as? ARMeshAnchor }
         workQueue.async { [self] in
             defer { slots.signal() }
             autoreleasepool {
                 do {
-                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset)
+                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch)
                 } catch { stopForBudget(error.localizedDescription); failure = error.localizedDescription }
             }
         }
     }
 
-    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float) throws {
+    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String) throws {
         guard !stats.finished else { return }
         lock.lock(); stats.dropped += pendingDrops; pendingDrops = 0; lock.unlock()
         try appendVideo(rgb, timestamp: timestamp)
@@ -191,13 +207,15 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         let width = CVPixelBufferGetWidth(rgb), height = CVPixelBufferGetHeight(rgb)
         let blur = Self.blurScore(rgb)
         var detailPoint = point
+        var objectInFrame = true
         if let target = guideTarget, point == guideSelection {
             let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
             if local.z < -0.01 {
                 let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
                 detailPoint = CGPoint(x: CGFloat(pixel.x / pixel.z) / resolution.width, y: CGFloat(pixel.y / pixel.z) / resolution.height)
+                objectInFrame = detailPoint.x.isFinite && detailPoint.y.isFinite && detailPoint.x >= 0 && detailPoint.x <= 1 && detailPoint.y >= 0 && detailPoint.y <= 1
                 detailPoint.x = min(1, max(0, detailPoint.x)); detailPoint.y = min(1, max(0, detailPoint.y))
-            }
+            } else { objectInFrame = false }
         }
         let objectBlur = Self.blurScore(rgb, around: detailPoint)
         var reasons = [String]()
@@ -228,7 +246,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
         var maskPath: String?
         // Masks are native depth-size labels and derived from the original raw image with .up orientation.
-        if accepted, depthWidth > 0, let mask = foregroundMask(rgb: rgb, point: point, width: depthWidth, height: depthHeight) {
+        if accepted, objectInFrame, depthWidth > 0, let mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
             maskPath = "masks/\(id).u8"; assets[maskPath!] = mask
         }
         var capture = CaptureFrame(scanID: scanID, segmentID: segment, frameID: id, timestampS: timestamp, rgbPath: rgbPath, rgbWidth: width, rgbHeight: height, depthPath: depthPath, depthWidth: depthWidth, depthHeight: depthHeight, depthRowBytes: depthWidth * 4, confidencePath: confidencePath, maskPath: maskPath, intrinsics: Self.columnMajor(intrinsics), intrinsicsWidth: Int(resolution.width), intrinsicsHeight: Int(resolution.height), worldCamera: Self.columnMajor(pose), trackingState: tracking, quality: CaptureQuality(blurScore: blur, accepted: accepted, reasons: reasons))
@@ -272,6 +290,25 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             stats.coverageViews = scanGuide.covered.count
         } else {
             stats.guidance = reasons.first ?? "Tap the object. Hold still while depth finds its position."
+        }
+        if !objectInFrame { onLiveGeometry?(nil) }
+        if cameraEpoch != epoch { liveCameras = []; cameraEpoch = epoch; lastLiveTimestamp = -Double.infinity }
+        if accepted {
+            let camera = [Double(pose.columns.3.x), Double(pose.columns.3.y), Double(pose.columns.3.z)]
+            if liveCameras.last.map({ simd_distance(SIMD3<Float>(Float($0[0]),Float($0[1]),Float($0[2])),pose.columns.3.xyz) > 0.008 }) ?? true {
+                liveCameras.append(camera); liveCameras = Array(liveCameras.suffix(24))
+            }
+        }
+        stats.geometryHint = liveCameras.count < 3 ? "Move slowly to another side to start the ghost." : nil
+        if accepted, timestamp - lastLiveTimestamp >= 7, liveCameras.count >= 3,
+           let depthData, let confidenceData, let maskPath, let mask = assets[maskPath] {
+            lastLiveTimestamp = timestamp; liveSequence += 1
+            let snapshot = Self.objectSnapshot(anchors: anchors, pose: pose, intrinsics: intrinsics,
+                imageSize: resolution, depth: depthData, mask: mask, confidence: confidenceData,
+                width: depthWidth, height: depthHeight, sessionID: epoch, sequence: liveSequence, cameras: liveCameras)
+            lock.lock(); let valid = liveEpoch == epoch && liveTracking && active; lock.unlock()
+            if valid, let snapshot { onLiveGeometry?(snapshot) }
+            else if valid { stats.geometryHint = "Object surface is too sparse for a ghost. Show intact features from closer, sharp views." }
         }
         onFrame?(capture); onProgress?(stats)
         // The service package budget counts every persisted record, including rejected evidence.
@@ -368,6 +405,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     }
 
     func sessionWasInterrupted(_ session: ARSession) {
+        lock.lock(); liveEpoch = UUID().uuidString; liveTracking = false; lock.unlock()
+        onLiveGeometry?(nil)
         lock.lock(); let current = segment; let elapsed = timeline.relativeTimestamp(ProcessInfo.processInfo.systemUptime); lock.unlock()
         workQueue.async { [self] in
             var event: [String: Any] = ["event": "interrupted", "segment_id": current]
@@ -402,6 +441,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     }
 
     func session(_ session: ARSession, didFailWithError error: Error) {
+        lock.lock(); liveEpoch = UUID().uuidString; liveTracking = false; lock.unlock()
+        onLiveGeometry?(nil)
         workQueue.async { [self] in failure = error.localizedDescription; stopForBudget("ARKit stopped: \(error.localizedDescription). Saved frames are preserved.") }
     }
 

@@ -94,3 +94,40 @@ final class PatternRepairTests: XCTestCase {
     }
 
 }
+
+@MainActor
+extension PatternRepairTests {
+    private func ghostResponse(session: String, sequence: Int = 1) -> LiveGhostResponse {
+        LiveGhostResponse(session_id: session, sequence: sequence, status: "provisional", message: "Review geometry",
+            candidates: [.init(id: "mirror", method: "reflection", mesh: MeshPreview(vertices: [[100,200,300],[110,200,300],[100,220,300]], triangles: [[0,1,2]]), support_score: 0.9, assumptions: ["Damage unconfirmed"])])
+    }
+    func testGhostWorldCoordinatesAndExpiry() {
+        var ghost = GhostLifecycle(); let now = Date()
+        let response = ghostResponse(session: ghost.sessionID)
+        XCTAssertTrue(ghost.accept(response, now: now, sentAt: now))
+        XCTAssertEqual(ghost.selected!.worldPositions[0].x, 0.1, accuracy: 0.000001)
+        XCTAssertEqual(ghost.selected!.worldPositions[0].y, 0.2, accuracy: 0.000001)
+        XCTAssertEqual(ghost.selected!.worldPositions[0].z, 0.3, accuracy: 0.000001)
+        ghost.expire(at: now.addingTimeInterval(17))
+        XCTAssertNil(ghost.selected)
+    }
+    func testGhostCannotReviveAfterTrackingResetOrOutOfOrderResponse() {
+        var ghost = GhostLifecycle(); let now = Date()
+        let old = ghostResponse(session: ghost.sessionID, sequence: 2)
+        XCTAssertTrue(ghost.accept(old, now: now, sentAt: now))
+        XCTAssertFalse(ghost.accept(ghostResponse(session: ghost.sessionID, sequence: 1), now: now, sentAt: now))
+        ghost.reset(); XCTAssertNil(ghost.selected)
+        XCTAssertFalse(ghost.accept(old, now: now, sentAt: now))
+        XCTAssertFalse(ghost.accept(ghostResponse(session: ghost.sessionID), now: now, sentAt: now.addingTimeInterval(-25)))
+    }
+    func testGhostRejectsInvalidGeometryAndClearsOnNoSupportedCandidate() {
+        var ghost = GhostLifecycle(); let now = Date()
+        var response = ghostResponse(session: ghost.sessionID)
+        response.candidates[0].mesh.triangles = [[0,1,99]]
+        XCTAssertFalse(ghost.accept(response, now: now, sentAt: now))
+        response = ghostResponse(session: ghost.sessionID)
+        XCTAssertTrue(ghost.accept(response, now: now, sentAt: now))
+        let empty = LiveGhostResponse(session_id: ghost.sessionID, sequence: 2, status: "need_views", message: "Show another side", candidates: [])
+        XCTAssertTrue(ghost.accept(empty, now: now, sentAt: now)); XCTAssertNil(ghost.selected)
+    }
+}

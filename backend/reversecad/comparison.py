@@ -160,6 +160,27 @@ def compare_reconstructions(scan_dir,output_dir,base,annotations=None,progress=N
         current['part_preview']='counterpart_preview.json';current['printable']=True;current['status']='proposal_needs_review'
         current['print_files']=[n for n in ['printable_edge.stl','printable_edge.3mf','printable_edge.json','counterpart.json'] if (output_dir/n).is_file()]
     variants.append(current)
+    geometry_report=base.get('pattern_hypotheses',{})
+    geometry_candidates=geometry_report.get('candidates',[])
+    if not geometry_candidates:
+        geometric=base_variant('geometry','Geometry prediction','Repeated features + symmetry + planar continuation')
+        geometric['scan_preview']=current['scan_preview']
+        geometric['message']='No supported geometric repair from the current measured surface. No object-category template is used.'
+        variants.append(geometric)
+    for candidate in geometry_candidates:
+        kind=candidate.get('pattern_kind','geometry')
+        geometric=base_variant('geometry_'+candidate['id'],kind.replace('_',' ').title(),
+            'Observed donor transfer or planar continuation; geometric hypothesis')
+        geometric['scan_preview']=current['scan_preview']
+        geometric['part_preview']=candidate.get('print_preview') or candidate['preview']
+        validation=candidate.get('validation',{})
+        files=validation.get('files',[])+[candidate['id']+'_validation.json','pattern_hypotheses.json']
+        geometric['printable']=bool(validation.get('watertight') and files and all((output_dir/n).is_file() for n in files))
+        geometric['print_files']=files if geometric['printable'] else []
+        geometric['status']='proposal_needs_review' if geometric['printable'] else 'surface_only'
+        geometric['message']='Provisional geometry. Confirm the region is actually damaged; hidden surfaces and physical fit remain unverified.'
+        geometric['metrics']={'support_score':candidate.get('support_score'),'assumptions':candidate.get('assumptions',[])}
+        variants.append(geometric)
     stereo=base_variant('photo','Photo stereo','COLMAP-aligned, cross-pair checked stereo')
     report=base.get('photo_recovery',{})
     if (output_dir/'photo_recovered_surface_m.ply').exists():
@@ -208,6 +229,7 @@ def compare_reconstructions(scan_dir,output_dir,base,annotations=None,progress=N
         # Logs help diagnose model failures without adding large model data to phone downloads.
         if (model_dir/'model.log').exists():shutil.copyfile(model_dir/'model.log',output_dir/'comparison_model.log')
     prototypes=[v for v in variants if v['printable'] and v['part_preview']]
+    prototypes.sort(key=lambda v:not v['id'].startswith('geometry_'))
     selected=prototypes[0]['id'] if prototypes else next((v['id'] for v in variants if v['scan_preview'] and v['status']=='surface_only'),current['id'])
     summary={'schema_version':1,'scan_id':manifest['scan_id'],'input_revision':base.get('input_revision'),
              'variants':variants,'suggested_variant_id':selected,'verified_winner':None,

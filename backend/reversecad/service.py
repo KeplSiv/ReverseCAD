@@ -26,7 +26,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import ValidationError
 
-from .contracts import Annotations, CaptureFrame, CreateScan, RepairRequest, ScanManifest, ReconstructionRequest, CandidateRequest, finite, identifier, safe_asset_path
+from .contracts import Annotations, CaptureFrame, CreateScan, RepairRequest, ScanManifest, ReconstructionRequest, CandidateRequest, LiveGeometryRequest, finite, identifier, safe_asset_path
 from .storage import ACTIVE_STATES, Store, atomic_json, digest
 
 
@@ -289,6 +289,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     owner = hashlib.sha256(token.encode()).hexdigest()
     runner = JobRunner(store,worker_timeout_s,max_memory_bytes,comparison_timeout_s,comparison_memory_bytes)
     upload_lock = asyncio.Lock()
+    live_geometry_lock = threading.Lock()
 
     @asynccontextmanager
     async def lifespan(app):
@@ -370,6 +371,29 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     def capabilities():
         from .cad import template_catalog
         return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+
+    @app.post("/v1/geometry/live",dependencies=[Depends(authorize)])
+    def live_geometry(body: LiveGeometryRequest):
+        # One bounded isolated worker per service. Never retain snapshots as
+        # observations or mix coordinates from different AR sessions.
+        from tempfile import TemporaryDirectory
+        if not live_geometry_lock.acquire(blocking=False):
+            error(429,"live_geometry_busy","A live proposal is already being evaluated")
+        try:
+            with TemporaryDirectory(prefix="reversecad-live-") as scratch:
+                source=Path(scratch)/"request.json"; target=Path(scratch)/"response.json"
+                source.write_text(body.model_dump_json())
+                env=os.environ.copy();env.update(OMP_NUM_THREADS="2",OPENBLAS_NUM_THREADS="2")
+                process=subprocess.Popen([sys.executable,"-m","reversecad.live_prediction",str(source),str(target)],
+                    env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+                try: process.wait(timeout=22)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid,signal.SIGKILL);process.wait()
+                    error(504,"live_geometry_timeout","Live prediction reached its time budget; scanning remains available")
+                if process.returncode or not target.is_file():
+                    error(422,"live_geometry_unresolved","Live geometry could not be evaluated; capture more views")
+                return json.loads(target.read_text())
+        finally: live_geometry_lock.release()
 
     @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
     def analyze_cube(body: dict[str, Any]):

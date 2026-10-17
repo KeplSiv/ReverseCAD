@@ -388,7 +388,7 @@ private struct CubeScanCapture: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            CapturePreview(session: camera.session, onSelect: { camera.selectObject(normalizedRawImagePoint: $0) }).ignoresSafeArea()
+            CapturePreview(session: camera.session, onSelect: { camera.selectObject(normalizedRawImagePoint: $0) }, ghost: camera.ghost.selected).ignoresSafeArea()
             VStack {
                 HStack {
                     Text("ReverseCAD").font(.headline)
@@ -410,6 +410,16 @@ private struct CubeScanCapture: View {
                     }.allowsHitTesting(false)
                 Spacer()
                 VStack(spacing: 20) {
+                    if camera.isCapturing {
+                        HStack {
+                            Image(systemName: "viewfinder")
+                            Text(camera.ghost.selected.map { "Provisional · " + $0.method.replacingOccurrences(of: "_", with: " ") } ?? camera.ghostMessage)
+                                .font(.caption).accessibilityIdentifier("ghostStatus")
+                            if camera.ghost.candidates.count > 1 {
+                                Button("Next") { camera.nextGhost() }.accessibilityIdentifier("nextGhost")
+                            }
+                        }.foregroundStyle(camera.ghost.selected == nil ? Color.white : Color.orange)
+                    }
                     Text(failure ?? (camera.isCapturing ? camera.guidance : "Keep the object still. Tap it to set the scan center. Move the phone, not the object."))
                         .font(.subheadline).multilineTextAlignment(.center)
                     HStack {
@@ -432,6 +442,11 @@ private struct CubeScanCapture: View {
                 }.padding(24).background(.black.opacity(0.55))
             }.foregroundStyle(.white)
         }.task {
+            camera.predictGhost = { snapshot in
+                let payload = try JSONSerialization.jsonObject(with: JSONEncoder().encode(snapshot)) as! [String:Any]
+                let data = try await model.request("v1/geometry/live", method: "POST", json: payload)
+                return try JSONDecoder().decode(LiveGhostResponse.self, from: data)
+            }
             do { try await camera.startPreview() } catch { failure = error.localizedDescription }
         }.sheet(isPresented: $showScanHelp) {
             NavigationStack {
@@ -454,7 +469,7 @@ private struct CubeScanCapture: View {
                 }.navigationTitle("Capture detail")
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showScanHelp = false } } }
             }
-        }.onDisappear { camera.session.pause() }
+        }.onDisappear { camera.clearGhost(); camera.session.pause() }
             .onChange(of: camera.savedRevision) { _, _ in deliver() }
     }
     private func toggle() async {

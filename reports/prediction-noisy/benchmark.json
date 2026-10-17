@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case": "rail",
+      "noise_fraction": 0.0005,
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "translation",
+          "support_score": 0.7889909787134305,
+          "prediction_to_truth_p95": 0.00043477429426275194,
+          "truth_to_prediction_p95": 0.00043073546839877963,
+          "symmetric_p95_fraction_of_extent": 0.0009220879292115569,
+          "near_existing_surface_fraction": 0.0405,
+          "dimensional_extent_error_fraction": 0.00047171553138937607
+        },
+        {
+          "method": "translation",
+          "support_score": 0.788255656093549,
+          "prediction_to_truth_p95": 0.00039632184780202806,
+          "truth_to_prediction_p95": 0.0003971346886828542,
+          "symmetric_p95_fraction_of_extent": 0.0008422601968050003,
+          "near_existing_surface_fraction": 0.0405,
+          "dimensional_extent_error_fraction": 0.00026206406427840096
+        },
+        {
+          "method": "translation",
+          "support_score": 0.772642905177853,
+          "prediction_to_truth_p95": 0.013732504099607468,
+          "truth_to_prediction_p95": 0.013680247589945793,
+          "symmetric_p95_fraction_of_extent": 0.029124481603503227,
+          "near_existing_surface_fraction": 0.04,
+          "dimensional_extent_error_fraction": 0.0005050270721301281
+        },
+        {
+          "method": "translation",
+          "support_score": 0.7676362547851486,
+          "prediction_to_truth_p95": 0.013820760883390903,
+          "truth_to_prediction_p95": 0.013844270259141922,
+          "symmetric_p95_fraction_of_extent": 0.02936151996254921,
+          "near_existing_surface_fraction": 0.0405,
+          "dimensional_extent_error_fraction": 0.00033387614346930657
+        }
+      ],
+      "seconds": 2.4890867499634624,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "rail",
+      "noise_fraction": 0.0005,
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 2.3925386250484735,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "noise_fraction": 0.0005,
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "rotation",
+          "support_score": 0.9254460284798955,
+          "prediction_to_truth_p95": 0.00010508533887332305,
+          "truth_to_prediction_p95": 0.0001068826240953058,
+          "symmetric_p95_fraction_of_extent": 0.0003985164512414485,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 0.0010218083857137376
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9245321408957811,
+          "prediction_to_truth_p95": 9.608826076146215e-05,
+          "truth_to_prediction_p95": 9.340128599433228e-05,
+          "symmetric_p95_fraction_of_extent": 0.00035826920066028833,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 0.0004370316161521118
+        },
+        {
+          "method": "reflection",
+          "support_score": 0.9244067689110562,
+          "prediction_to_truth_p95": 0.00011709848331520334,
+          "truth_to_prediction_p95": 0.00011735723819583654,
+          "symmetric_p95_fraction_of_extent": 0.00043757149251177907,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 0.0006263699476991394
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9242516614291626,
+          "prediction_to_truth_p95": 0.00012163571227574721,
+          "truth_to_prediction_p95": 0.00012292365136090666,
+          "symmetric_p95_fraction_of_extent": 0.0004583261033985764,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 0.0005468206859418829
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9236752702592569,
+          "prediction_to_truth_p95": 0.00011947845632676035,
+          "truth_to_prediction_p95": 0.00011463609553175047,
+          "symmetric_p95_fraction_of_extent": 0.0004454805457498878,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 0.0004372488512346817
+        }
+      ],
+      "seconds": 4.534601500025019,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "noise_fraction": 0.0005,
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 4.9074917091056705,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "noise_fraction": 0.0005,
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "reflection",
+          "support_score": 0.9000803198214161,
+          "prediction_to_truth_p95": 0.00022333819651976228,
+          "truth_to_prediction_p95": 0.00022250496840570122,
+          "symmetric_p95_fraction_of_extent": 0.0006914856494404376,
+          "near_existing_surface_fraction": 0.02825,
+          "dimensional_extent_error_fraction": 0.000218017193034602
+        }
+      ],
+      "seconds": 7.621324749896303,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "noise_fraction": 0.0005,
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 7.776883417041972,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "noise_fraction": 0.0005,
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "planar_continuation",
+          "support_score": 0.9976839835180475,
+          "prediction_to_truth_p95": 0.00016027498350013047,
+          "truth_to_prediction_p95": 0.00015519291628152132,
+          "symmetric_p95_fraction_of_extent": 0.0002982662117574364,
+          "near_existing_surface_fraction": 0.07125,
+          "dimensional_extent_error_fraction": 0.0004587589173526023
+        }
+      ],
+      "seconds": 0.0032005419488996267,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "noise_fraction": 0.0005,
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 0.0017305419314652681,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "asymmetric",
+      "noise_fraction": 0.0005,
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 6.530360833043233,
+      "top1_pass": true,
+      "any_pass": true
+    }
+  ],
+  "units": "arbitrary metric scale",
+  "threshold": "Symmetric p95 surface error < 1.5% of observed extent; negatives require abstention",
+  "scope": "Synthetic clean meshes; not phone accuracy or manufacturing tolerance",
+  "top1_passed": 9,
+  "case_count": 9
+}

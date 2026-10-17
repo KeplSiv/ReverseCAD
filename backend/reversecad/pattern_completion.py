@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation
 from scipy.signal import find_peaks
 
 
-def candidate_from_transform(vertices, faces, transform, tolerance, bounds=None):
+def candidate_from_transform(vertices, faces, transform, tolerance, bounds=None, *, whole_components=False):
     """Extract only triangles absent from the observation, preserving relief."""
     xyz = np.asarray(vertices, dtype=float)
     faces = np.asarray(faces, dtype=int)
@@ -35,6 +35,20 @@ def candidate_from_transform(vertices, faces, transform, tolerance, bounds=None)
     if bounds is not None:
         missing &= np.all((transformed >= bounds[0]) & (transformed <= bounds[1]), axis=1)
     selected = np.all(missing[faces], axis=1)
+    if whole_components:
+        # A feature already segmented by mesh connectivity is stronger evidence
+        # than its farthest triangles. Transfer the complete observed donor,
+        # including its ridges and contact boundary; no dimensions are invented.
+        labels, counts, areas = observed.cluster_connected_triangles()
+        labels=np.asarray(labels); counts=np.asarray(counts)
+        for label,count in enumerate(counts):
+            component_faces=np.flatnonzero(labels==label)
+            used=np.unique(faces[component_faces])
+            if count<4 or count>len(faces)*.40: continue
+            if np.count_nonzero(selected[component_faces]) < 4: continue
+            if np.mean(distances[used] > tolerance*.3) < .65: continue
+            if bounds is not None and not np.all((transformed[used]>=bounds[0])&(transformed[used]<=bounds[1])):continue
+            selected[component_faces]=True
     ids = np.flatnonzero(selected)
     if not len(ids): return None
     used, indices = np.unique(faces[ids], return_inverse=True)
@@ -44,7 +58,7 @@ def candidate_from_transform(vertices, faces, transform, tolerance, bounds=None)
             'source_vertex_indices': used, 'source_triangle_indices': ids}
 
 
-def propose_patterns(mesh, max_candidates=3):
+def propose_patterns(mesh, max_candidates=3, *, fast=False):
     import open3d as o3d
     if len(mesh.triangles) < 100: return [], {'status':'insufficient_surface'}
     extent = np.linalg.norm(mesh.get_max_bound()-mesh.get_min_bound())
@@ -52,7 +66,7 @@ def propose_patterns(mesh, max_candidates=3):
     # Registration scale derives from the observed object, never a preset part size.
     voxel = extent / 160
     o3d.utility.random.seed(0)
-    points = mesh.sample_points_uniformly(12000).voxel_down_sample(voxel)
+    points = mesh.sample_points_uniformly(3000 if fast else 12000).voxel_down_sample(voxel)
     points.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=voxel*5,max_nn=40))
     xyz = np.asarray(points.points)
     _, vectors = np.linalg.eigh(np.cov(xyz.T))
@@ -64,7 +78,7 @@ def propose_patterns(mesh, max_candidates=3):
     estimator = reg.TransformationEstimationPointToPlane(reg.TukeyLoss(k=voxel*3))
     seeds = []
     for axis in vectors.T:
-        for order in range(2,9):
+        for order in range(2,5 if fast else 9):
             for direction in [-1,1]:
                 rotation = Rotation.from_rotvec(axis * (direction*2*np.pi/order)).as_matrix()
                 initial = np.eye(4);initial[:3,:3]=rotation;initial[:3,3]=center-rotation@center
@@ -81,6 +95,7 @@ def propose_patterns(mesh, max_candidates=3):
     variation=1-np.linalg.eigvalsh(tensor)[:,-1]
     for axis in vectors.T:
         projection=xyz@axis
+        if np.ptp(projection) < voxel*8: continue
         bins=max(12,int(np.ptp(projection)/voxel))
         hist,edges=np.histogram(projection,bins=bins,weights=np.maximum(0,variation-.04))
         if hist.sum() <= 0: continue
@@ -100,7 +115,7 @@ def propose_patterns(mesh, max_candidates=3):
         rough=xyz@initial[:3,:3].T+initial[:3,3]
         if np.mean(target_tree.query(rough)[0]<voxel*8)<.35: continue
         fitted = reg.registration_icp(points,points,voxel*5,initial,estimator,
-            reg.ICPConvergenceCriteria(max_iteration=35))
+            reg.ICPConvergenceCriteria(max_iteration=15 if fast else 35))
         t = fitted.transformation
         transformed = xyz @ t[:3,:3].T+t[:3,3]
         d, nearest = target_tree.query(transformed)
@@ -114,7 +129,7 @@ def propose_patterns(mesh, max_candidates=3):
         motion = np.median(np.linalg.norm(transformed-xyz,axis=1))
         if motion < voxel*10: continue
         if any(np.median(np.linalg.norm(transformed-c['mapped'],axis=1))<voxel*4 for c in candidates):continue
-        patch = candidate_from_transform(mesh.vertices,mesh.triangles,t,voxel*5,bounds=bounds)
+        patch = candidate_from_transform(mesh.vertices,mesh.triangles,t,voxel*5,bounds=bounds,whole_components=True)
         if patch is None or len(patch['faces'])<4:continue
         candidates.append({'transform':t,'patch':patch,'mapped':transformed,'pattern_kind':kind,
             'overlap_fraction':fraction,'novel_fraction':novel,
@@ -139,7 +154,8 @@ def export_pattern_hypotheses(mesh, output_dir, scale=1.0):
     from pathlib import Path
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    candidates, report = propose_patterns(mesh)
+    from .geometry_prediction import predict_geometry
+    candidates, report = predict_geometry(mesh)
     report['candidates'] = []
     for index, candidate in enumerate(candidates):
         patch = candidate['patch']
@@ -154,7 +170,9 @@ def export_pattern_hypotheses(mesh, output_dir, scale=1.0):
             'transform_in_mesh_units': candidate['transform'].tolist(),
             'overlap_fraction': candidate['overlap_fraction'],
             'matched_surface_rmse': candidate['matched_surface_rmse'],
-            'normal_agreement': candidate['normal_agreement']})
+            'normal_agreement': candidate['normal_agreement'],
+            'support_score': candidate.get('support_score'), 'assumptions': candidate.get('assumptions', []),
+            'checks': candidate.get('checks', {})})
         item = report['candidates'][-1]
         item['id'] = f'pattern_{index + 1}'
         from .printable_pattern import export_printable_pattern, PatternClosureUnavailable

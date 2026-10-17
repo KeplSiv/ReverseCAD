@@ -19,6 +19,7 @@ struct CaptureProgress: Sendable {
     var guidance = "Move slowly around the stationary object."
     var coverageViews = 0
     var finished = false
+    var geometryHint: String?
 }
 
 enum CaptureFailure: LocalizedError {
@@ -40,6 +41,11 @@ enum CaptureFailure: LocalizedError {
     @Published private(set) var savedRevision = 0
     @Published private(set) var previewImage: UIImage?
     @Published private(set) var guidance = "Keep the object stationary. Use a textured surface and diffuse light."
+    @Published private(set) var ghost = GhostLifecycle()
+    @Published private(set) var ghostMessage = "Ghost appears when repeated or symmetric geometry supports a proposal."
+    var predictGhost: ((LiveGeometrySnapshot) async throws -> LiveGhostResponse)?
+    private var ghostTask: Task<Void,Never>?
+    private var expiryTask: Task<Void,Never>?
     let hasAR = ARWorldTrackingConfiguration.isSupported
     let hasLiDAR = ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
     let session = ARSession()
@@ -79,6 +85,9 @@ enum CaptureFailure: LocalizedError {
         guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable Reverse CAD in Settings → Privacy & Security → Camera.") }
         guard !isCapturing else { return }
         let capture = try ARKitCaptureProvider(session: session, directory: directory, scanID: scanID, useDepth: hasLiDAR, motionDiagnostics: motionDiagnostics)
+        capture.onLiveGeometry = { [weak self] snapshot in
+            Task { @MainActor in self?.receiveLiveGeometry(snapshot) }
+        }
         capture.selectObject(point: selectedObjectPoint)
         connect(capture)
         provider = capture
@@ -98,11 +107,50 @@ enum CaptureFailure: LocalizedError {
     func stop() async throws -> URL {
         guard let provider else { throw CaptureFailure.unavailable("No capture is active.") }
         isCapturing = false
+        clearGhost()
         let url = try await provider.finish()
         packageURL = url
         status = "Saved locally — \(frameCount) accepted frames"
         savedRevision += 1
         return url
+    }
+
+    func clearGhost() {
+        ghostTask?.cancel(); ghostTask = nil; expiryTask?.cancel(); expiryTask = nil
+        ghost.reset()
+    }
+    func nextGhost() { ghost.next() }
+    private func receiveLiveGeometry(_ snapshot: LiveGeometrySnapshot?) {
+        guard isCapturing, let snapshot else {
+            clearGhost(); ghostMessage = "Finding a stable view for the ghost…"; return
+        }
+        if snapshot.session_id != ghost.sessionID {
+            clearGhost(); ghost.sessionID = snapshot.session_id
+        }
+        guard ghostTask == nil, let predictGhost else { return }
+        let sentAt = Date(); let epoch = ghost.sessionID
+        ghostMessage = "Checking geometric patterns…"
+        ghostTask = Task { [weak self] in
+            guard let self else { return }
+            defer { if self.ghost.sessionID == epoch { self.ghostTask = nil } }
+            do {
+                let response = try await predictGhost(snapshot)
+                guard !Task.isCancelled, self.isCapturing, self.ghost.sessionID == epoch else { return }
+                if self.ghost.accept(response, now: Date(), sentAt: sentAt) {
+                    self.ghostMessage = response.message
+                    self.expiryTask?.cancel()
+                    self.expiryTask = Task { [weak self] in
+                        try? await Task.sleep(for: .seconds(16))
+                        guard !Task.isCancelled, let self, self.ghost.sessionID == epoch else { return }
+                        self.ghost.expire(at: Date())
+                        self.ghostMessage = "Show an intact feature and the opening from another side."
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled, self.ghost.sessionID == epoch else { return }
+                self.ghostMessage = "Ghost paused: " + error.localizedDescription + " Your scan is still being saved."
+            }
+        }
     }
 
     func replay(from source: URL, into directory: URL) async throws -> URL {
@@ -135,6 +183,7 @@ enum CaptureFailure: LocalizedError {
                 self.bytesWritten = progress.bytes
                 self.coverageViews = progress.coverageViews
                 self.guidance = progress.guidance
+                if self.ghost.selected == nil, self.ghostTask == nil, let hint = progress.geometryHint { self.ghostMessage = hint }
                 if progress.finished && self.isCapturing {
                     do { _ = try await self.stop() } catch { self.status = error.localizedDescription }
                 }
@@ -147,6 +196,7 @@ enum CaptureFailure: LocalizedError {
 struct CapturePreview: UIViewRepresentable {
     let session: ARSession
     var onSelect: ((CGPoint) -> Void)? = nil
+    var ghost: LiveGhostResponse.Candidate? = nil
     func makeCoordinator() -> Coordinator { Coordinator(session: session, onSelect: onSelect) }
     func makeUIView(context: Context) -> ARView {
         let view = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
@@ -155,10 +205,30 @@ struct CapturePreview: UIViewRepresentable {
         view.accessibilityLabel = "Live camera. Tap the stationary object to select its foreground region."
         return view
     }
-    func updateUIView(_ view: ARView, context: Context) { context.coordinator.onSelect = onSelect }
+    func updateUIView(_ view: ARView, context: Context) {
+        context.coordinator.onSelect = onSelect
+        context.coordinator.updateGhost(ghost, in: view)
+    }
     final class Coordinator: NSObject {
         let session: ARSession
         var onSelect: ((CGPoint) -> Void)?
+        private var lastGhost: LiveGhostResponse.Candidate?
+        private var ghostAnchor: AnchorEntity?
+        func updateGhost(_ candidate: LiveGhostResponse.Candidate?, in view: ARView) {
+            guard candidate != lastGhost else { return }
+            lastGhost = candidate; ghostAnchor?.removeFromParent(); ghostAnchor = nil
+            guard let candidate else { return }
+            let mesh = candidate.mesh
+            var descriptor = MeshDescriptor(name: "Provisional repair")
+            descriptor.positions = MeshBuffers.Positions(candidate.worldPositions)
+            descriptor.primitives = .triangles(mesh.triangles.flatMap { $0.map { UInt32($0) } })
+            guard let resource = try? MeshResource.generate(from: [descriptor]) else { return }
+            var material = SimpleMaterial(color: UIColor.systemOrange.withAlphaComponent(0.4), isMetallic: false)
+            if #available(iOS 18.0, *) { material.faceCulling = .none; material.writesDepth = false }
+            let entity = ModelEntity(mesh: resource, materials: [material])
+            let anchor = AnchorEntity(world: SIMD3<Float>.zero)
+            anchor.addChild(entity); view.scene.addAnchor(anchor); ghostAnchor = anchor
+        }
         init(session: ARSession, onSelect: ((CGPoint) -> Void)?) { self.session = session; self.onSelect = onSelect }
         @objc func tapped(_ recognizer: UITapGestureRecognizer) {
             guard let view = recognizer.view, let frame = session.currentFrame, view.bounds.width > 0, view.bounds.height > 0 else { return }

@@ -229,3 +229,27 @@ class ReconstructionRequest(Contract):
 class CandidateRequest(Contract):
     family: Literal["bridge_handle", "cup_handle", "bracket"]
     attachment_method: str = Field(min_length=1, max_length=128)
+
+
+class LiveGeometryRequest(Contract):
+    session_id: str
+    sequence: int = Field(ge=0)
+    vertices: list[tuple[float,float,float]] = Field(min_length=4,max_length=8000)
+    triangles: list[tuple[int,int,int]] = Field(min_length=4,max_length=12000)
+    camera_positions: list[tuple[float,float,float]] = Field(min_length=3,max_length=24)
+    unit: Literal['m'] = 'm'
+
+    @field_validator('session_id')
+    @classmethod
+    def live_session(cls,value): return identifier(value)
+
+    @model_validator(mode='after')
+    def valid_live_mesh(self):
+        if any(abs(x)>100 for p in self.vertices+self.camera_positions for x in p):
+            raise ValueError('AR coordinates exceed the live workspace')
+        if any(min(f)<0 or max(f)>=len(self.vertices) or len(set(f))!=3 for f in self.triangles):
+            raise ValueError('Invalid triangle indices')
+        spans=[max(p[i] for p in self.vertices)-min(p[i] for p in self.vertices) for i in range(3)]
+        if max(spans)>1 or max(spans)<.005:
+            raise ValueError('Select one object between 5 mm and 1 m for live prediction')
+        return self

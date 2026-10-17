@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case": "rail",
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "translation",
+          "support_score": 0.790324648287569,
+          "prediction_to_truth_p95": 0.0003110130492132157,
+          "truth_to_prediction_p95": 0.00031091607525013387,
+          "symmetric_p95_fraction_of_extent": 0.0006596611347049475,
+          "near_existing_surface_fraction": 0.04175,
+          "dimensional_extent_error_fraction": 7.031799040545831e-05
+        },
+        {
+          "method": "translation",
+          "support_score": 0.7892998116258088,
+          "prediction_to_truth_p95": 0.0003601512871682644,
+          "truth_to_prediction_p95": 0.0003601468342822045,
+          "symmetric_p95_fraction_of_extent": 0.0007638836978003383,
+          "near_existing_surface_fraction": 0.04225,
+          "dimensional_extent_error_fraction": 3.849632806587773e-05
+        },
+        {
+          "method": "translation",
+          "support_score": 0.7742134764537867,
+          "prediction_to_truth_p95": 0.013845819979906082,
+          "truth_to_prediction_p95": 0.013845408335328102,
+          "symmetric_p95_fraction_of_extent": 0.02936709299683571,
+          "near_existing_surface_fraction": 0.0415,
+          "dimensional_extent_error_fraction": 8.152919834919416e-05
+        },
+        {
+          "method": "translation",
+          "support_score": 0.7680986302452752,
+          "prediction_to_truth_p95": 0.013813861645758152,
+          "truth_to_prediction_p95": 0.013814248144626617,
+          "symmetric_p95_fraction_of_extent": 0.029300129041075706,
+          "near_existing_surface_fraction": 0.04175,
+          "dimensional_extent_error_fraction": 6.844731640648499e-05
+        }
+      ],
+      "seconds": 2.4512665839865804,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "rail",
+      "broken": true,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [
+        {
+          "method": "translation",
+          "support_score": 0.7905781540193344,
+          "prediction_to_truth_p95": 0.00016057984612416476,
+          "truth_to_prediction_p95": 0.00016056778258644044,
+          "symmetric_p95_fraction_of_extent": 0.0007868203683756292,
+          "near_existing_surface_fraction": 0.04225,
+          "dimensional_extent_error_fraction": 3.584191759905468e-05
+        },
+        {
+          "method": "translation",
+          "support_score": 0.7905417958631629,
+          "prediction_to_truth_p95": 0.00018381458357907832,
+          "truth_to_prediction_p95": 0.00018378469394519925,
+          "symmetric_p95_fraction_of_extent": 0.0009006675682030618,
+          "near_existing_surface_fraction": 0.0425,
+          "dimensional_extent_error_fraction": 2.2400770961788973e-05
+        }
+      ],
+      "seconds": 2.3524292919319123,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "rail",
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 2.5656932089477777,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "rail",
+      "broken": false,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [],
+      "seconds": 2.2460670419968665,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "reflection",
+          "support_score": 0.9258714668334903,
+          "prediction_to_truth_p95": 2.769073580566328e-05,
+          "truth_to_prediction_p95": 2.772429070319049e-05,
+          "symmetric_p95_fraction_of_extent": 0.0001033878288581036,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 1.855508312001611e-06
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9255916121836993,
+          "prediction_to_truth_p95": 2.3105474610929377e-05,
+          "truth_to_prediction_p95": 2.3105525542632677e-05,
+          "symmetric_p95_fraction_of_extent": 8.616379636805505e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 4.110768968901546e-06
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9254739319074758,
+          "prediction_to_truth_p95": 2.07735865842551e-05,
+          "truth_to_prediction_p95": 2.086498170683626e-05,
+          "symmetric_p95_fraction_of_extent": 7.780848682159558e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 8.742651446655568e-06
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9244017369683124,
+          "prediction_to_truth_p95": 2.1580697648460045e-05,
+          "truth_to_prediction_p95": 2.1641719285980798e-05,
+          "symmetric_p95_fraction_of_extent": 8.070505282375962e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 9.103206261897985e-06
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.923564927786378,
+          "prediction_to_truth_p95": 4.3733489292208105e-05,
+          "truth_to_prediction_p95": 4.38220813521184e-05,
+          "symmetric_p95_fraction_of_extent": 0.00016341877926606685,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 1.2934139703654899e-06
+        }
+      ],
+      "seconds": 4.431503084022552,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "broken": true,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [
+        {
+          "method": "rotation",
+          "support_score": 0.9263756746010955,
+          "prediction_to_truth_p95": 9.202803084917832e-06,
+          "truth_to_prediction_p95": 9.183275324176066e-06,
+          "symmetric_p95_fraction_of_extent": 7.84650765126571e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 3.7984978030114776e-06
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9256718340223007,
+          "prediction_to_truth_p95": 8.621969755040482e-06,
+          "truth_to_prediction_p95": 8.651112693769392e-06,
+          "symmetric_p95_fraction_of_extent": 7.376124267466366e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 1.3633858589617243e-05
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9248401110831502,
+          "prediction_to_truth_p95": 9.214986675942782e-06,
+          "truth_to_prediction_p95": 9.209945346810855e-06,
+          "symmetric_p95_fraction_of_extent": 7.85689553595148e-05,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 1.0290975155378846e-05
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.924350671170776,
+          "prediction_to_truth_p95": 0.0005519232363440096,
+          "truth_to_prediction_p95": 0.0005544415907934308,
+          "symmetric_p95_fraction_of_extent": 0.004727288149297237,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 4.215408695063558e-05
+        },
+        {
+          "method": "rotation",
+          "support_score": 0.9243496419437887,
+          "prediction_to_truth_p95": 0.0005036839284002781,
+          "truth_to_prediction_p95": 0.0005016032373532653,
+          "symmetric_p95_fraction_of_extent": 0.004294517450034618,
+          "near_existing_surface_fraction": 0.0,
+          "dimensional_extent_error_fraction": 5.282066176545603e-05
+        }
+      ],
+      "seconds": 4.381879082880914,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 5.058186999987811,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "radial",
+      "broken": false,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [],
+      "seconds": 4.325520833954215,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "reflection",
+          "support_score": 0.8980110554233404,
+          "prediction_to_truth_p95": 0.00017578944971319288,
+          "truth_to_prediction_p95": 0.00017628319619689137,
+          "symmetric_p95_fraction_of_extent": 0.0005458881496451795,
+          "near_existing_surface_fraction": 0.02825,
+          "dimensional_extent_error_fraction": 8.376307026735703e-05
+        }
+      ],
+      "seconds": 10.138315124902874,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "broken": true,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [
+        {
+          "method": "reflection",
+          "support_score": 0.9010148285035646,
+          "prediction_to_truth_p95": 8.480643009534106e-05,
+          "truth_to_prediction_p95": 8.529018668923527e-05,
+          "symmetric_p95_fraction_of_extent": 0.0005897971568629146,
+          "near_existing_surface_fraction": 0.029,
+          "dimensional_extent_error_fraction": 5.890911890908054e-05
+        }
+      ],
+      "seconds": 7.06403441587463,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 7.016273875022307,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "bracket",
+      "broken": false,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [],
+      "seconds": 7.1391370829660445,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "broken": true,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [
+        {
+          "method": "planar_continuation",
+          "support_score": 0.9999999999999997,
+          "prediction_to_truth_p95": 3.0719530030864917e-08,
+          "truth_to_prediction_p95": 3.332000986233652e-08,
+          "symmetric_p95_fraction_of_extent": 6.202573388236488e-08,
+          "near_existing_surface_fraction": 0.06825,
+          "dimensional_extent_error_fraction": 0.0
+        }
+      ],
+      "seconds": 0.004020084161311388,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "broken": true,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [
+        {
+          "method": "planar_continuation",
+          "support_score": 0.9999999999999983,
+          "prediction_to_truth_p95": 3.0719530030864917e-08,
+          "truth_to_prediction_p95": 2.9802322387695312e-08,
+          "symmetric_p95_fraction_of_extent": 1.2866759391272353e-07,
+          "near_existing_surface_fraction": 0.07325,
+          "dimensional_extent_error_fraction": 0.0
+        }
+      ],
+      "seconds": 0.0024107499048113823,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 0.0015289171133190393,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "planar",
+      "broken": false,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [],
+      "seconds": 0.0014671669341623783,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "asymmetric",
+      "broken": false,
+      "orientation": 0,
+      "scale": 0.007,
+      "candidates": [],
+      "seconds": 6.710592250106856,
+      "top1_pass": true,
+      "any_pass": true
+    },
+    {
+      "case": "asymmetric",
+      "broken": false,
+      "orientation": 1,
+      "scale": 0.003,
+      "candidates": [],
+      "seconds": 6.935037666000426,
+      "top1_pass": true,
+      "any_pass": true
+    }
+  ],
+  "units": "arbitrary metric scale",
+  "threshold": "Symmetric p95 surface error < 1.5% of observed extent; negatives require abstention",
+  "scope": "Synthetic clean meshes; not phone accuracy or manufacturing tolerance",
+  "top1_passed": 18,
+  "case_count": 18
+}

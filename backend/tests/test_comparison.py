@@ -39,7 +39,7 @@ def test_model_failure_preserves_other_comparison_results(tmp_path,monkeypatch):
     (tmp_path/'scan_preview.json').write_text(json.dumps({'vertices':[[0,0,0]],'triangles':[],'unit':'mm'}))
     result=compare_reconstructions(tmp_path,tmp_path,{'status':'needs_input','input_revision':{'manifest_sha256':'unchanged'},'counterpart':{'reason':'native failure'}})
     report=result['comparison']
-    assert len(report['variants'])==5
+    assert len(report['variants'])==6
     assert report['verified_winner'] is None
     assert report['scan_id']=='same-scan'
     assert report['variants'][0]['scan_preview']=='scan_preview.json'
