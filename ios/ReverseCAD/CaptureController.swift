@@ -58,6 +58,17 @@ enum CaptureFailure: LocalizedError {
 
     deinit { if let backgroundObserver { NotificationCenter.default.removeObserver(backgroundObserver) } }
 
+    func startPreview() async throws {
+        guard hasLiDAR else { throw CaptureFailure.unavailable("3D scanning needs a LiDAR iPhone or iPad. You can still import a photo for a simple cube prototype.") }
+        guard await AVCaptureDevice.requestAccess(for: .video) else {
+            throw CaptureFailure.unavailable("Allow camera access in Settings to scan.")
+        }
+        guard !isCapturing else { return }
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.frameSemantics.insert(.sceneDepth)
+        session.run(configuration)
+    }
+
     func start(directory: URL, scanID: String, motionDiagnostics: Bool = false) async throws {
         guard hasAR else { throw CaptureFailure.unavailable("This device has no AR world tracking. Use Synthetic sample or import a recorded package; no live LiDAR is simulated.") }
         let allowed = await AVCaptureDevice.requestAccess(for: .video)

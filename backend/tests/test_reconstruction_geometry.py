@@ -188,3 +188,41 @@ def test_scale_crop_and_contact_annotations_use_corrected_preview_coordinates(tm
     assert patch["status"] == "observed_unconfirmed"
     np.testing.assert_allclose(patch["point_m"][2], .018, atol=.00005)
     assert abs(patch["point_m"][0] - .06) < .003
+
+
+def test_multiview_tsdf_preserves_observed_step_and_combines_disjoint_views(tmp_path):
+    from reversecad.reconstruction import _tsdf, _surface_outputs
+    import open3d as o3d
+    # Two independently positioned depth patches, one with a measured 8 mm step.
+    # The second view covers a region invisible in the first; best-frame selection
+    # cannot satisfy the combined extent oracle.
+    k = np.array([[160., 0, 39.5], [0, 160., 39.5], [0, 0, 1.]])
+    depth = np.full((80, 80), .2, dtype=np.float32)
+    depth[24:56, 24:56] = .192
+    pose = np.eye(4)
+    second = np.eye(4); second[0, 3] = .14
+    frames = [{"depth": d, "k": k, "pose": t, "color": np.full((80, 80, 3), 150, dtype=np.uint8)}
+              for d, t in [(depth, pose), (np.full_like(depth, .2), second)]]
+    mesh = _tsdf(frames, .0005, tmp_path)
+    xyz = np.asarray(mesh.vertices)
+    assert np.ptp(xyz[:, 0]) > .23
+    top = xyz[(abs(xyz[:, 0]) < .01) & (abs(xyz[:, 1]) < .01)]
+    assert abs(np.median(top[:, 2]) - .192) < .001
+    outer = xyz[(xyz[:, 0] > .12) & (xyz[:, 0] < .16)]
+    assert abs(np.median(outer[:, 2]) - .2) < .001
+    preview = _surface_outputs(mesh, tmp_path, 1.2)
+    exported = o3d.io.read_triangle_mesh(str(tmp_path / "observed_surface.stl"))
+    np.testing.assert_allclose(exported.get_axis_aligned_bounding_box().get_extent(),
+                               np.ptp(xyz, axis=0) * 1200, atol=1e-4)
+    assert preview["unit"] == "mm"
+    assert len(exported.triangles) == len(mesh.triangles)
+
+
+def test_export_keeps_full_surface_while_viewer_is_bounded(tmp_path):
+    import open3d as o3d
+    from reversecad.reconstruction import _surface_outputs
+    mesh = o3d.geometry.TriangleMesh.create_sphere(radius=.03, resolution=140)
+    preview = _surface_outputs(mesh, tmp_path, 1)
+    full = o3d.io.read_triangle_mesh(str(tmp_path / "observed_surface_mm.ply"))
+    assert len(full.triangles) == len(mesh.triangles) > 60000
+    assert len(preview["triangles"]) <= 60000

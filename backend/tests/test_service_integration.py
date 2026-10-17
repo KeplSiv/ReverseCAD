@@ -184,3 +184,24 @@ def test_prototype_exports_require_explicit_acknowledgement(tmp_path):
         assert acknowledged["state"] == "complete",acknowledged
         assert acknowledged["result"]["validation"]["status"] == "needs_input"
         assert acknowledged["result"]["prototype_export_acknowledged"]
+
+
+def test_full_scan_surface_exports_are_downloadable_and_metric(tmp_path):
+    app = create_app(tmp_path, TOKEN)
+    with TestClient(app, headers=HEADERS) as client:
+        scan = upload_package(client, "broken_bridge_clean")
+        assert client.post(f"/v1/scans/{scan}/commit").status_code == 200
+        job = client.post(f"/v1/scans/{scan}/reconstruction").json()
+        completed = wait_job(client, job["job_id"])
+        assert completed["state"] == "complete", completed
+        result = completed["result"]
+        assert result["metrics"]["accepted_frames"] > 1
+        assert result["surface"]["kind"] == "observed_mesh"
+        assert result["surface"]["detail"]["missing_geometry_completed"] is False
+        artifacts = {a["name"]: a for a in result["artifacts"]}
+        for name in ("observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json"):
+            item = artifacts[name]
+            response = client.get(f"/v1/artifacts/{item['id']}")
+            assert response.status_code == 200
+            assert hashlib.sha256(response.content).hexdigest() == item["sha256"]
+        assert result["surface"]["unit"] == "mm"

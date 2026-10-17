@@ -19,7 +19,7 @@ import numpy as np
 from .geometry import (AR_TO_CV, dot, fit_cylinder_frustum, fit_plane, project,
                        rigid_transform, scaled_intrinsics, transform_points, unproject)
 
-VERSION = "rgbd-1.0.0"
+VERSION = "rgbd-1.2.0"
 MAX_FRAMES = 240
 MAX_SCAN_BYTES = 512 * 1024 * 1024
 MAX_DEPTH_PIXELS = 640 * 480
@@ -243,7 +243,9 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
         feature_rgb = cv2.resize(rgb, (fw, fh), interpolation=cv2.INTER_AREA)
         feature_k = scaled_intrinsics(frame["intrinsics"], frame["intrinsics_width"],
                                       frame["intrinsics_height"], fw, fh)
-        accepted.append({"frame_id": fid, "segment_id": frame["segment_id"], "depth": np.where(valid, depth, 0),
+        accepted.append({"rgb_path": frame["rgb_path"], "image_size": (rgb.shape[1], rgb.shape[0]),
+                         "image_k": scaled_intrinsics(frame["intrinsics"], frame["intrinsics_width"], frame["intrinsics_height"], rgb.shape[1], rgb.shape[0]),
+                         "frame_id": fid, "segment_id": frame["segment_id"], "depth": np.where(valid, depth, 0),
                          "color": color_depth, "k": k, "pose": pose, "feature_rgb": feature_rgb,
                          "feature_k": feature_k, "mask_source": mask_source,
                          "depth_calibration_mode": calibration_mode,
@@ -421,7 +423,7 @@ def _tsdf(frames: list[dict], voxel_m: float, output_dir: Path):
     volume = o3d.pipelines.integration.ScalableTSDFVolume(
         voxel_length=voxel_m, sdf_trunc=max(voxel_m * 4, .004),
         color_type=o3d.pipelines.integration.TSDFVolumeColorType.RGB8,
-        volume_unit_resolution=16, depth_sampling_stride=2)
+        volume_unit_resolution=16, depth_sampling_stride=1)
     for frame in frames:
         depth = frame["depth"].astype(np.float32)
         k = frame["k"]
@@ -436,11 +438,41 @@ def _tsdf(frames: list[dict], voxel_m: float, output_dir: Path):
     mesh.remove_degenerate_triangles()
     mesh.remove_duplicated_triangles()
     mesh.remove_unreferenced_vertices()
-    if len(mesh.triangles) > 60000:
-        mesh = mesh.simplify_quadric_decimation(60000)
     mesh.compute_vertex_normals()
     o3d.io.write_triangle_mesh(str(output_dir / "observed_surface.ply"), mesh)
     return mesh
+
+
+def _surface_outputs(mesh, output_dir: Path, scale: float) -> dict:
+    """Preserve all integrated triangles in mm exports; decimate only the viewer."""
+    import copy
+    import open3d as o3d
+
+    metric = copy.deepcopy(mesh)
+    metric.scale(1000 * scale, center=(0, 0, 0))
+    metric.compute_vertex_normals()
+    for name in ("observed_surface_mm.ply", "observed_surface.stl"):
+        if not o3d.io.write_triangle_mesh(str(output_dir / name), metric):
+            raise ValueError(f"Could not write observed surface: {name}")
+    display = metric.simplify_quadric_decimation(60000) if len(metric.triangles) > 60000 else metric
+    display.compute_vertex_normals()
+    return {"vertices": np.asarray(display.vertices).tolist(), "triangles": np.asarray(display.triangles).tolist(),
+            "colors": np.asarray(display.vertex_colors).tolist(), "normals": np.asarray(display.vertex_normals).tolist(), "unit": "mm"}
+
+
+def _detail_sampling(frames: list[dict]) -> dict:
+    # Projected pixel spacing describes sample density, not depth precision or a
+    # guarantee that a feature of this size can be resolved.
+    spacing = []
+    for frame in frames:
+        depth = frame["depth"]
+        valid = depth[np.isfinite(depth) & (depth > 0)]
+        if valid.size:
+            spacing.append(float(np.median(valid) / min(frame["k"][0, 0], frame["k"][1, 1]) * 1000))
+    return {"median_native_pixel_spacing_mm": float(np.median(spacing)) if spacing else None,
+            "is_accuracy_bound": False, "missing_geometry_completed": False,
+            "method": "calibrated multi-view depth; see photo_detail for accepted stereo refinement",
+            "limitation": "Small features require consistent multi-view evidence. See photo_detail for accepted stereo refinement. Unseen surfaces remain missing."}
 
 
 def _measurement(identifier: str, name: str, value: float, frames: list[str],
@@ -677,19 +709,44 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     if rgb.get("inconsistent_fraction") is not None and rgb.get("matched_features", 0) >= 30 and rgb["inconsistent_fraction"] > .65:
         status = "needs_input"
         warnings.append("rgb_pose_inconsistency: image matches disagree with metric poses/depth; object movement, calibration or tracking drift suspected")
+    geometry_consistent = not (
+        depth_consistency["compared_visible_samples"] >= 500
+        and (violation_fraction > .15 or (violation_fraction > .01 and median_residual_mm > .65)))
+    geometry_consistent &= not (rgb.get("inconsistent_fraction") is not None
+        and rgb.get("matched_features", 0) >= 30 and rgb["inconsistent_fraction"] > .65)
+    detail_report, detail_frames = {"status": "not_requested", "accepted_pixels": 0}, []
+    if stage == "rgb_assisted" and geometry_consistent:
+        from .photo_detail import refine_photos
+        detail_report, detail_frames = refine_photos(frames, scan_dir)
+        if not detail_frames:
+            warnings.append("photo_detail_unresolved: add slow overlapping close-up views with sharp, textured surfaces")
+    from .photo_detail import integration_frames
+    integration, replaced = integration_frames(frames, detail_frames)
+    detail_report["coarse_integration_pixels_replaced"] = replaced
+    _json(output_dir / "photo_detail.json", detail_report)
     mesh = None
     if stage != "raw_depth_pose" and np.ptp(points, axis=0).max() <= 1.5:
-        mesh = _tsdf(frames, voxel_m, output_dir)
+        # Detail pixels use the same metric frame and pass bidirectional image
+        # matching plus native depth checks; native measurement points stay unchanged.
+        mesh = _tsdf(integration, min(voxel_m, .00035) if detail_frames and np.ptp(points, axis=0).max() < .25 else voxel_m, output_dir)
     if mesh is not None and len(mesh.triangles):
-        vertices = np.asarray(mesh.vertices) * 1000 * scale
-        preview = {"vertices": vertices.tolist(), "triangles": np.asarray(mesh.triangles).tolist(),
-                   "colors": np.asarray(mesh.vertex_colors).tolist(), "normals": np.asarray(mesh.vertex_normals).tolist(), "unit": "mm"}
+        preview = _surface_outputs(mesh, output_dir, scale)
     else:
         indices = np.linspace(0, len(corrected) - 1, min(len(corrected), MAX_PREVIEW_POINTS), dtype=int)
         preview = {"vertices": (corrected[indices] * 1000).tolist(), "triangles": [],
                    "colors": fused_colors[indices].tolist(), "normals": [], "unit": "mm"}
         warnings.append("surface_mesh_unavailable: observed colored point cloud retained")
     _json(output_dir / "scan_preview.json", preview)
+    counterpart = {"status": "not_requested"}
+    if stage == "rgb_assisted" and geometry_consistent:
+        from .cube_counterpart import propose_counterpart
+        counterpart = propose_counterpart(frames, scan_dir, mesh, output_dir, scale)
+        proposal_preview = counterpart.pop("preview", None)
+        if proposal_preview:
+            _json(output_dir / "counterpart_preview.json", proposal_preview)
+        _json(output_dir / "counterpart.json", counterpart)
+    base["photo_detail"] = detail_report
+    base["counterpart"] = counterpart
     base.update(status=status, bounds_mm=bounds, point_count=len(corrected), primitives=primitives,
                 scale_correction={"factor": scale, "reference": scale_reference, "original_points": "points_filtered_uncorrected.npz",
                                   "raw_depth_preserved": True},
@@ -698,6 +755,10 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                                     "cad_mm": None, "printer_mm": None,
                                     "combination": "conservative additive only after each bound is independently calibrated",
                                     "status": "not_calibrated"})
+    base["surface"] = {"kind": "observed_mesh", "unit": "mm", "editable_parametric_cad": False,
+                       "full_resolution_triangles": len(mesh.triangles) if mesh is not None else 0,
+                       "exports": ["observed_surface.stl", "observed_surface_mm.ply"] if preview["triangles"] else [],
+                       "detail": _detail_sampling(frames)}
     base["warnings"] = list(dict.fromkeys(warnings))
     base["metrics"].update({"raw_point_count": len(raw_points), "fused_point_count": len(corrected),
                             "isolated_points_rejected": removed, "voxel_size_mm": voxel_m * 1000,

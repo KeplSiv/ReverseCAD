@@ -228,8 +228,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         } else { stats.rejected += 1 }
         stats.bytes = writer.bytesWritten
         stats.coverageViews = viewBins.count
-        let depthDescription = useDepth ? "Native depth \(Int(validDepthFraction * 100))% valid" : "Camera/manual: no depth"
-        stats.guidance = accepted ? "Tracking normal · \(depthDescription) · image detail \(Int(blur)). \(viewBins.count) direction bins observed; hidden surfaces are not guaranteed. Capture attachments from multiple heights." : (reasons.first ?? "Poor observation rejected")
+        stats.guidance = accepted ? "Move slowly around the object, then scan from a little higher. Tap the object if the background is selected." : (reasons.first ?? "Poor observation rejected")
         onFrame?(capture); onProgress?(stats)
         // The service package budget counts every persisted record, including rejected evidence.
         if stats.accepted + stats.rejected >= limits.acceptedFrames || stats.bytes >= limits.bytes - 16 * 1024 * 1024 { stopForBudget("Capture resource budget reached. Committed frames were saved; review coverage before processing.") }

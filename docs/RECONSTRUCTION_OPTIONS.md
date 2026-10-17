@@ -2,9 +2,15 @@
 
 ## Working implementation
 
-The cube prototype uses OpenCV color segmentation, convex face boundaries, perspective rectification, and repeated 3×3 cell validation. A photo now supplies its own face corners. Short silent scans collect eight camera frames on the phone; the Mac analyzes each frame independently and the app shows the strongest accepted view. This is **frame selection, not multiview 3D reconstruction**. The detector supports a mostly solved face with one dark missing edge; scrambled faces, multiple gaps, missing outer corners, occlusion, and poor light can require correction or fail.
+The cube prototype uses OpenCV color segmentation, convex face boundaries, perspective rectification, and repeated 3×3 cell validation. A photo now supplies its own face corners. The photo-library prototype analyzes one image. The main camera flow now captures calibrated RGB-D/poses and fuses accepted views through the existing Open3D TSDF pipeline; it no longer selects one frame. The detector supports a mostly solved face with one dark missing edge; scrambled faces, multiple gaps, missing outer corners, occlusion, and poor light can require correction or fail.
 
 The measured full cube width sets scale. CadQuery creates an exterior cubie envelope, STEP solid, STL mesh, and editable Python parameters. The normal UI asks only for full face width. Visible outline spacing is estimated from intact center-connected face regions when consistent; unresolved spacing and 3D rounding use labeled priors. Detection and detail provenance are exported; they do not certify mechanical clearance. The preview reads the exported binary STL. Neither connector fit nor arbitrary missing geometry is solved by this path.
+
+## Hybrid surface and intact-edge proposal
+
+The current camera flow uses existing OpenCV stereo rectification/SGBM and subpixel photometric alignment on bounded overlapping RGB pairs. ARKit baselines set scale; bidirectional correspondence, texture, photometric and depth checks reject unsupported detail. Supported high-resolution samples replace only covered coarse integration pixels, leaving native dimensions and capture files unchanged. Open3D fuses the derived surface. This is an experimental detail pass with a LiDAR fallback, not validated submillimeter metrology. See [OpenCV calibration and stereo documentation](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html).
+
+A visible solved-face grid plus native plane fit establishes a cube frame. The proposal copies an observed intact edge with two exterior faces into the missing grid location by a proper rotation. It preserves the donor’s surface instead of generating a generic envelope. The app overlays the proposal in orange and exports its source/target cells and transform. It is explicitly an open surface proposal; it does not invent hidden geometry or claim a closed editable CAD replacement.
 
 ## Reusable projects
 
@@ -19,7 +25,7 @@ The measured full cube width sets scale. CadQuery creates an exterior cubie enve
 | [TRELLIS](https://github.com/microsoft/TRELLIS) | Image-conditioned mesh / Gaussian / radiance-field generation | Mostly MIT code/models with separately licensed components; documented Linux and NVIDIA GPU ≥16 GB | Could propose visual geometry on a GPU server; generated shape is not evidence of dimensional accuracy or functional fit |
 | [BrepGen](https://github.com/samxuxiang/BrepGen) | Generative CAD B-reps | Research implementation and pretrained-model workflow | Interesting CAD generation research, not a drop-in broken-photo-to-repaired-CAD pipeline |
 
-No new GPU models, gated weights, or cloud endpoints were installed. Only existing OpenCV and CadQuery dependencies are used by the new cube flow.
+No new GPU models, gated weights, or cloud endpoints were installed. The flows use the existing OpenCV, CadQuery and Open3D dependencies.
 
 ## Recommended next stage
 
@@ -29,7 +35,7 @@ No new GPU models, gated weights, or cloud endpoints were installed. Only existi
 4. Build a missing-region hypothesis with explicit dimensions in CadQuery, then render observed and inferred geometry together and export it.
 5. Evaluate against a known intact reference and a printed exterior fit test before claiming a functional replacement.
 
-For world-tracked depth fusion, keep the object still and move the phone. Rotating the object in a hand requires object-relative alignment and foreground/hand masking. The current cube frame-selector can tolerate either motion because it does not fuse frames.
+For world-tracked depth fusion, keep the object still and move the phone. Rotating the object in a hand requires object-relative alignment and foreground/hand masking. The current 3D scan requires a stationary object; hand rotation would invalidate its world poses.
 
 ## VideoCAD and CADFit: applied ideas, original implementation
 

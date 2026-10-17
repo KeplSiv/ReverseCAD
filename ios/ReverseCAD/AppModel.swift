@@ -143,6 +143,8 @@ final class AppModel: ObservableObject {
     @Published var progress = ""
     @Published var error: String?
     @Published var scanMesh: MeshPreview?
+    @Published var counterpartMesh: MeshPreview?
+    @Published var photoDetailStatus = ""
     @Published var partMesh: MeshPreview?
     @Published var measurements: [[String: Any]] = []
     @Published var warnings: [String] = []
@@ -220,8 +222,10 @@ final class AppModel: ObservableObject {
     }
     func saveSettings() {UserDefaults.standard.set(serverURL,forKey:"serverURL");TokenStore.save(token)}
     func loadDerived() {
-        scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
+        counterpartMesh=nil;photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
         guard let dir=projectDirectory else{return}
+        counterpartMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("counterpart_preview.json")))
+        if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { updatePhotoDetail(info) }
         scanMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("scan_preview.json")))
         partMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("part_preview.json")))
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let d=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { measurements=d["measurements"] as? [[String:Any]] ?? [];warnings=d["warnings"] as? [String] ?? [] }
@@ -367,14 +371,21 @@ final class AppModel: ObservableObject {
         let revision=result["revision"] as? Int ?? (p.revision+1)
         let key=kind=="repair" ? "repair-\(result["repair_id"] as? String ?? p.repairID ?? p.id)-r\(revision)" : "scan-\(p.jobID ?? UUID().uuidString)"
         let published=try await VerifiedArtifactStore.download(infos:infos,baseDirectory:dir.appendingPathComponent("revisions"),revisionKey:key,client:ServiceClient(baseURL:url,token:token))
+        if kind == "reconstruction" {
+            counterpartMesh = nil
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent("counterpart_preview.json"))
+        }
         // No observable revision state changes until the complete immutable artifact set is verified.
         for artifact in infos {
             let file=published.appendingPathComponent(artifact.name)
+            if artifact.name=="counterpart_preview.json" {let data=try Data(contentsOf:file);counterpartMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("counterpart_preview.json"),options:.atomic)}
             if artifact.name=="scan_preview.json" {let data=try Data(contentsOf:file);scanMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("scan_preview.json"),options:.atomic)}
             if kind=="repair" && ["preview.json","part_preview.json","mesh.json"].contains(artifact.name) {let data=try Data(contentsOf:file);partMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("part_preview.json"),options:.atomic)}
         }
         if kind=="reconstruction" {
+            try JSONSerialization.data(withJSONObject: ["folder": "revisions/"+key, "artifacts": list], options: .prettyPrinted).write(to: dir.appendingPathComponent("observed_artifacts.json"), options: .atomic)
             let reconstruction=result["reconstruction"] as? [String:Any] ?? result
+            updatePhotoDetail(reconstruction)
             measurements=reconstruction["measurements"] as? [[String:Any]] ?? []
             if !p.cropEnabled,let bounds=reconstruction["bounds_mm"] as? [String:Any],let low=bounds["min"] as? [Double],let high=bounds["max"] as? [Double],low.count==3,high.count==3 {update{$0.cropMin=low.map{$0-1};$0.cropMax=high.map{$0+1}}}
             warnings=reconstruction["warnings"] as? [String] ?? []
@@ -432,6 +443,28 @@ final class AppModel: ObservableObject {
         if let status=validation["status"] as? String {return ["passed","valid","ready","ready_for_test_print"].contains(status)}
         return false
     }
+    private func updatePhotoDetail(_ info: [String: Any]) {
+        let detail = info["photo_detail"] as? [String: Any] ?? [:]
+        photoDetailStatus = detail["status"] as? String == "photo_detail_integrated"
+            ? "Photo detail matched across views · accuracy uncalibrated"
+            : "Fine photo detail unresolved. Try closer, sharp overlapping views."
+    }
+
+    func exportObservedSurface() { perform {
+        guard let dir = self.projectDirectory else { return }
+        let data = try Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))
+        let record = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let folder = record?["folder"] as? String, folder.hasPrefix("revisions/"), !folder.contains(".."),
+              let list = record?["artifacts"] as? [[String: Any]], list.contains(where: { $0["name"] as? String == "observed_surface.stl" }) else {
+            throw ServiceFailure(message: "No surface mesh was reconstructed. Capture more views and try again.")
+        }
+        let infos = try JSONDecoder().decode([ArtifactInfo].self, from: JSONSerialization.data(withJSONObject: list))
+        let directory = dir.appendingPathComponent(folder)
+        try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: directory) }.value
+        self.shareURLs = infos.filter { ["observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json", "input_provenance.json", "photo_detail.json", "counterpart.json", "counterpart_surface.stl"].contains($0.name) }.map { directory.appendingPathComponent($0.name) }
+        self.showingShare = true
+    }}
+
     func exportArtifacts() {
         guard validForExport,let p=project,let dir=projectDirectory else{error="Export requires a valid CAD solid and verified mesh.";return}
         if !p.acknowledged {error="Acknowledge unresolved fit before prototype export.";return}

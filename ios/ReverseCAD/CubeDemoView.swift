@@ -49,14 +49,23 @@ struct CubeDemoView: View {
     private var faceWidth: Double { Double(faceWidthText.replacingOccurrences(of: ",", with: ".")) ?? 0 }
     @State private var files: [URL] = []
     @State private var showShare = false
+    @State private var observedScan = false
+    @State private var showCounterpart = false
 
     var body: some View {
         Group {
-            if photo == nil && files.isEmpty {
-                CubeScanCapture(onFinish: { frames in
-                    photo = frames.last
-                    Task { await analyzeFrames(frames) }
-                }, onLibrary: { showLibrary = true }, onSettings: { showSettings = true }, onLastModel: { restoreLastModel() })
+            if observedScan {
+                observedResult
+            } else if photo == nil && files.isEmpty {
+                CubeScanCapture(onFinish: { url in
+                    model.didCapture(url)
+                    observedScan = true
+                    model.uploadAndReconstruct()
+                }, onLibrary: { showLibrary = true }, onSettings: { showSettings = true }, onLastModel: {
+                    if let project = model.projects.first(where: { FileManager.default.fileExists(atPath: model.directory($0.id).appendingPathComponent("scan_preview.json").path) }) {
+                        model.select(project); observedScan = true
+                    } else { restoreLastModel() }
+                })
             } else {
                 NavigationStack {
                     ScrollView {
@@ -136,7 +145,7 @@ struct CubeDemoView: View {
         .onChange(of: selectedPhoto) { _, item in
             Task {
                 guard !busy, let data = try? await item?.loadTransferable(type: Data.self), let image = UIImage(data: data) else { return }
-                photo = normalized(image); corners = []; finding = nil; files = []; manualCorners = false
+                observedScan = false; photo = normalized(image); corners = []; finding = nil; files = []; manualCorners = false
                 await analyze()
             }
         }
@@ -147,7 +156,52 @@ struct CubeDemoView: View {
         } message: { Text(error ?? "") }
     }
 
+    private var observedResult: some View {
+        NavigationStack {
+            VStack(spacing: 18) {
+                if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
+                    GeometryPreview(scan: mesh, part: showCounterpart ? model.counterpartMesh : nil, selectionMode: "none")
+                        .frame(maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 22))
+                    Text("Captured surface").font(.title2.bold())
+                    Text("Drag to rotate · Pinch to zoom").font(.caption).foregroundStyle(.secondary)
+                    Text(showCounterpart ? "Orange: proposed exterior copied from an intact edge. Check the match; this is an open surface, not a fitted replacement." : "LiDAR anchors the shape. Overlapping photos add detail where matching succeeds.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    if model.counterpartMesh != nil {
+                        Toggle("Preview missing edge", isOn: $showCounterpart)
+                    }
+                    if !model.photoDetailStatus.isEmpty {
+                        Text(model.photoDetailStatus).font(.caption).foregroundStyle(.secondary)
+                    }
+                    if !model.warnings.isEmpty {
+                        DisclosureGroup("Scan quality") {
+                            ScrollView { Text(model.warnings.joined(separator: "\n")).font(.caption) }.frame(maxHeight: 140)
+                        }
+                    }
+                    Button(model.counterpartMesh == nil ? "Export scanned surface" : "Export scan + proposal") { model.exportObservedSurface() }
+                        .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy)
+                } else if model.busy {
+                    Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
+                } else {
+                    Spacer()
+                    Text(model.error ?? model.progress).multilineTextAlignment(.center)
+                    Button("Retry reconstruction") { model.uploadAndReconstruct() }.buttonStyle(.borderedProminent)
+                    Spacer()
+                }
+            }.padding(20).navigationTitle("Your 3D scan").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { resetScan() } label: { Image(systemName: "camera") }.disabled(model.busy).accessibilityLabel("New scan")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) { Button { showSettings = true } label: { Image(systemName: "ellipsis.circle") } }
+                }
+        }.sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
+            .alert("Scan needs attention", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
+                Button("OK") { model.error = nil }
+            } message: { Text(model.error ?? "") }
+    }
+
     private func resetScan() {
+        observedScan = false; showCounterpart = false
         photo = nil; finding = nil; corners = []; files = []; status = ""; manualCorners = false; selectedPhoto = nil
     }
 
@@ -197,26 +251,6 @@ struct CubeDemoView: View {
             finding = result.0; corners = result.1; manualCorners = false
             status = "Found the gap. Enter the full cube width below."
         } catch { status = error.localizedDescription }
-    }
-
-    private func analyzeFrames(_ frames: [UIImage]) async {
-        guard !frames.isEmpty, !busy else { return }
-        busy = true; files = []; finding = nil; corners = []; manualCorners = false
-        photo = frames.last
-        defer { busy = false }
-        var best: (UIImage, CubeFinding, [CGPoint], Double)?
-        var lastError = "Keep a mostly same-colored face and its missing edge visible, then scan again."
-        for (index, frame) in frames.enumerated() {
-            status = "Analyzing view \(index + 1) of \(frames.count)…"
-            do {
-                let result = try await detect(frame)
-                if result.2 > (best?.3 ?? -1) { best = (frame, result.0, result.1, result.2) }
-            } catch { lastError = error.localizedDescription }
-        }
-        if let best {
-            photo = best.0; finding = best.1; corners = best.2
-            status = "Best view selected. Enter the full cube width below."
-        } else { status = lastError }
     }
 
     private func generate() async {
@@ -301,111 +335,21 @@ private struct CubePhotoCanvas: View {
     }
 }
 
-/// Silent camera sampling: image frames only, with no microphone or movie file.
-private final class CubeScanCamera: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    let session = AVCaptureSession()
-    private let queue = DispatchQueue(label: "reversecad.cube-camera")
-    private let context = CIContext()
-    private var frames: [UIImage] = []
-    private var lastTime = -Double.infinity
-    private var stopped = false
-    private var sampling = false
-    @Published var count = 0
-    @Published var failure: String?
-
-    func start() {
-        AVCaptureDevice.requestAccess(for: .video) { granted in
-            guard granted else {
-                DispatchQueue.main.async { self.failure = "Allow camera access in Settings to scan, or choose a saved photo." }
-                return
-            }
-            self.queue.async {
-                guard !self.stopped else { return }
-                do {
-                    self.session.beginConfiguration()
-                    self.session.sessionPreset = .hd1280x720
-                    guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
-                        throw ServiceFailure(message: "This device has no rear camera.")
-                    }
-                    let input = try AVCaptureDeviceInput(device: camera)
-                    guard self.session.canAddInput(input) else { throw ServiceFailure(message: "Camera is unavailable.") }
-                    self.session.addInput(input)
-                    let output = AVCaptureVideoDataOutput()
-                    output.alwaysDiscardsLateVideoFrames = true
-                    output.setSampleBufferDelegate(self, queue: self.queue)
-                    guard self.session.canAddOutput(output) else { throw ServiceFailure(message: "Camera frames are unavailable.") }
-                    self.session.addOutput(output)
-                    if let connection = output.connection(with: .video), connection.isVideoRotationAngleSupported(90) {
-                        connection.videoRotationAngle = 90
-                    }
-                    self.session.commitConfiguration()
-                    self.session.startRunning()
-                } catch {
-                    self.session.commitConfiguration()
-                    DispatchQueue.main.async { self.failure = error.localizedDescription }
-                }
-            }
-        }
-    }
-
-    func beginSampling() { queue.async { self.frames = []; self.lastTime = -Double.infinity; self.sampling = true } }
-
-    func stop() { queue.async { self.stopped = true; self.session.stopRunning() } }
-
-    func finish(_ completion: @escaping ([UIImage]) -> Void) {
-        queue.async {
-            self.stopped = true
-            self.session.stopRunning()
-            let captured = self.frames
-            DispatchQueue.main.async { completion(captured) }
-        }
-    }
-
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard !stopped, sampling, frames.count < 8 else { return }
-        let time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
-        guard time - lastTime >= 1, let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        lastTime = time
-        let source = CIImage(cvPixelBuffer: buffer)
-        guard let cg = context.createCGImage(source, from: source.extent) else { return }
-        frames.append(UIImage(cgImage: cg))
-        let capturedCount = frames.count
-        DispatchQueue.main.async { self.count = capturedCount }
-    }
-}
-
-private final class CubePreviewUIView: UIView {
-    override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
-    var preview: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
-}
-
-private struct CubeScanPreview: UIViewRepresentable {
-    let session: AVCaptureSession
-    func makeUIView(context: Context) -> CubePreviewUIView {
-        let view = CubePreviewUIView()
-        view.preview.session = session
-        view.preview.videoGravity = .resizeAspectFill
-        return view
-    }
-    func updateUIView(_ view: CubePreviewUIView, context: Context) {
-        if let connection = view.preview.connection, connection.isVideoRotationAngleSupported(90) {
-            connection.videoRotationAngle = 90
-        }
-    }
-}
-
+/// Calibrated RGB, depth and camera poses from the same AR session.
 private struct CubeScanCapture: View {
-    let onFinish: ([UIImage]) -> Void
+    @EnvironmentObject private var model: AppModel
+    let onFinish: (URL) -> Void
     let onLibrary: () -> Void
     let onSettings: () -> Void
     let onLastModel: () -> Void
-    @StateObject private var camera = CubeScanCamera()
-    @State private var finishing = false
-    @State private var scanning = false
+    @StateObject private var camera = CaptureController()
+    @State private var transitioning = false
+    @State private var delivered = false
+    @State private var failure: String?
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            CubeScanPreview(session: camera.session).ignoresSafeArea()
+            CapturePreview(session: camera.session, onSelect: { camera.selectObject(normalizedRawImagePoint: $0) }).ignoresSafeArea()
             VStack {
                 HStack {
                     Text("ReverseCAD").font(.headline)
@@ -413,43 +357,65 @@ private struct CubeScanCapture: View {
                     Menu {
                         Button("Connection", action: onSettings)
                         Button("Last model", action: onLastModel)
-                    } label: { Image(systemName: "ellipsis.circle").font(.title2) }.disabled(scanning)
+                    } label: { Image(systemName: "ellipsis.circle").font(.title2) }
+                        .disabled(camera.isCapturing || transitioning)
                 }.padding().background(.black.opacity(0.35))
                 Spacer()
-                RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.7), style: StrokeStyle(lineWidth: 1, dash: [12, 8]))
-                    .frame(width: 260, height: 300).allowsHitTesting(false)
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(.white.opacity(0.85), style: StrokeStyle(lineWidth: 2, dash: [18, 8]))
+                    .frame(width: 270, height: 300)
+                    .overlay(alignment: .bottom) {
+                        Text("Keep the whole object inside").font(.caption)
+                            .padding(8).background(.black.opacity(0.45), in: Capsule()).offset(y: 38)
+                    }.allowsHitTesting(false)
                 Spacer()
                 VStack(spacing: 20) {
-                    Text(camera.failure ?? (scanning ? "Move slowly. Keep the missing edge visible." : "Show the cube’s missing edge"))
+                    Text(failure ?? (camera.isCapturing ? camera.guidance : "Center the object and keep it still. Move your phone around it."))
                         .font(.subheadline).multilineTextAlignment(.center)
-                    if scanning { ProgressView(value: Double(camera.count), total: 8).tint(.white) }
                     HStack {
                         Button(action: onLibrary) { Image(systemName: "photo.on.rectangle").font(.title2).frame(width: 52) }
-                            .disabled(scanning).accessibilityLabel("Choose photo")
+                            .disabled(camera.isCapturing || transitioning).accessibilityLabel("Photo prototype")
                         Spacer()
-                        Button {
-                            if scanning { finish() } else { scanning = true; camera.beginSampling() }
-                        } label: {
+                        Button { Task { await toggle() } } label: {
                             ZStack {
                                 Circle().stroke(.white, lineWidth: 4).frame(width: 78, height: 78)
-                                if scanning { RoundedRectangle(cornerRadius: 7).fill(.red).frame(width: 30, height: 30) }
+                                if transitioning { ProgressView().tint(.white) }
+                                else if camera.isCapturing { RoundedRectangle(cornerRadius: 7).fill(.red).frame(width: 30, height: 30) }
                                 else { Circle().fill(.white).frame(width: 64, height: 64) }
                             }
-                        }.disabled(finishing || camera.failure != nil || (scanning && camera.count < 2))
-                            .accessibilityLabel(scanning ? "Finish scan" : "Start scan").accessibilityIdentifier("startCubeScan")
+                        }.disabled(transitioning || failure != nil)
+                            .accessibilityLabel(camera.isCapturing ? "Finish scan" : "Start scan").accessibilityIdentifier("startCubeScan")
                         Spacer()
                         Color.clear.frame(width: 52, height: 30)
                     }
-                    Text(scanning ? "\(camera.count) / 8 views" : "Start scan").font(.caption.bold())
+                    Text(camera.isCapturing ? "\(camera.frameCount) views saved · Tap to finish" : "Start 3D scan").font(.caption.bold())
                 }.padding(24).background(.black.opacity(0.55))
             }.foregroundStyle(.white)
-        }.onAppear { camera.start() }.onDisappear { camera.stop() }
-            .onChange(of: camera.count) { _, count in if count == 8 { finish() } }
+        }.task {
+            do { try await camera.startPreview() } catch { failure = error.localizedDescription }
+        }.onDisappear { camera.session.pause() }
+            .onChange(of: camera.savedRevision) { _, _ in deliver() }
     }
-    private func finish() {
-        guard !finishing else { return }
-        finishing = true
-        camera.finish(onFinish)
+    private func toggle() async {
+        guard !transitioning else { return }
+        transitioning = true
+        defer { transitioning = false }
+        do {
+            if camera.isCapturing {
+                _ = try await camera.stop()
+                deliver()
+            } else {
+                model.create(name: "3D scan", synthetic: false)
+                guard let directory = model.scanDirectory else { return }
+                try await camera.start(directory: directory, scanID: UUID().uuidString)
+                model.captureActive = true
+            }
+        } catch { failure = error.localizedDescription; model.captureActive = false }
+    }
+    private func deliver() {
+        guard !delivered, let url = camera.packageURL, camera.savedRevision > 0 else { return }
+        delivered = true; model.captureActive = false
+        onFinish(url)
     }
 }
 
