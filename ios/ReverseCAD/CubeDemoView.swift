@@ -361,6 +361,7 @@ private struct CubeScanCapture: View {
     @State private var transitioning = false
     @State private var delivered = false
     @State private var failure: String?
+    @State private var showScanHelp = false
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -370,6 +371,7 @@ private struct CubeScanCapture: View {
                     Text("ReverseCAD").font(.headline)
                     Spacer()
                     Menu {
+                        Button("How to capture detail") { showScanHelp = true }
                         Button("Connection", action: onSettings)
                         Button("Last scan or model", action: onLastModel)
                     } label: { Image(systemName: "ellipsis.circle").font(.title2) }
@@ -385,7 +387,7 @@ private struct CubeScanCapture: View {
                     }.allowsHitTesting(false)
                 Spacer()
                 VStack(spacing: 20) {
-                    Text(failure ?? (camera.isCapturing ? camera.guidance : "Keep the cube still on a textured surface. Start about 30 cm away and move the phone slowly."))
+                    Text(failure ?? (camera.isCapturing ? camera.guidance : "Keep the object still. Tap it to set the scan center. Move the phone, not the object."))
                         .font(.subheadline).multilineTextAlignment(.center)
                     HStack {
                         Button(action: onLibrary) { Image(systemName: "photo.on.rectangle").font(.title2).frame(width: 52) }
@@ -408,6 +410,27 @@ private struct CubeScanCapture: View {
             }.foregroundStyle(.white)
         }.task {
             do { try await camera.startPreview() } catch { failure = error.localizedDescription }
+        }.sheet(isPresented: $showScanHelp) {
+            NavigationStack {
+                List {
+                    Section("1 · Keep it fixed") {
+                        Text("Use diffuse light and a textured, matte background. Keep the object stationary for the entire scan. Move your phone around it; keep fingers out of the view.")
+                    }
+                    Section("2 · Overlap your views") {
+                        Text("Begin about 25–35 cm away. Move slowly in small steps, keeping most of the previous view visible. Follow the live prompt, then make another pass from higher and lower angles.")
+                    }
+                    Section("3 · Capture ridges and openings") {
+                        Text("Move closer only while edges stay sharp. View each ridge, intact reference feature and visible recess from several angles. Aim into the damaged opening from both sides; shadows and glare can hide its shape.")
+                    }
+                    Section("4 · Expose the underside") {
+                        Text("An assembled object can reveal surfaces inside an opening, but not surfaces hidden behind solid material. If accessible, scan a removed intact part separately, including its connector. Finish before repositioning it; separate orientations still need registration before they can be combined.")
+                    }
+                    Section("What the guide measures") {
+                        Text("Prompts check camera tracking, local sharpness, distance, framing and viewing direction. They do not certify minute detail or complete coverage. LiDAR provides coarse depth; photographs must resolve small features.")
+                    }
+                }.navigationTitle("Capture detail")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showScanHelp = false } } }
+            }
         }.onDisappear { camera.session.pause() }
             .onChange(of: camera.savedRevision) { _, _ in deliver() }
     }

@@ -60,6 +60,9 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var previousKeyframePose: simd_float4x4?
     private var stats = CaptureProgress()
     private var viewBins = Set<Int>()
+    private var scanGuide = ScanGuidance()
+    private var guideTarget: SIMD3<Float>?
+    private var guideSelection = CGPoint(x: 0.5, y: 0.5)
     private var video: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
     private var videoAdaptor: AVAssetWriterInputPixelBufferAdaptor?
@@ -92,6 +95,9 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     func start() throws {
         guard ARWorldTrackingConfiguration.isSupported else { throw CaptureFailure.unavailable("ARKit world tracking is unsupported.") }
         let configuration = ARWorldTrackingConfiguration()
+        if let detailFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution {
+            configuration.videoFormat = detailFormat
+        }
         if useDepth {
             guard ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) else { throw CaptureFailure.unavailable("Native scene depth is unavailable.") }
             configuration.frameSemantics = [.sceneDepth]
@@ -184,6 +190,16 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         lastKeyframeTimestamp = timestamp
         let width = CVPixelBufferGetWidth(rgb), height = CVPixelBufferGetHeight(rgb)
         let blur = Self.blurScore(rgb)
+        var detailPoint = point
+        if let target = guideTarget, point == guideSelection {
+            let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
+            if local.z < -0.01 {
+                let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
+                detailPoint = CGPoint(x: CGFloat(pixel.x / pixel.z) / resolution.width, y: CGFloat(pixel.y / pixel.z) / resolution.height)
+                detailPoint.x = min(1, max(0, detailPoint.x)); detailPoint.y = min(1, max(0, detailPoint.y))
+            }
+        }
+        let objectBlur = Self.blurScore(rgb, around: detailPoint)
         var reasons = [String]()
         if let trackingReason { reasons.append(trackingReason) }
         if blur < 7 { reasons.append("Low image detail or motion blur; steady the phone and add texture/light") }
@@ -206,7 +222,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         let id = String(format: "%06d", stats.accepted + stats.rejected)
         let rgbPath = "rgb/\(id).jpg", depthPath = depthData == nil ? nil : "depth/\(id).f32"
         let confidencePath = confidenceData == nil ? nil : "confidence/\(id).u8"
-        guard let jpg = ci.jpegRepresentation(of: CIImage(cvPixelBuffer: rgb), colorSpace: CGColorSpaceCreateDeviceRGB(), options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: 0.88]) else { throw CaptureFailure.write("Could not encode the original-resolution RGB keyframe.") }
+        guard let jpg = ci.jpegRepresentation(of: CIImage(cvPixelBuffer: rgb), colorSpace: CGColorSpaceCreateDeviceRGB(), options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: 0.97]) else { throw CaptureFailure.write("Could not encode the original-resolution RGB keyframe.") }
         var assets = [rgbPath: jpg]
         if let depthData, let depthPath { assets[depthPath] = depthData }
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
@@ -228,7 +244,35 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         } else { stats.rejected += 1 }
         stats.bytes = writer.bytesWritten
         stats.coverageViews = viewBins.count
-        stats.guidance = accepted ? "Move slowly around the object, then scan from a little higher. Tap the object if the background is selected." : (reasons.first ?? "Poor observation rejected")
+        if point != guideSelection { guideTarget = nil; scanGuide = ScanGuidance(); guideSelection = point }
+        if guideTarget == nil, accepted, let depthData, let confidenceData {
+            let cx = min(depthWidth - 1, max(0, Int(point.x * Double(depthWidth))))
+            let cy = min(depthHeight - 1, max(0, Int(point.y * Double(depthHeight))))
+            var samples: [Float] = []
+            for y in max(0, cy-2)...min(depthHeight-1, cy+2) {
+                for x in max(0, cx-2)...min(depthWidth-1, cx+2) {
+                    let i = y * depthWidth + x
+                    let d = depthData.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: i * 4, as: Float.self) }
+                    if confidenceData[i] >= 1 && d.isFinite && d > 0.08 && d < 2 { samples.append(d) }
+                }
+            }
+            if samples.count >= 9 {
+                samples.sort(); let d = samples[samples.count / 2]
+                let ray = simd_inverse(intrinsics) * SIMD3<Float>(Float(point.x * resolution.width), Float(point.y * resolution.height), 1)
+                guideTarget = (pose * SIMD4<Float>(ray.x*d, -ray.y*d, -d, 1)).xyz
+            }
+        }
+        if let target = guideTarget {
+            let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
+            let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
+            // Camera screen is portrait: raw sensor y becomes horizontal, x vertical.
+            let screen = SIMD2<Float>(1 - pixel.y / pixel.z / Float(resolution.height), pixel.x / pixel.z / Float(resolution.width))
+            stats.guidance = scanGuide.update(camera: pose.columns.3.xyz, target: target, screenPoint: screen,
+                sharp: objectBlur >= 7, tracking: tracking == "normal", reliableDepth: !poorConfidence && validDepthFraction >= 0.1, accepted: accepted && objectBlur >= 7)
+            stats.coverageViews = scanGuide.covered.count
+        } else {
+            stats.guidance = reasons.first ?? "Tap the object. Hold still while depth finds its position."
+        }
         onFrame?(capture); onProgress?(stats)
         // The service package budget counts every persisted record, including rejected evidence.
         if stats.accepted + stats.rejected >= limits.acceptedFrames || stats.bytes >= limits.bytes - 16 * 1024 * 1024 { stopForBudget("Capture resource budget reached. Committed frames were saved; review coverage before processing.") }
@@ -348,6 +392,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             segments.append(CaptureSegment(segmentID: next, registered: false))
             do { try writer.updateSegments(segments) } catch { failure = error.localizedDescription }
             previousKeyframePose = nil
+            guideTarget = nil; scanGuide = ScanGuidance()
             var event: [String: Any] = ["event": reason, "segment_id": next]
             if let elapsed { event["capture_timestamp_s"] = elapsed }
             events.append(event)
@@ -428,13 +473,20 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         return data
     }
 
-    static func blurScore(_ buffer: CVPixelBuffer) -> Double {
+    static func blurScore(_ buffer: CVPixelBuffer, around point: CGPoint? = nil) -> Double {
         CVPixelBufferLockBaseAddress(buffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
         guard CVPixelBufferGetPlaneCount(buffer) > 0, let base = CVPixelBufferGetBaseAddressOfPlane(buffer, 0) else { return 0 }
         let width = CVPixelBufferGetWidthOfPlane(buffer, 0), height = CVPixelBufferGetHeightOfPlane(buffer, 0), stride = CVPixelBufferGetBytesPerRowOfPlane(buffer, 0)
         var sum = 0.0, squared = 0.0, count = 0.0
-        for y in Swift.stride(from: 3, to: height - 3, by: 8) { for x in Swift.stride(from: 3, to: width - 3, by: 8) {
+        var x0 = 3, y0 = 3, x1 = width - 3, y1 = height - 3
+        if let point {
+            x0 = max(3, Int((point.x - 0.12) * Double(width)))
+            x1 = min(width - 3, Int((point.x + 0.12) * Double(width)))
+            y0 = max(3, Int((point.y - 0.12) * Double(height)))
+            y1 = min(height - 3, Int((point.y + 0.12) * Double(height)))
+        }
+        for y in Swift.stride(from: y0, to: y1, by: 8) { for x in Swift.stride(from: x0, to: x1, by: 8) {
             let p = base.advanced(by: y * stride + x).assumingMemoryBound(to: UInt8.self)
             let lap = Double(Int(p[-2]) + Int(p[2]) + Int(p[-2 * stride]) + Int(p[2 * stride]) - 4 * Int(p[0]))
             sum += lap; squared += lap * lap; count += 1

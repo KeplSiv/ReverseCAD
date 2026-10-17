@@ -44,6 +44,7 @@ enum CaptureFailure: LocalizedError {
     let hasLiDAR = ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
     let session = ARSession()
     private var provider: CaptureProvider?
+    private var selectedObjectPoint = CGPoint(x: 0.5, y: 0.5)
     private var backgroundObserver: NSObjectProtocol?
 
     init() {
@@ -65,6 +66,9 @@ enum CaptureFailure: LocalizedError {
         }
         guard !isCapturing else { return }
         let configuration = ARWorldTrackingConfiguration()
+        if let detailFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution {
+            configuration.videoFormat = detailFormat
+        }
         configuration.frameSemantics.insert(.sceneDepth)
         session.run(configuration)
     }
@@ -75,6 +79,7 @@ enum CaptureFailure: LocalizedError {
         guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable Reverse CAD in Settings → Privacy & Security → Camera.") }
         guard !isCapturing else { return }
         let capture = try ARKitCaptureProvider(session: session, directory: directory, scanID: scanID, useDepth: hasLiDAR, motionDiagnostics: motionDiagnostics)
+        capture.selectObject(point: selectedObjectPoint)
         connect(capture)
         provider = capture
         frameCount = 0; rejectedFrames = 0; droppedFrames = 0; bytesWritten = 0; coverageViews = 0
@@ -85,8 +90,9 @@ enum CaptureFailure: LocalizedError {
     }
 
     func selectObject(normalizedRawImagePoint: CGPoint) {
+        selectedObjectPoint = normalizedRawImagePoint
         (provider as? ARKitCaptureProvider)?.selectObject(point: normalizedRawImagePoint)
-        guidance = "Foreground selection updated. Review and correct the crop after reconstruction."
+        guidance = "Scan center selected. Keep this object still and move the phone."
     }
 
     func stop() async throws -> URL {

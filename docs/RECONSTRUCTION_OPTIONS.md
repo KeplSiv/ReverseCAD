@@ -61,3 +61,42 @@ For world-tracked depth fusion, keep the object still and move the phone. Rotati
 The authors' [CADFit](https://ghadinehme.com/cadfit.github.io/) is more directly relevant to the eventual mesh-to-CAD stage: it constructs executable operations with geometry-based validation against a watertight target mesh. Repair inference must still decide what missing material should be added; matching a damaged mesh alone reproduces the damage.
 
 Our original `backend/reversecad/cad_program.py` turns the current exterior hypothesis into a bounded rectangle → centered extrusion → optional fillet program. Each solid operation must produce one valid positive-volume solid with the requested exterior dimensions. `repair_plan.json` records parameters, assumptions, client-forwarded detection provenance, and measured kernel validation results. It can be replayed through the executor; the exported CadQuery source remains directly editable. This is a working deterministic foundation for later candidate fitting, not a trained VideoCAD model or a general mesh-to-CAD solver.
+
+## General repair research and experiments — 2026-10-17
+
+The objective is a separate replacement inferred from intact geometry, geometric repetition, damage boundaries and mating surfaces. Detailed capture is evidence for repair; a scan alone is not the repair. A recognizable rounded cube is not adequate evidence of recovered ridges or connectors. Visible surfaces inside an opening are observable geometry; fully occluded surfaces remain unknown.
+
+### Primary research and implementation choices
+
+- [DeepJoin, SIGGRAPH Asia 2022](https://arxiv.org/html/2211.12400v1), [Apache-2.0 implementation](https://github.com/Terascale-All-sensing-Research-Studio/DeepJoin): learns complete and break fields jointly (occupancy, signed distance and normals), then extracts a restoration. This is directly about repair interfaces. Simply subtracting an imperfect completed shape can leave artifacts. The inspected quick-start experiment is mugs; inference contains CUDA calls and the installation targets Ubuntu/Python 3.8. It has not been run or integrated here. Its evaluated shape repair results do not establish arbitrary mechanical fit.
+- [SymmCompletion, AAAI 2025](https://arxiv.org/html/2503.18007v1), [MIT implementation](https://github.com/HKUST-SAIL/SymmCompletion): estimates local transformations from existing geometry into missing regions, then refines using symmetry-guided features. Relevant to preserving donor detail. The released installation uses CUDA PyTorch and custom extensions. Point-cloud completion does not itself supply a closed replacement, a mating interface, or CAD history. No weights were installed.
+- [Discovering Structural Regularity in 3D Geometry, SIGGRAPH 2008](https://www.cs.princeton.edu/courses/archive/spr11/cos598A/pdfs/Pauly08.pdf): transformation-space analysis discovers repeated elements without an object-category template. This motivates the original bounded rotational baseline below; we do not claim to implement the full paper.
+- [Fantastic Breaks, CVPR 2023](https://openaccess.thecvf.com/content/CVPR2023/papers/Lamb_Fantastic_Breaks_A_Dataset_of_Paired_3D_Scans_of_Real-World_CVPR_2023_paper.pdf): paired real broken/complete scans and repair proxies provide an appropriate evaluation direction. Its results show that synthetic fracture performance does not automatically transfer to real damage.
+- [Open3D registration](https://www.open3d.org/docs/release/tutorial/pipelines/global_registration.html): already available locally, used for geometric alignment rather than learned object priors.
+
+### Implemented offline prototype (not enabled in the phone repair pipeline)
+
+`pattern_completion.py` searches principal-axis rotational repetitions of orders 2–8 and refines with Open3D robust point-to-plane ICP. It checks overlap, normal agreement, nontrivial displacement and novel surface fraction, then extracts rigidly transformed donor triangles outside the observed surface. There is no cube grid, primitive refit, smoothing, preset physical size, fabricated connector, or automatic closure. Export is a surface hypothesis PLY, not a printable part.
+
+A synthetic non-cube radial assembly with one missing shouldered stud produced candidates at the correct missing location. The test compares candidates against withheld geometry. Separate tests preserve a small ridge and recess exactly under rigid transfer and reject scaling. These are software checks, not phone precision measurements. This baseline still lacks arbitrary local/translation/reflection symmetry, surface segmentation, camera free-space checks, damage confirmation and mechanical interface validation; do not enable it as automatic repair yet.
+
+```sh
+PYTHONPATH=backend OMP_NUM_THREADS=2 .venv/bin/python scripts/propose_pattern_repair.py observed_mesh.ply output_directory
+PYTHONPATH=backend OMP_NUM_THREADS=2 .venv/bin/python -m pytest backend/tests/test_pattern_completion.py -q
+```
+
+### Actual failed capture retest
+
+An independent native macOS RealityKit PhotogrammetrySession experiment used all 25 existing RGB photos, high feature sensitivity, unordered samples, object masking, and full-detail output. It completed and skipped five samples. Visual inspection of the untextured geometry showed smoothed ridges and distorted/incomplete opening geometry. The rotational repetition prototype found no supported candidate in that model. No result from this experiment replaced the user's saved phone scan or was labeled printable. The experimental USDZ has no verified metric calibration; texture appearance must not be mistaken for recovered relief.
+
+`scripts/reconstruct_photos.swift` is an optional macOS experiment, not an OSS dependency or production service. Apple owns the underlying engine; our wrapper is original. Output is USDZ. See [Apple's configuration documentation](https://developer.apple.com/documentation/realitykit/photogrammetrysession/configuration-swift.struct).
+
+### Capture coaching now implemented
+
+The phone gives one instruction at a time based on tracking, local image sharpness, reliable depth, target framing, distance and object-centered viewpoint bins. Guidance can request aiming left/right/up/down, moving closer/back, slowing down, orbiting left/right, raising/lowering the camera, or viewing openings. Coverage is based on camera position around a fixed depth-selected target, so rotating the phone in place does not create new coverage. New tracking origins and new selections reset guidance. Capture requests ARKit’s recommended 4K format when supported, retaining the default otherwise. Photos retain that native resolution and per-frame intrinsics with JPEG quality raised from 0.88 to 0.97. New 4K capture still needs an actual phone scan to verify delivered resolution/depth and sustained performance. No claim is made that these heuristics detect every ridge or guarantee focus, millimeter accuracy, or object stationarity.
+
+In-app “How to capture detail” explains overlapping rings, close views of intact/damaged features, visible cavities and separate underside captures. An underside scan still needs cross-scan registration; it is not automatically combined.
+
+### Live repair overlay: required behavior, not yet implemented
+
+Preserve the observed full object. Once a stable candidate passes geometric and camera-consistency checks, render its mesh translucently in the current AR world coordinate frame, using its recorded donor-to-gap transform. Differentiate supported copied surfaces from inferred closures. Pause/hide the overlay when tracking or registration is lost; never reuse an old scan's world coordinates in a new session without registration. Additional views should confirm or reject a candidate. Guidance should eventually target candidate uncertainty (e.g. inspect a mating edge), rather than merely completing an orbit. The current phone build has capture coaching, not live missing-part detection or this overlay.
