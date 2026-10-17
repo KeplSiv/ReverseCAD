@@ -1,0 +1,1190 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/ReverseCAD.xcodeproj -scheme ReverseCAD -configuration Debug -destination id=0576C00C-3357-433C-843C-622AD6AB2169 -derivedDataPath var/DerivedData -resultBundlePath reports/ios-tests-20261016-162605.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  ReverseCADCore: /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore
+
+Writing result bundle at path:
+	/Users/pranav/Desktop/hack-harvard/reverse-cad/reports/ios-tests-20261016-162605.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (5 targets)
+    Target 'ReverseCADUITests' in project 'ReverseCAD'
+        ➜ Explicit dependency on target 'ReverseCAD' in project 'ReverseCAD'
+    Target 'ReverseCADTests' in project 'ReverseCAD'
+        ➜ Explicit dependency on target 'ReverseCAD' in project 'ReverseCAD'
+    Target 'ReverseCAD' in project 'ReverseCAD'
+        ➜ Explicit dependency on target 'ReverseCADCore' in project 'ReverseCADCore'
+    Target 'ReverseCADCore' in project 'ReverseCADCore'
+        ➜ Explicit dependency on target 'ReverseCADCore' in project 'ReverseCADCore'
+    Target 'ReverseCADCore' in project 'ReverseCADCore' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+SwiftDriver ReverseCADCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADCore -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name reversecadcore -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore_const_extract_protocols.json -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ ReverseCADCore (in target 'ReverseCADCore' from project 'ReverseCADCore')
+
+EmitSwiftModule normal arm64 (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for ReverseCADCore (in target 'ReverseCADCore' from project 'ReverseCADCore')
+
+SwiftDriver\ Compilation\ Requirements ReverseCADCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADCore -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name reversecadcore -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore_const_extract_protocols.json -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftsourceinfo (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.abi.json (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+SwiftDriver ReverseCAD normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCAD -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ ReverseCAD (in target 'ReverseCAD' from project 'ReverseCAD')
+
+EmitSwiftModule normal arm64 (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for ReverseCAD (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation\ Requirements ReverseCAD normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCAD -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftsourceinfo (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.abi.json (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+SwiftDriver ReverseCADTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADTests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ AppModel.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/AppModel.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/AppModel.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ DesignView.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/DesignView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/DesignView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ContentView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ContentView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ EvidenceView.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/EvidenceView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/EvidenceView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+/Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/EvidenceView.swift:40:246: warning: 'appendInterpolation' is deprecated: Localized string interpolation produces an unlocalized, debug description for this type of value. Use a type supported by LocalizedStringKey.StringInterpolation or initialize a LocalizedStringResource instead with an interpolated value that conforms to CustomLocalizedStringResourceConvertible.
+                    VStack(alignment:.leading,spacing:4) {Text("\(m["name"] as? String ?? m["id"] as? String ?? "Dimension"): \((m["value"] as? Double ?? 0).formatted(.number.precision(.fractionLength(1)))) mm").font(.subheadline.bold());Text("\(m["source"] ?? "unknown") · \(uncertainty(m))").font(.caption).foregroundStyle(.secondary)}
+
+SwiftCompile normal arm64 Compiling\ VerifiedArtifactsTests.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADTests/VerifiedArtifactsTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADTests/VerifiedArtifactsTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ ReverseCADTests (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+EmitSwiftModule normal arm64 (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ CaptureTests.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADTests/CaptureTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADTests/CaptureTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling DesignView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling VerifiedArtifactsTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling CaptureTests.swift (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation ReverseCADTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADTests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for ReverseCADTests (in target 'ReverseCADTests' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation\ Requirements ReverseCADTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADTests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.abi.json (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftsourceinfo (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling EvidenceView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppModel.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 Compiling\ ReverseCADApp.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ReverseCADApp.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ReverseCADApp.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ ResultsView.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ResultsView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/ResultsView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ReverseCADApp.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ContentView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 Compiling\ GeometryPreview.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/GeometryPreview.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/GeometryPreview.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ CaptureController.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/CaptureController.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/CaptureController.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ VerifiedArtifacts.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/VerifiedArtifacts.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/VerifiedArtifacts.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ CaptureARKit.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/CaptureARKit.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/CaptureARKit.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ResultsView.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling VerifiedArtifacts.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling CaptureController.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GeometryPreview.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriverJobDiscovery normal arm64 Compiling CaptureARKit.swift (in target 'ReverseCAD' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation ReverseCAD normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCAD -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ ServiceClient.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore/Sources/ReverseCADCore/ServiceClient.swift (in target 'ReverseCADCore' from project 'ReverseCADCore')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore/Sources/ReverseCADCore/ServiceClient.swift (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ServiceClient.swift (in target 'ReverseCADCore' from project 'ReverseCADCore')
+
+SwiftDriver\ Compilation ReverseCADCore normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADCore -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -DXcode -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -package-name reversecadcore -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore_const_extract_protocols.json -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj -experimental-emit-module-separately -disable-cmo
+
+ExtractAppIntentsMetadata (in target 'ReverseCADCore' from project 'ReverseCADCore')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name ReverseCADCore --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F113 --platform-family iOS --deployment-target 17.0 --bundle-identifier reversecadcore.ReverseCADCore --output /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.appintents --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADCore.o --dependency-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore_dependency_info.dat --stringsdata-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.SwiftFileList --metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/ReverseCADCore.DependencyMetadataFileList --static-metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/ReverseCADCore.DependencyStaticMetadataFileList --swift-const-vals-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.SwiftConstValuesFileList --force --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-16 16:26:10.427 appintentsmetadataprocessor[39082:304165] Starting appintentsmetadataprocessor export
+2026-10-16 16:26:10.434 appintentsmetadataprocessor[39082:304165] Extracted no relevant App Intents symbols, skipping writing output
+
+Ld /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib normal (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -filelist /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.LinkFileList -install_name @rpath/ReverseCAD.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.swiftmodule @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD-linker-args.resp -Wl,-no_warn_duplicate_libraries -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib -Xlinker -add_ast_path -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore.swiftmodule @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCADCore.build/Debug-iphonesimulator/ReverseCADCore.build/Objects-normal/arm64/ReverseCADCore-linker-args.resp
+
+ConstructStubExecutorLinkFileList /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-ExecutorLinkFileList-normal-arm64.txt (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    construct-stub-executor-link-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'ReverseCAD' from project 'ReverseCAD')
+
+Ld /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD normal (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD-ExecutorLinkFileList-normal-arm64.txt /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib -o /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD
+
+CopySwiftLibs /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/Frameworks --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/SystemExtensions --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name ReverseCAD --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F113 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.pranav.ReverseCAD --output /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD --dependency-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD_dependency_info.dat --stringsdata-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.SwiftFileList --metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD.DependencyMetadataFileList --static-metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/ReverseCAD.DependencyStaticMetadataFileList --swift-const-vals-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD.build/Objects-normal/arm64/ReverseCAD.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-16 16:26:10.653 appintentsmetadataprocessor[39087:304204] Starting appintentsmetadataprocessor export
+2026-10-16 16:26:10.654 appintentsmetadataprocessor[39087:304204] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+Ld /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/ReverseCADTests normal (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -filelist /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD -Xlinker -object_path_lto -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.swiftmodule @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests-linker-args.resp -Wl,-no_warn_duplicate_libraries -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/ReverseCAD.debug.dylib -o /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/ReverseCADTests
+
+ExtractAppIntentsMetadata (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name ReverseCADTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F113 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.pranav.ReverseCADTests --output /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/ReverseCADTests --dependency-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests_dependency_info.dat --stringsdata-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.SwiftFileList --metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests.DependencyMetadataFileList --static-metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/ReverseCADTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/Objects-normal/arm64/ReverseCADTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-16 16:26:10.852 appintentsmetadataprocessor[39090:304226] Starting appintentsmetadataprocessor export
+2026-10-16 16:26:10.853 appintentsmetadataprocessor[39090:304226] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+SwiftDriver ReverseCADUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADUITests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+CopySwiftLibs /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest (in target 'ReverseCADTests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/ReverseCADTests --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/Frameworks --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/PlugIns --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/SystemExtensions --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app/PlugIns/ReverseCADTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+Validate /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app (in target 'ReverseCAD' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-validationUtility /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCAD.app -shallow-bundle -infoplist-subpath Info.plist
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ ReverseCADUITests (in target 'ReverseCADUITests' from project 'ReverseCAD')
+
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADUITests/WorkflowTests.swift (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftCompile normal arm64 Compiling\ WorkflowTests.swift /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADUITests/WorkflowTests.swift (in target 'ReverseCADUITests' from project 'ReverseCAD')
+SwiftCompile normal arm64 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADUITests/WorkflowTests.swift (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for ReverseCADUITests (in target 'ReverseCADUITests' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation\ Requirements ReverseCADUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADUITests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftsourceinfo (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftsourceinfo /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.abi.json (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.abi.json /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+SwiftDriverJobDiscovery normal arm64 Compiling WorkflowTests.swift (in target 'ReverseCADUITests' from project 'ReverseCAD')
+
+SwiftDriver\ Compilation ReverseCADUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ReverseCADUITests -Onone @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j15 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-generated-files.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-own-target-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCAD-1241ad11de9805f07dcd667af8856428-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests-project-headers.hmap -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources/arm64 -Xcc -I/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-Swift.h -working-directory /Users/pranav/Desktop/hack-harvard/reverse-cad/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/ReverseCADUITests normal (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks -filelist /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.swiftmodule @/Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests-linker-args.resp -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/ReverseCADUITests
+
+ExtractAppIntentsMetadata (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name ReverseCADUITests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F113 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.pranav.ReverseCADUITests --output /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/ReverseCADUITests --dependency-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests_dependency_info.dat --stringsdata-file /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.SwiftFileList --metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests.DependencyMetadataFileList --static-metadata-file-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/ReverseCADUITests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/Objects-normal/arm64/ReverseCADUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-16 16:26:11.281 appintentsmetadataprocessor[39096:304266] Starting appintentsmetadataprocessor export
+2026-10-16 16:26:11.282 appintentsmetadataprocessor[39096:304266] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest (in target 'ReverseCADUITests' from project 'ReverseCAD')
+    cd /Users/pranav/Desktop/hack-harvard/reverse-cad/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/ReverseCADUITests --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/Frameworks --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/PlugIns --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/SystemExtensions --scan-folder /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Products/Debug-iphonesimulator/ReverseCADUITests-Runner.app/PlugIns/ReverseCADUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/pranav/Desktop/hack-harvard/reverse-cad/var/DerivedData/Build/Intermediates.noindex/ReverseCAD.build/Debug-iphonesimulator/ReverseCADUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+2026-10-16 16:26:12.236482-0400 ReverseCADUITests-Runner[39098:304468] [Default] Running tests...
+2026-10-16 16:26:12.258437-0400 ReverseCADUITests-Runner[39098:304507] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-16 16:26:12.683.
+Test Suite 'ReverseCADUITests.xctest' started at 2026-10-16 16:26:12.683.
+Test Suite 'WorkflowTests' started at 2026-10-16 16:26:12.683.
+Test Case '-[ReverseCADUITests.WorkflowTests testConnectionFailureRecovery]' started.
+    t =     0.00s Start Test at 2026-10-16 16:26:12.684
+    t =     0.01s Set Up
+    t =     0.01s     Open com.pranav.ReverseCAD
+    t =     0.01s         Launch com.pranav.ReverseCAD
+2026-10-16 16:26:12.722 xcodebuild[39035:303778] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-16 16:26:12.722 xcodebuild[39035:303778] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-10-16 16:26:12.723460-0400 ReverseCADUITests-Runner[39098:304507] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+    t =     0.44s             Setting up automation session
+objc[39098]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1090dc310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10890c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.99s             Wait for com.pranav.ReverseCAD to idle
+    t =     2.29s Tap "serviceSettings" Button
+    t =     2.29s     Wait for com.pranav.ReverseCAD to idle
+    t =     2.29s     Find the "serviceSettings" Button
+    t =     2.33s     Check for interrupting elements affecting "serviceSettings" Button
+    t =     2.35s     Synthesize event
+    t =     2.63s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.47s Checking existence of `"serviceURL" TextField`
+    t =     3.52s Find the "serviceURL" TextField
+    t =     3.55s Tap "serviceURL" TextField
+    t =     3.55s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.55s     Find the "serviceURL" TextField
+    t =     3.58s     Check for interrupting elements affecting "serviceURL" TextField
+    t =     3.60s     Synthesize event
+    t =     3.89s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.90s Press "serviceURL" TextField for 1.1 seconds
+    t =     3.90s     Wait for com.pranav.ReverseCAD to idle
+    t =     4.28s     Find the "serviceURL" TextField
+    t =     4.32s     Check for interrupting elements affecting "serviceURL" TextField
+    t =     4.35s     Synthesize event
+    t =     5.69s     Wait for com.pranav.ReverseCAD to idle
+    t =     6.50s Waiting 1.0s for "Select All" MenuItem to exist
+    t =     7.51s     Checking `Expect predicate `existsNoRetry == 1` for object "Select All" MenuItem`
+    t =     7.51s         Checking existence of `"Select All" MenuItem`
+    t =     7.55s     Checking existence of `"Select All" MenuItem`
+    t =     7.59s Tap "Select All" MenuItem
+    t =     7.59s     Wait for com.pranav.ReverseCAD to idle
+    t =     7.59s     Find the "Select All" MenuItem
+    t =     7.62s     Check for interrupting elements affecting "Select All" MenuItem
+    t =     7.66s     Synthesize event
+    t =     7.93s     Wait for com.pranav.ReverseCAD to idle
+    t =     8.62s Type 'http://127.0.0.1:1' into "serviceURL" TextField
+    t =     8.62s     Wait for com.pranav.ReverseCAD to idle
+    t =     8.62s     Find the "serviceURL" TextField
+    t =     8.67s     Check for interrupting elements affecting "serviceURL" TextField
+    t =     8.70s     Synthesize event
+    t =     9.20s     Wait for com.pranav.ReverseCAD to idle
+    t =     9.20s Checking existence of `"keyboardDone" Button`
+    t =     9.23s Tap "checkConnection" Button
+    t =     9.23s     Wait for com.pranav.ReverseCAD to idle
+    t =     9.24s     Find the "checkConnection" Button
+    t =     9.27s     Check for interrupting elements affecting "checkConnection" Button
+    t =     9.30s     Synthesize event
+    t =     9.59s     Wait for com.pranav.ReverseCAD to idle
+    t =    10.02s Waiting 60.0s for "Action needs attention" Alert to exist
+    t =    11.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Action needs attention" Alert`
+    t =    11.06s         Checking existence of `"Action needs attention" Alert`
+    t =    11.08s Tap "OK" Button
+    t =    11.08s     Wait for com.pranav.ReverseCAD to idle
+    t =    11.08s     Find the "OK" Button
+    t =    11.10s     Check for interrupting elements affecting "OK" Button
+    t =    11.12s     Synthesize event
+    t =    11.41s     Wait for com.pranav.ReverseCAD to idle
+    t =    11.63s Checking existence of `"serviceURL" TextField`
+    t =    11.65s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    11.65s     Wait for com.pranav.ReverseCAD to idle
+    t =    11.65s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    11.66s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    11.68s     Synthesize event
+    t =    12.10s     Wait for com.pranav.ReverseCAD to idle
+    t =    12.76s Checking existence of `"serviceURL" TextField`
+    t =    12.78s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    12.78s     Wait for com.pranav.ReverseCAD to idle
+    t =    12.78s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    12.79s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    12.81s     Synthesize event
+    t =    13.22s     Wait for com.pranav.ReverseCAD to idle
+    t =    13.90s Checking existence of `"serviceURL" TextField`
+    t =    13.91s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    13.91s     Wait for com.pranav.ReverseCAD to idle
+    t =    13.91s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    13.93s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    13.94s     Synthesize event
+    t =    14.36s     Wait for com.pranav.ReverseCAD to idle
+    t =    15.03s Checking existence of `"serviceURL" TextField`
+    t =    15.04s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    15.04s     Wait for com.pranav.ReverseCAD to idle
+    t =    15.05s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    15.06s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    15.07s     Synthesize event
+    t =    15.48s     Wait for com.pranav.ReverseCAD to idle
+    t =    16.16s Checking existence of `"serviceURL" TextField`
+    t =    16.18s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    16.18s     Wait for com.pranav.ReverseCAD to idle
+    t =    16.18s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    16.19s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    16.21s     Synthesize event
+    t =    16.62s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.29s Checking existence of `"serviceURL" TextField`
+    t =    17.31s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    17.31s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.31s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    17.33s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    17.34s     Synthesize event
+    t =    17.76s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.43s Checking existence of `"serviceURL" TextField`
+    t =    18.45s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    18.45s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.45s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    18.46s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    18.47s     Synthesize event
+    t =    18.89s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.56s Checking existence of `"serviceURL" TextField`
+    t =    19.58s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    19.58s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.58s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    19.59s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    19.61s     Synthesize event
+    t =    20.02s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.70s Checking existence of `"serviceURL" TextField`
+    t =    20.71s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    20.71s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.71s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    20.72s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    20.73s     Synthesize event
+    t =    21.15s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.83s Checking existence of `"serviceURL" TextField`
+    t =    21.85s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    21.85s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.85s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    21.86s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    21.87s     Synthesize event
+    t =    22.28s     Wait for com.pranav.ReverseCAD to idle
+    t =    22.96s Checking existence of `"serviceURL" TextField`
+    t =    22.99s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    22.99s     Wait for com.pranav.ReverseCAD to idle
+    t =    22.99s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    23.00s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    23.01s     Synthesize event
+    t =    23.43s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.10s Checking existence of `"serviceURL" TextField`
+    t =    24.11s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    24.11s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.12s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    24.13s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    24.14s     Synthesize event
+    t =    24.55s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.23s Checking existence of `"serviceURL" TextField`
+    t =    25.25s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    25.25s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.25s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    25.26s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    25.27s     Synthesize event
+    t =    25.68s     Wait for com.pranav.ReverseCAD to idle
+    t =    26.36s Checking existence of `"serviceURL" TextField`
+    t =    26.38s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    26.38s     Wait for com.pranav.ReverseCAD to idle
+    t =    26.38s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    26.39s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    26.40s     Synthesize event
+    t =    26.81s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.50s Checking existence of `"serviceURL" TextField`
+    t =    27.51s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    27.51s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.52s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    27.53s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    27.54s     Synthesize event
+    t =    27.96s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.63s Checking existence of `"serviceURL" TextField`
+    t =    28.64s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    28.65s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.65s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    28.66s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    28.67s     Synthesize event
+    t =    29.09s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.76s Checking existence of `"serviceURL" TextField`
+    t =    29.78s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    29.78s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.78s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    29.79s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    29.81s     Synthesize event
+    t =    30.22s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.89s Checking existence of `"serviceURL" TextField`
+    t =    30.91s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    30.91s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.91s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    30.93s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    30.94s     Synthesize event
+    t =    31.36s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.03s Tap "serviceURL" TextField
+    t =    32.03s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.03s     Find the "serviceURL" TextField
+    t =    33.05s         Find the "serviceURL" TextField (retry 1)
+    t =    34.08s         Find the "serviceURL" TextField (retry 2)
+    t =    34.09s Requesting snapshot of accessibility hierarchy for app with pid 39104
+/Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADUITests/WorkflowTests.swift:19: error: -[ReverseCADUITests.WorkflowTests testConnectionFailureRecovery] : Failed to tap "serviceURL" TextField: No matches found for Descendants matching type TextField from input {(
+    Application, pid: 39104, label: 'Reverse CAD'
+)}
+    t =    34.15s Tear Down
+Test Case '-[ReverseCADUITests.WorkflowTests testConnectionFailureRecovery]' failed (34.409 seconds).
+Test Case '-[ReverseCADUITests.WorkflowTests testReplayToRealServiceCADExportAndPersistence]' started.
+    t =     0.00s Start Test at 2026-10-16 16:26:47.094
+    t =     0.02s Set Up
+    t =     0.02s     Open com.pranav.ReverseCAD
+    t =     0.02s         Launch com.pranav.ReverseCAD
+    t =     0.02s             Terminate com.pranav.ReverseCAD:39104
+2026-10-16 16:26:48.137 xcodebuild[39035:303778] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-16 16:26:48.137 xcodebuild[39035:303778] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.25s             Setting up automation session
+    t =     1.74s             Wait for com.pranav.ReverseCAD to idle
+    t =     3.04s Tap "sampleProject" Button
+    t =     3.04s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.04s     Find the "sampleProject" Button
+    t =     3.08s     Check for interrupting elements affecting "sampleProject" Button
+    t =     3.09s     Synthesize event
+    t =     3.38s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.39s Checking existence of `"loadReplay" Button`
+    t =     3.41s Find the "loadReplay" Button
+    t =     3.43s Tap "loadReplay" Button
+    t =     3.43s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.43s     Find the "loadReplay" Button
+    t =     3.45s     Check for interrupting elements affecting "loadReplay" Button
+    t =     3.47s     Synthesize event
+    t =     3.75s     Wait for com.pranav.ReverseCAD to idle
+    t =     3.82s Waiting 30.0s for "processScan" Button to exist
+    t =     4.85s     Checking `Expect predicate `existsNoRetry == 1` for object "processScan" Button`
+    t =     4.85s         Checking existence of `"processScan" Button`
+    t =     4.87s Checking existence of `"exportScan" Button`
+    t =     4.89s Find the "exportScan" Button
+    t =     4.91s Tap "exportScan" Button
+    t =     4.91s     Wait for com.pranav.ReverseCAD to idle
+    t =     4.91s     Find the "exportScan" Button
+    t =     4.93s     Check for interrupting elements affecting "exportScan" Button
+    t =     4.95s     Synthesize event
+    t =     5.23s     Wait for com.pranav.ReverseCAD to idle
+    t =     5.28s Waiting 15.0s for "Close" Button to exist
+    t =     6.31s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     6.31s         Checking existence of `"Close" Button`
+    t =     6.37s Find the Target Application 'com.pranav.ReverseCAD'
+    t =     6.46s Added attachment named '00-native-scan-package-export'
+    t =     6.46s Checking existence of `"Close" Button`
+    t =     6.49s Tap "Close" Button
+    t =     6.49s     Wait for com.pranav.ReverseCAD to idle
+    t =     6.49s     Find the "Close" Button
+    t =     6.52s     Check for interrupting elements affecting "header.closeButton" Button
+    t =     6.54s     Synthesize event
+    t =     6.83s     Wait for com.pranav.ReverseCAD to idle
+    t =     7.18s Checking existence of `"processScan" Button`
+    t =     7.20s Find the "processScan" Button
+    t =     7.22s Tap "processScan" Button
+    t =     7.22s     Wait for com.pranav.ReverseCAD to idle
+    t =     7.22s     Find the "processScan" Button
+    t =     7.24s     Check for interrupting elements affecting "processScan" Button
+    t =     7.26s     Synthesize event
+    t =     7.55s     Wait for com.pranav.ReverseCAD to idle
+    t =     7.55s Waiting 5.0s for "cancelJob" Button to exist
+    t =     8.58s     Checking `Expect predicate `existsNoRetry == 1` for object "cancelJob" Button`
+    t =     8.58s         Checking existence of `"cancelJob" Button`
+    t =     8.60s Tap "cancelJob" Button
+    t =     8.60s     Wait for com.pranav.ReverseCAD to idle
+    t =     8.60s     Find the "cancelJob" Button
+    t =     8.62s     Check for interrupting elements affecting "cancelJob" Button
+    t =     8.65s     Synthesize event
+    t =     8.96s     Wait for com.pranav.ReverseCAD to idle
+    t =     8.96s Waiting 20.0s for "processScan" Button to exist
+    t =     9.99s     Checking `Expect predicate `existsNoRetry == 1` for object "processScan" Button`
+    t =     9.99s         Checking existence of `"processScan" Button`
+    t =    10.02s Find the "processScan" Button
+    t =    10.03s Checking existence of `"processScan" Button`
+    t =    10.05s Find the "processScan" Button
+    t =    10.07s Tap "processScan" Button
+    t =    10.07s     Wait for com.pranav.ReverseCAD to idle
+    t =    10.07s     Find the "processScan" Button
+    t =    10.09s     Check for interrupting elements affecting "processScan" Button
+    t =    10.10s     Synthesize event
+    t =    10.39s     Wait for com.pranav.ReverseCAD to idle
+    t =    10.40s Waiting 180.0s for "Scan reconstructed" StaticText to exist
+    t =    11.44s     Checking `Expect predicate `existsNoRetry == 1` for object "Scan reconstructed" StaticText`
+    t =    11.44s         Checking existence of `"Scan reconstructed" StaticText`
+    t =    11.46s         Capturing element debug description
+    t =    12.48s     Checking `Expect predicate `existsNoRetry == 1` for object "Scan reconstructed" StaticText`
+    t =    12.48s         Checking existence of `"Scan reconstructed" StaticText`
+    t =    12.51s         Capturing element debug description
+    t =    13.45s     Checking `Expect predicate `existsNoRetry == 1` for object "Scan reconstructed" StaticText`
+    t =    13.45s         Checking existence of `"Scan reconstructed" StaticText`
+    t =    13.65s         Capturing element debug description
+    t =    14.48s     Checking `Expect predicate `existsNoRetry == 1` for object "Scan reconstructed" StaticText`
+    t =    14.48s         Checking existence of `"Scan reconstructed" StaticText`
+    t =    14.50s Find the Target Application 'com.pranav.ReverseCAD'
+    t =    14.57s Added attachment named '01-reconstructed-synthetic-scan'
+    t =    14.57s Tap "Evidence" Button
+    t =    14.57s     Wait for com.pranav.ReverseCAD to idle
+    t =    14.58s     Find the "Evidence" Button
+    t =    14.59s     Check for interrupting elements affecting "Evidence" Button
+    t =    14.61s     Synthesize event
+    t =    14.90s     Wait for com.pranav.ReverseCAD to idle
+    t =    15.89s Waiting 15.0s for Any (First Match) to exist
+    t =    16.91s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    16.91s         Checking existence of `Any (First Match)`
+    t =    16.94s Checking existence of `Any (First Match)`
+    t =    16.96s Find the Any (First Match)
+    t =    16.99s Tap "scanPreview" Other[0.39, 0.39]
+    t =    16.99s     Wait for com.pranav.ReverseCAD to idle
+    t =    16.99s     Find the "scanPreview" Other
+    t =    17.02s     Check for interrupting elements affecting "scanPreview" Other
+    t =    17.05s     Synthesize event
+    t =    17.05s         Find the "scanPreview" Other
+    t =    17.08s         Find the "scanPreview" Other
+    t =    17.10s         Find the "scanPreview" Other
+    t =    17.40s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.41s Tap "scanPreview" Other[0.64, 0.45]
+    t =    17.41s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.41s     Find the "scanPreview" Other
+    t =    17.44s     Check for interrupting elements affecting "scanPreview" Other
+    t =    17.47s     Synthesize event
+    t =    17.47s         Find the "scanPreview" Other
+    t =    17.49s         Find the "scanPreview" Other
+    t =    17.52s         Find the "scanPreview" Other
+    t =    17.83s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.83s Find the "annotationCount" StaticText
+    t =    17.85s Checking existence of `"manualValue" TextField`
+    t =    17.87s Find the "manualValue" TextField
+    t =    17.90s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    17.90s     Wait for com.pranav.ReverseCAD to idle
+    t =    17.90s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    17.92s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    17.93s     Synthesize event
+    t =    18.35s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.35s Checking existence of `"manualValue" TextField`
+    t =    18.38s Find the "manualValue" TextField
+    t =    18.41s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    18.41s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.41s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    18.43s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    18.44s     Synthesize event
+    t =    18.85s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.86s Checking existence of `"manualValue" TextField`
+    t =    18.89s Find the "manualValue" TextField
+    t =    18.92s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    18.92s     Wait for com.pranav.ReverseCAD to idle
+    t =    18.92s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    18.94s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    18.96s     Synthesize event
+    t =    19.37s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.37s Checking existence of `"manualValue" TextField`
+    t =    19.40s Find the "manualValue" TextField
+    t =    19.42s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    19.42s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.43s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    19.44s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    19.46s     Synthesize event
+    t =    19.88s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.89s Checking existence of `"manualValue" TextField`
+    t =    19.91s Find the "manualValue" TextField
+    t =    19.94s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    19.94s     Wait for com.pranav.ReverseCAD to idle
+    t =    19.94s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    19.95s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    19.97s     Synthesize event
+    t =    20.39s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.39s Checking existence of `"manualValue" TextField`
+    t =    20.42s Find the "manualValue" TextField
+    t =    20.44s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    20.44s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.45s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    20.46s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    20.48s     Synthesize event
+    t =    20.90s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.90s Checking existence of `"manualValue" TextField`
+    t =    20.92s Find the "manualValue" TextField
+    t =    20.95s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    20.95s     Wait for com.pranav.ReverseCAD to idle
+    t =    20.95s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    20.97s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    20.99s     Synthesize event
+    t =    21.41s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.42s Checking existence of `"manualValue" TextField`
+    t =    21.44s Find the "manualValue" TextField
+    t =    21.47s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    21.47s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.47s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    21.49s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    21.51s     Synthesize event
+    t =    21.93s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.93s Checking existence of `"manualValue" TextField`
+    t =    21.95s Find the "manualValue" TextField
+    t =    21.98s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    21.98s     Wait for com.pranav.ReverseCAD to idle
+    t =    21.98s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    22.00s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    22.02s     Synthesize event
+    t =    22.44s     Wait for com.pranav.ReverseCAD to idle
+    t =    22.44s Checking existence of `"manualValue" TextField`
+    t =    22.47s Find the "manualValue" TextField
+    t =    22.49s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    22.49s     Wait for com.pranav.ReverseCAD to idle
+    t =    22.49s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    22.51s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    22.53s     Synthesize event
+    t =    22.95s     Wait for com.pranav.ReverseCAD to idle
+    t =    22.95s Checking existence of `"manualValue" TextField`
+    t =    22.97s Find the "manualValue" TextField
+    t =    23.00s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    23.00s     Wait for com.pranav.ReverseCAD to idle
+    t =    23.00s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    23.02s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    23.04s     Synthesize event
+    t =    23.46s     Wait for com.pranav.ReverseCAD to idle
+    t =    23.46s Checking existence of `"manualValue" TextField`
+    t =    23.48s Find the "manualValue" TextField
+    t =    23.51s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    23.51s     Wait for com.pranav.ReverseCAD to idle
+    t =    23.51s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    23.53s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    23.55s     Synthesize event
+    t =    23.96s     Wait for com.pranav.ReverseCAD to idle
+    t =    23.96s Checking existence of `"manualValue" TextField`
+    t =    23.98s Find the "manualValue" TextField
+    t =    24.01s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    24.01s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.01s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    24.02s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    24.04s     Synthesize event
+    t =    24.46s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.47s Checking existence of `"manualValue" TextField`
+    t =    24.49s Find the "manualValue" TextField
+    t =    24.51s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    24.51s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.52s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    24.53s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    24.55s     Synthesize event
+    t =    24.97s     Wait for com.pranav.ReverseCAD to idle
+    t =    24.97s Checking existence of `"manualValue" TextField`
+    t =    24.99s Find the "manualValue" TextField
+    t =    25.02s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    25.02s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.02s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    25.04s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    25.06s     Synthesize event
+    t =    25.47s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.47s Checking existence of `"manualValue" TextField`
+    t =    25.49s Find the "manualValue" TextField
+    t =    25.52s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    25.52s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.52s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    25.54s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    25.56s     Synthesize event
+    t =    25.98s     Wait for com.pranav.ReverseCAD to idle
+    t =    25.98s Checking existence of `"manualValue" TextField`
+    t =    26.02s Find the "manualValue" TextField
+    t =    26.04s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    26.04s     Wait for com.pranav.ReverseCAD to idle
+    t =    26.05s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    26.06s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    26.08s     Synthesize event
+    t =    26.50s     Wait for com.pranav.ReverseCAD to idle
+    t =    26.51s Checking existence of `"manualValue" TextField`
+    t =    26.53s Find the "manualValue" TextField
+    t =    26.55s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    26.55s     Wait for com.pranav.ReverseCAD to idle
+    t =    26.56s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    26.57s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    26.59s     Synthesize event
+    t =    27.01s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.02s Checking existence of `"manualValue" TextField`
+    t =    27.04s Find the "manualValue" TextField
+    t =    27.06s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    27.06s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.07s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    27.08s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    27.10s     Synthesize event
+    t =    27.52s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.53s Checking existence of `"manualValue" TextField`
+    t =    27.55s Find the "manualValue" TextField
+    t =    27.57s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    27.57s     Wait for com.pranav.ReverseCAD to idle
+    t =    27.58s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    27.59s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    27.61s     Synthesize event
+    t =    28.03s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.03s Checking existence of `"manualValue" TextField`
+    t =    28.06s Find the "manualValue" TextField
+    t =    28.08s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    28.08s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.08s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    28.10s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    28.12s     Synthesize event
+    t =    28.54s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.54s Checking existence of `"manualValue" TextField`
+    t =    28.56s Find the "manualValue" TextField
+    t =    28.59s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    28.59s     Wait for com.pranav.ReverseCAD to idle
+    t =    28.59s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    28.61s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    28.63s     Synthesize event
+    t =    29.04s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.05s Checking existence of `"manualValue" TextField`
+    t =    29.07s Find the "manualValue" TextField
+    t =    29.10s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    29.10s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.10s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    29.12s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    29.13s     Synthesize event
+    t =    29.55s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.55s Checking existence of `"manualValue" TextField`
+    t =    29.58s Find the "manualValue" TextField
+    t =    29.60s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    29.60s     Wait for com.pranav.ReverseCAD to idle
+    t =    29.61s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    29.62s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    29.64s     Synthesize event
+    t =    30.06s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.07s Checking existence of `"manualValue" TextField`
+    t =    30.09s Find the "manualValue" TextField
+    t =    30.12s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    30.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.12s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    30.13s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    30.15s     Synthesize event
+    t =    30.57s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.57s Checking existence of `"manualValue" TextField`
+    t =    30.59s Find the "manualValue" TextField
+    t =    30.62s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    30.62s     Wait for com.pranav.ReverseCAD to idle
+    t =    30.62s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    30.64s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    30.66s     Synthesize event
+    t =    31.07s     Wait for com.pranav.ReverseCAD to idle
+    t =    31.07s Checking existence of `"manualValue" TextField`
+    t =    31.09s Find the "manualValue" TextField
+    t =    31.12s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    31.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    31.12s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    31.14s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    31.16s     Synthesize event
+    t =    31.57s     Wait for com.pranav.ReverseCAD to idle
+    t =    31.57s Checking existence of `"manualValue" TextField`
+    t =    31.59s Find the "manualValue" TextField
+    t =    31.62s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    31.62s     Wait for com.pranav.ReverseCAD to idle
+    t =    31.62s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    31.64s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    31.66s     Synthesize event
+    t =    32.08s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.08s Checking existence of `"manualValue" TextField`
+    t =    32.10s Find the "manualValue" TextField
+    t =    32.13s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    32.13s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.13s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    32.15s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    32.17s     Synthesize event
+    t =    32.59s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.59s Checking existence of `"manualValue" TextField`
+    t =    32.61s Find the "manualValue" TextField
+    t =    32.64s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    32.64s     Wait for com.pranav.ReverseCAD to idle
+    t =    32.64s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    32.66s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    32.68s     Synthesize event
+    t =    33.10s     Wait for com.pranav.ReverseCAD to idle
+    t =    33.10s Checking existence of `"manualValue" TextField`
+    t =    33.13s Find the "manualValue" TextField
+    t =    33.16s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    33.16s     Wait for com.pranav.ReverseCAD to idle
+    t =    33.16s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    33.17s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    33.19s     Synthesize event
+    t =    33.61s     Wait for com.pranav.ReverseCAD to idle
+    t =    33.61s Checking existence of `"manualValue" TextField`
+    t =    33.63s Find the "manualValue" TextField
+    t =    33.66s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    33.66s     Wait for com.pranav.ReverseCAD to idle
+    t =    33.66s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    33.68s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    33.70s     Synthesize event
+    t =    34.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    34.12s Checking existence of `"manualValue" TextField`
+    t =    34.14s Find the "manualValue" TextField
+    t =    34.17s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    34.17s     Wait for com.pranav.ReverseCAD to idle
+    t =    34.17s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    34.18s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    34.20s     Synthesize event
+    t =    34.62s     Wait for com.pranav.ReverseCAD to idle
+    t =    34.62s Checking existence of `"manualValue" TextField`
+    t =    34.64s Find the "manualValue" TextField
+    t =    34.67s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    34.67s     Wait for com.pranav.ReverseCAD to idle
+    t =    34.67s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    34.69s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    34.70s     Synthesize event
+    t =    35.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    35.12s Checking existence of `"manualValue" TextField`
+    t =    35.14s Find the "manualValue" TextField
+    t =    35.17s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    35.17s     Wait for com.pranav.ReverseCAD to idle
+    t =    35.17s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    35.19s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    35.21s     Synthesize event
+    t =    35.62s     Wait for com.pranav.ReverseCAD to idle
+    t =    35.63s Checking existence of `"manualValue" TextField`
+    t =    35.65s Find the "manualValue" TextField
+    t =    35.67s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    35.67s     Wait for com.pranav.ReverseCAD to idle
+    t =    35.67s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    35.69s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    35.71s     Synthesize event
+    t =    36.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    36.12s Tap "manualValue" TextField
+    t =    36.12s     Wait for com.pranav.ReverseCAD to idle
+    t =    36.13s     Find the "manualValue" TextField
+    t =    36.15s     Check for interrupting elements affecting "manualValue" TextField
+    t =    36.17s     Synthesize event
+    t =    36.17s         Scroll element to visible
+    t =    36.17s         Find the "manualValue" TextField
+    t =    36.20s         Computed hit point {308, 702.99999999999989} after scrolling to visible
+    t =    36.49s     Wait for com.pranav.ReverseCAD to idle
+    t =    36.53s Press "manualValue" TextField for 1.1 seconds
+    t =    36.53s     Wait for com.pranav.ReverseCAD to idle
+    t =    36.91s     Find the "manualValue" TextField
+    t =    36.98s     Check for interrupting elements affecting "manualValue" TextField
+    t =    37.02s     Synthesize event
+    t =    37.02s         Scroll element to visible
+    t =    37.03s         Find the "manualValue" TextField
+    t =    37.07s         Computed hit point {308, 387.99999999999983} after scrolling to visible
+    t =    38.39s     Wait for com.pranav.ReverseCAD to idle
+    t =    39.16s Waiting 1.0s for "Select All" MenuItem to exist
+    t =    40.16s     Checking `Expect predicate `existsNoRetry == 1` for object "Select All" MenuItem`
+    t =    40.16s         Checking existence of `"Select All" MenuItem`
+    t =    40.20s     Checking existence of `"Select All" MenuItem`
+    t =    40.24s Tap "Select All" MenuItem
+    t =    40.24s     Wait for com.pranav.ReverseCAD to idle
+    t =    40.24s     Find the "Select All" MenuItem
+    t =    40.27s     Check for interrupting elements affecting "Select All" MenuItem
+    t =    40.30s     Synthesize event
+    t =    40.59s     Wait for com.pranav.ReverseCAD to idle
+    t =    41.04s Type '80' into "manualValue" TextField
+    t =    41.05s     Wait for com.pranav.ReverseCAD to idle
+    t =    41.05s     Find the "manualValue" TextField
+    t =    41.08s     Check for interrupting elements affecting "manualValue" TextField
+    t =    41.11s     Synthesize event
+    t =    41.35s     Wait for com.pranav.ReverseCAD to idle
+    t =    41.61s Checking existence of `"keyboardDone" Button`
+    t =    41.64s Tap "keyboardDone" Button
+    t =    41.64s     Wait for com.pranav.ReverseCAD to idle
+    t =    41.64s     Find the "keyboardDone" Button
+    t =    41.67s     Check for interrupting elements affecting "keyboardDone" Button
+    t =    41.70s     Synthesize event
+    t =    41.99s     Wait for com.pranav.ReverseCAD to idle
+    t =    42.77s Checking existence of `"saveMeasurement" Button`
+    t =    42.80s Find the "saveMeasurement" Button
+    t =    42.83s Tap "saveMeasurement" Button
+    t =    42.83s     Wait for com.pranav.ReverseCAD to idle
+    t =    42.83s     Find the "saveMeasurement" Button
+    t =    42.85s     Check for interrupting elements affecting "saveMeasurement" Button
+    t =    42.87s     Synthesize event
+    t =    43.17s     Wait for com.pranav.ReverseCAD to idle
+    t =    43.17s Checking existence of `"saveEvidence" Button`
+    t =    43.19s Find the "saveEvidence" Button
+    t =    43.22s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    43.22s     Wait for com.pranav.ReverseCAD to idle
+    t =    43.22s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    43.24s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    43.26s     Synthesize event
+    t =    43.68s     Wait for com.pranav.ReverseCAD to idle
+    t =    44.13s Checking existence of `"saveEvidence" Button`
+    t =    44.16s Find the "saveEvidence" Button
+    t =    44.19s Tap "saveEvidence" Button
+    t =    44.19s     Wait for com.pranav.ReverseCAD to idle
+    t =    44.19s     Find the "saveEvidence" Button
+    t =    44.21s     Check for interrupting elements affecting "saveEvidence" Button
+    t =    44.24s     Synthesize event
+    t =    44.53s     Wait for com.pranav.ReverseCAD to idle
+    t =    44.53s Tap "Design" Button
+    t =    44.53s     Wait for com.pranav.ReverseCAD to idle
+    t =    44.53s     Find the "Design" Button
+    t =    44.55s     Check for interrupting elements affecting "Design" Button
+    t =    44.57s     Synthesize event
+    t =    44.87s     Wait for com.pranav.ReverseCAD to idle
+    t =    45.69s Checking existence of `"suggestCandidates" Button`
+    t =    45.72s Find the "suggestCandidates" Button
+    t =    45.75s Swipe up Target Application 'com.pranav.ReverseCAD'
+    t =    45.75s     Wait for com.pranav.ReverseCAD to idle
+    t =    45.75s     Find the Target Application 'com.pranav.ReverseCAD'
+    t =    45.77s     Check for interrupting elements affecting "Reverse CAD" Application
+    t =    45.79s     Synthesize event
+    t =    46.21s     Wait for com.pranav.ReverseCAD to idle
+    t =    48.32s Checking existence of `"suggestCandidates" Button`
+    t =    48.35s Find the "suggestCandidates" Button
+    t =    48.38s Tap "suggestCandidates" Button
+    t =    48.38s     Wait for com.pranav.ReverseCAD to idle
+    t =    48.38s     Find the "suggestCandidates" Button
+    t =    48.41s     Check for interrupting elements affecting "suggestCandidates" Button
+    t =    48.43s     Synthesize event
+    t =    48.72s     Wait for com.pranav.ReverseCAD to idle
+    t =    48.72s Waiting 30.0s for "Apply candidate" Button to exist
+    t =    49.74s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    49.74s         Checking existence of `"Apply candidate" Button`
+    t =    49.80s         Capturing element debug description
+    t =    50.72s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    50.72s         Checking existence of `"Apply candidate" Button`
+    t =    50.78s         Capturing element debug description
+    t =    51.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    51.80s         Checking existence of `"Apply candidate" Button`
+    t =    51.85s         Capturing element debug description
+    t =    52.77s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    52.77s         Checking existence of `"Apply candidate" Button`
+    t =    52.82s         Capturing element debug description
+    t =    53.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    53.75s         Checking existence of `"Apply candidate" Button`
+    t =    53.80s         Capturing element debug description
+    t =    54.72s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    54.72s         Checking existence of `"Apply candidate" Button`
+    t =    54.78s         Capturing element debug description
+    t =    55.79s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    55.79s         Checking existence of `"Apply candidate" Button`
+    t =    55.85s         Capturing element debug description
+    t =    56.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    56.75s         Checking existence of `"Apply candidate" Button`
+    t =    56.81s         Capturing element debug description
+    t =    57.73s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    57.73s         Checking existence of `"Apply candidate" Button`
+    t =    57.78s         Capturing element debug description
+    t =    58.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    58.80s         Checking existence of `"Apply candidate" Button`
+    t =    58.86s         Capturing element debug description
+    t =    59.77s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    59.77s         Checking existence of `"Apply candidate" Button`
+    t =    59.82s         Capturing element debug description
+    t =    60.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    60.75s         Checking existence of `"Apply candidate" Button`
+    t =    60.83s         Capturing element debug description
+    t =    61.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    61.75s         Checking existence of `"Apply candidate" Button`
+    t =    61.82s         Capturing element debug description
+    t =    62.73s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    62.73s         Checking existence of `"Apply candidate" Button`
+    t =    62.79s         Capturing element debug description
+    t =    63.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    63.80s         Checking existence of `"Apply candidate" Button`
+    t =    63.86s         Capturing element debug description
+    t =    64.77s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    64.77s         Checking existence of `"Apply candidate" Button`
+    t =    64.82s         Capturing element debug description
+    t =    65.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    65.75s         Checking existence of `"Apply candidate" Button`
+    t =    65.80s         Capturing element debug description
+    t =    66.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    66.81s         Checking existence of `"Apply candidate" Button`
+    t =    66.87s         Capturing element debug description
+    t =    67.78s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    67.78s         Checking existence of `"Apply candidate" Button`
+    t =    67.84s         Capturing element debug description
+    t =    68.77s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    68.77s         Checking existence of `"Apply candidate" Button`
+    t =    68.82s         Capturing element debug description
+    t =    69.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    69.75s         Checking existence of `"Apply candidate" Button`
+    t =    69.80s         Capturing element debug description
+    t =    70.73s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    70.73s         Checking existence of `"Apply candidate" Button`
+    t =    70.79s         Capturing element debug description
+    t =    71.82s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    71.82s         Checking existence of `"Apply candidate" Button`
+    t =    71.88s         Capturing element debug description
+    t =    72.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    72.80s         Checking existence of `"Apply candidate" Button`
+    t =    72.85s         Capturing element debug description
+    t =    73.77s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    73.77s         Checking existence of `"Apply candidate" Button`
+    t =    73.83s         Capturing element debug description
+    t =    74.75s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    74.75s         Checking existence of `"Apply candidate" Button`
+    t =    74.83s         Capturing element debug description
+    t =    75.74s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    75.74s         Checking existence of `"Apply candidate" Button`
+    t =    75.79s         Capturing element debug description
+    t =    76.72s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    76.72s         Checking existence of `"Apply candidate" Button`
+    t =    76.78s         Capturing element debug description
+    t =    77.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    77.81s         Checking existence of `"Apply candidate" Button`
+    t =    77.87s         Capturing element debug description
+    t =    78.73s     Checking `Expect predicate `existsNoRetry == 1` for object "Apply candidate" Button`
+    t =    78.73s         Checking existence of `"Apply candidate" Button`
+    t =    78.78s         Capturing element debug description
+    t =    78.79s     Checking existence of `"Apply candidate" Button`
+    t =    78.84s Collecting debug information to assist test failure triage
+    t =    78.84s     Requesting snapshot of accessibility hierarchy for app with pid 39269
+/Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCADUITests/WorkflowTests.swift:51: error: -[ReverseCADUITests.WorkflowTests testReplayToRealServiceCADExportAndPersistence] : XCTAssertTrue failed
+    t =    78.88s Tear Down
+Test Case '-[ReverseCADUITests.WorkflowTests testReplayToRealServiceCADExportAndPersistence]' failed (79.191 seconds).
+Test Suite 'WorkflowTests' failed at 2026-10-16 16:28:06.285.
+	 Executed 2 tests, with 2 failures (0 unexpected) in 113.601 (113.602) seconds
+Test Suite 'ReverseCADUITests.xctest' failed at 2026-10-16 16:28:06.286.
+	 Executed 2 tests, with 2 failures (0 unexpected) in 113.601 (113.603) seconds
+Test Suite 'All tests' failed at 2026-10-16 16:28:06.286.
+	 Executed 2 tests, with 2 failures (0 unexpected) in 113.601 (113.604) seconds
+Test Suite 'All tests' started at 2026-10-16 16:28:07.520.
+Test Suite 'ReverseCADTests.xctest' started at 2026-10-16 16:28:07.521.
+Test Suite 'CaptureTests' started at 2026-10-16 16:28:07.521.
+Test Case '-[ReverseCADTests.CaptureTests testColumnMajorSerializationDoesNotTransposeAsymmetricPose]' started.
+Test Case '-[ReverseCADTests.CaptureTests testColumnMajorSerializationDoesNotTransposeAsymmetricPose]' passed (0.002 seconds).
+Test Case '-[ReverseCADTests.CaptureTests testNativeConfidenceCopiesRespectStride]' started.
+Test Case '-[ReverseCADTests.CaptureTests testNativeConfidenceCopiesRespectStride]' passed (0.000 seconds).
+Test Case '-[ReverseCADTests.CaptureTests testNativeFloatDepthCopiesRespectPaddedStrideAndPreserveInvalidSamples]' started.
+Test Case '-[ReverseCADTests.CaptureTests testNativeFloatDepthCopiesRespectPaddedStrideAndPreserveInvalidSamples]' passed (0.001 seconds).
+Test Case '-[ReverseCADTests.CaptureTests testNativeScanExportCreatesPortableZIP]' started.
+Test Case '-[ReverseCADTests.CaptureTests testNativeScanExportCreatesPortableZIP]' passed (0.052 seconds).
+Test Case '-[ReverseCADTests.CaptureTests testRealAVAssetWriterReviewMovieAndTimestampMapping]' started.
+2026-10-16 16:28:07.594888-0400 ReverseCAD[39991:310105] [Core] {"msg":"file does not exist... clearing", "file":/Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/private/var/Managed Preferences/kCFPreferencesCurrentUser/com.apple.CoreMotion.plist, "error":Error Domain=NSCocoaErrorDomain Code=260 "The file “com.apple.CoreMotion.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/private/var/Managed Preferences/kCFPreferencesCurrentUser/com.apple.CoreMotion.plist, NSURL=file:///Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS%2026.5.simruntime/Contents/Resources/RuntimeRoot/private/var/Managed%20Preferences/kCFPreferencesCurrentUser/com.apple.CoreMotion.plist, NSUnderlyingError=0x107ff5bf0 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}}
+2026-10-16 16:28:07.613534-0400 ReverseCAD[39991:310063] [] (Fig) signalled err=0 at <>:85
+Test Case '-[ReverseCADTests.CaptureTests testRealAVAssetWriterReviewMovieAndTimestampMapping]' passed (0.342 seconds).
+Test Case '-[ReverseCADTests.CaptureTests testReplayUsesSameFrameContractAndPreservesRawEvidence]' started.
+Test Case '-[ReverseCADTests.CaptureTests testReplayUsesSameFrameContractAndPreservesRawEvidence]' passed (0.257 seconds).
+Test Suite 'CaptureTests' passed at 2026-10-16 16:28:08.176.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.654 (0.656) seconds
+Test Suite 'VerifiedArtifactsTests' started at 2026-10-16 16:28:08.176.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testCompleteRevisionVerifiesRegardlessOfInputOrder]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testCompleteRevisionVerifiesRegardlessOfInputOrder]' passed (0.004 seconds).
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testExistingCorruptedRevisionIsNeverOverwritten]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testExistingCorruptedRevisionIsNeverOverwritten]' passed (0.009 seconds).
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testExistingVerifiedRevisionIsReusedWithoutNetworkOrMutation]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testExistingVerifiedRevisionIsReusedWithoutNetworkOrMutation]' passed (0.004 seconds).
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testMissingUnexpectedAndSymlinkedArtifactsFailClosed]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testMissingUnexpectedAndSymlinkedArtifactsFailClosed]' passed (0.004 seconds).
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testModifiedFileFailsEvenWhenByteCountIsUnchanged]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testModifiedFileFailsEvenWhenByteCountIsUnchanged]' passed (0.002 seconds).
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testUnsafeDuplicateAndDifferentRevisionEntriesAreRejected]' started.
+Test Case '-[ReverseCADTests.VerifiedArtifactsTests testUnsafeDuplicateAndDifferentRevisionEntriesAreRejected]' passed (0.002 seconds).
+Test Suite 'VerifiedArtifactsTests' passed at 2026-10-16 16:28:08.203.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.026 (0.027) seconds
+Test Suite 'ReverseCADTests.xctest' passed at 2026-10-16 16:28:08.203.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.679 (0.683) seconds
+Test Suite 'All tests' passed at 2026-10-16 16:28:08.204.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.679 (0.683) seconds
+2026-10-16 16:28:16.056 xcodebuild[39035:303778] [MT] IDETestOperationsObserverDebug: 124.768 elapsed -- Testing started completed.
+2026-10-16 16:28:16.056 xcodebuild[39035:303778] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-16 16:28:16.056 xcodebuild[39035:303778] [MT] IDETestOperationsObserverDebug: 124.768 sec, +124.768 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/pranav/Desktop/hack-harvard/reverse-cad/reports/ios-tests-20261016-162605.xcresult
+
+Failing tests:
+	WorkflowTests.testConnectionFailureRecovery()
+	WorkflowTests.testReplayToRealServiceCADExportAndPersistence()
+
+** TEST FAILED **
+
+Testing started

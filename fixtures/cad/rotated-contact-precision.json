@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "source": "Synthetic replay selected through actual native UI; rotation exposed binary STL float32 precision failure. No real-phone sensing.",
+  "parameters": {
+    "standoff": 30.0,
+    "span": 80.0,
+    "grip_width": 12.0,
+    "hole_diameter": 0.0,
+    "pad_width": 24.0,
+    "pad_thickness": 4.0,
+    "pad_length": 24.0,
+    "grip_depth": 9.0
+  },
+  "contacts": [
+    {
+      "id": "2D2EE512-AAAD-4DC4-BF7C-544AACEE5200",
+      "point_m": [
+        -0.04110715910792351,
+        0.015476319007575512,
+        -0.00010488672705832869
+      ],
+      "normal": [
+        -0.026490746065974236,
+        0.018483800813555717,
+        0.9994781613349915
+      ],
+      "radius_mm": 8.0,
+      "normal_confirmed": false,
+      "normal_source": "scan_patch_estimate"
+    },
+    {
+      "id": "E97A3485-A81D-4CCE-819F-84A61FDFD3A3",
+      "point_m": [
+        0.03790600970387459,
+        0.016551371663808823,
+        -0.00028091936837881804
+      ],
+      "normal": [
+        -0.007720272522419691,
+        -0.014965943992137909,
+        0.9998582005500793
+      ],
+      "radius_mm": 8.0,
+      "normal_confirmed": false,
+      "normal_source": "scan_patch_estimate"
+    }
+  ],
+  "measurements": [
+    {
+      "id": "AD69AD6B-3515-4C5E-BDF9-5BC9AC789981",
+      "name": "span",
+      "value": 80.0,
+      "unit": "mm",
+      "source": "manual",
+      "confirmed": true,
+      "critical": true,
+      "uncertainty_mm": 0.1,
+      "observation_ids": []
+    }
+  ],
+  "attachment_method": "screws"
+}

@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "Contact": {
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "point_m": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Point M",
+          "type": "array"
+        },
+        "normal": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Normal",
+          "type": "array"
+        },
+        "radius_mm": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000,
+          "title": "Radius Mm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "point_m",
+        "normal",
+        "radius_mm"
+      ],
+      "title": "Contact",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "const": "mm",
+          "title": "Unit",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "depth_fit",
+            "design_inference",
+            "multiview",
+            "multiview_estimate",
+            "symmetry"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "confirmed": {
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "critical": {
+          "title": "Critical",
+          "type": "boolean"
+        },
+        "uncertainty_mm": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Mm"
+        },
+        "observation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 240,
+          "title": "Observation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "value",
+        "unit",
+        "source",
+        "confirmed",
+        "critical"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "crop_min_m": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Crop Min M"
+    },
+    "crop_max_m": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Crop Max M"
+    },
+    "contacts": {
+      "items": {
+        "$ref": "#/$defs/Contact"
+      },
+      "maxItems": 32,
+      "title": "Contacts",
+      "type": "array"
+    },
+    "damage_points_m": {
+      "items": {
+        "items": {
+          "type": "number"
+        },
+        "type": "array"
+      },
+      "maxItems": 256,
+      "title": "Damage Points M",
+      "type": "array"
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "maxItems": 128,
+      "title": "Measurements",
+      "type": "array"
+    },
+    "attachment_method": {
+      "default": "",
+      "maxLength": 128,
+      "title": "Attachment Method",
+      "type": "string"
+    },
+    "scale_reference": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scale Reference"
+    },
+    "evidence_state": {
+      "default": "missing_part",
+      "enum": [
+        "missing_part",
+        "fragment",
+        "matching_part"
+      ],
+      "title": "Evidence State",
+      "type": "string"
+    }
+  },
+  "title": "Annotations",
+  "type": "object"
+}

@@ -1,0 +1,12 @@
+Reverse CAD: http://vl965-172-31-49-201.local:8776
+Pairing token file (keep private): /Users/pranav/Desktop/hack-harvard/reverse-cad/var/lan-smoke/pairing-token
+Phone: use this Mac's reachable .local hostname or LAN IP. HTTP development mode is for a trusted local network; use HTTPS for shared/public networks.
+Live reasoning configured: False
+INFO:     Started server process [33396]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8776 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [33396]

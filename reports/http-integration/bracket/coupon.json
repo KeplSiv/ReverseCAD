@@ -1,0 +1,20 @@
+{
+  "hole_diameter_mm": 4.0,
+  "printed_measurements_required": true,
+  "revision_id": "71e0a7b70957551f",
+  "thickness_mm": 4.0,
+  "type": "mounting_hole",
+  "unit": "mm",
+  "validation": {
+    "components": 1,
+    "degenerate_faces": 0,
+    "expected_components": 1,
+    "passed": true,
+    "self_intersecting": false,
+    "triangles": 436,
+    "vertices": 218,
+    "volume_mm3": 2109.764510686646,
+    "watertight": true,
+    "winding_consistent": true
+  }
+}

@@ -1,0 +1,17 @@
+Apple sample verified 2026-10-16
+Source: https://docs-assets.developer.apple.com/published/9c5c13dce7d8/DisplayingAPointCloudUsingSceneDepth.zip
+SHA256: 60102dd605ed463f1eab36da0ebbbffd04055001fdef19e55594b74dd4ed2b9e
+Native intrinsics mapping evidence (MetalPointCloud.swift):
+138:         // Camera-intrinsics units are in full camera-resolution pixels.
+139:         var cameraIntrinsics = arData.lastArData!.cameraIntrinsics
+140:         let depthResolution = simd_float2(x: Float(content.texture!.width), y: Float(content.texture!.height))
+141:         let scaleRes = simd_float2(x: Float( arData.lastArData!.cameraResolution.width) / depthResolution.x,
+142:                                                 y: Float(arData.lastArData!.cameraResolution.height) / depthResolution.y )
+143:         cameraIntrinsics[0][0] /= scaleRes.x
+144:         cameraIntrinsics[1][1] /= scaleRes.y
+145: 
+146:         cameraIntrinsics[2][0] /= scaleRes.x
+147:         cameraIntrinsics[2][1] /= scaleRes.y
+
+SDK inspected: iPhoneOS26.5.sdk ARDepthData.h (native meters; confidence nullable), VNObservation.h (float instance masks), NSFileCoordinator.h (forUploading creates ZIP directory snapshot).
+Native generic iOS arm64 typecheck initially passed; final generic build/test results are recorded separately.

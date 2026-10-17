@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic software validation only; not real iPhone accuracy or printed fit",
+  "stage_comparison": "Identical raw input hashes across stages; separate process per stage. No similarity/rigid alignment.",
+  "dimension_gate": "abs(error) <= max(0.5 mm, 1% reference length) on full clean exposed bounds; all axes must pass",
+  "coverage_definition": "Fraction of all exposed analytic union-surface samples within 2mm of reconstructed points. Includes surfaces unseen by camera, so this is conservative full-object coverage, not a guarantee of hidden geometry.",
+  "memory_definition": "Peak process resident memory including imported native libraries, per fresh process; runtime excludes import and includes reconstruction only.",
+  "oracles": "Analytic primitive definitions outside scan packages; never passed to production reconstruction.",
+  "clean_stage_runs": 3,
+  "clean_stage_passes": 3,
+  "clean_all_pass": true,
+  "total_stage_runs": 3,
+  "records": [
+    {
+      "state": "completed",
+      "runtime_seconds": 0.611616667000817,
+      "peak_resident_memory_bytes": 172703744,
+      "fixture": "calibration_block_clean",
+      "scene": "calibration_block",
+      "degradation": "clean",
+      "heldout_dimensions": false,
+      "stage": "raw_depth_pose",
+      "wall_seconds": 0.8376393329999701,
+      "oracle_file": "fixtures/oracles/calibration_block_clean.json",
+      "reconstruction_status": "ready",
+      "warnings": [
+        "surface_mesh_unavailable: observed colored point cloud retained"
+      ],
+      "reconstruction_metrics": {
+        "accepted_frames": 12,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 39710,
+        "fused_point_count": 39704,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8325670885006944,
+        "occupied_azimuth_bins_of_12": 8,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "not_requested"
+        },
+        "tsdf_vertices": 0,
+        "tsdf_triangles": 0,
+        "elapsed_s": 0.6100105840005199,
+        "masked_native_samples": 39710,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 39704,
+      "dimension_mm": [
+        100.00002787168066,
+        60.000010237412454,
+        40.000026666328345
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        2.7871680657653997e-05,
+        1.0237412453761863e-05,
+        2.6666328345470447e-05
+      ],
+      "relative_dimension_error_percent": [
+        2.7871680657653997e-05,
+        1.7062354089603105e-05,
+        6.666582086367612e-05
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": true,
+      "surface_error_rms_mm": 5.777622415492798e-06,
+      "surface_error_median_mm": 4.066156271062549e-06,
+      "surface_error_p95_mm": 1.1121369699121364e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.9990123900161609,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": 2.9395171607937698e-05
+    },
+    {
+      "state": "completed",
+      "runtime_seconds": 2.602650416999495,
+      "peak_resident_memory_bytes": 689012736,
+      "fixture": "calibration_block_clean",
+      "scene": "calibration_block",
+      "degradation": "clean",
+      "heldout_dimensions": false,
+      "stage": "filtered_fusion",
+      "wall_seconds": 2.944801166999241,
+      "oracle_file": "fixtures/oracles/calibration_block_clean.json",
+      "reconstruction_status": "ready",
+      "warnings": [],
+      "reconstruction_metrics": {
+        "accepted_frames": 12,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 39710,
+        "fused_point_count": 36450,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8325670885006944,
+        "occupied_azimuth_bins_of_12": 8,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "not_requested"
+        },
+        "tsdf_vertices": 30096,
+        "tsdf_triangles": 60000,
+        "elapsed_s": 2.599692750000031,
+        "masked_native_samples": 39710,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 36450,
+      "dimension_mm": [
+        100.00002787168066,
+        60.000010237412454,
+        40.000026666328345
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        2.7871680657653997e-05,
+        1.0237412453761863e-05,
+        2.6666328345470447e-05
+      ],
+      "relative_dimension_error_percent": [
+        2.7871680657653997e-05,
+        1.7062354089603105e-05,
+        6.666582086367612e-05
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": true,
+      "surface_error_rms_mm": 0.0033316846551379644,
+      "surface_error_median_mm": 4.1576090105410746e-06,
+      "surface_error_p95_mm": 1.1057733310254614e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.9990123900161609,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": 2.9395171607937698e-05
+    },
+    {
+      "state": "completed",
+      "runtime_seconds": 3.0349895830004243,
+      "peak_resident_memory_bytes": 703692800,
+      "fixture": "calibration_block_clean",
+      "scene": "calibration_block",
+      "degradation": "clean",
+      "heldout_dimensions": false,
+      "stage": "rgb_assisted",
+      "wall_seconds": 3.42328174999966,
+      "oracle_file": "fixtures/oracles/calibration_block_clean.json",
+      "reconstruction_status": "ready",
+      "warnings": [
+        "rgb_insufficient_texture_or_baseline: depth remains metric; no RGB refinement claimed"
+      ],
+      "reconstruction_metrics": {
+        "accepted_frames": 12,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 39710,
+        "fused_point_count": 36450,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8325670885006944,
+        "occupied_azimuth_bins_of_12": 8,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "insufficient_texture_or_baseline",
+          "matched_features": 0,
+          "triangulated_metric_anchors": 0,
+          "median_reprojection_error_px": null,
+          "inconsistent_fraction": null,
+          "median_depth_disagreement_mm": null,
+          "pose_refinement": "none; fixed metric poses",
+          "pairs": []
+        },
+        "tsdf_vertices": 30096,
+        "tsdf_triangles": 60000,
+        "elapsed_s": 3.031623874999241,
+        "masked_native_samples": 39710,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 36450,
+      "dimension_mm": [
+        100.00002787168066,
+        60.00001023741247,
+        40.000026666328345
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        2.7871680657653997e-05,
+        1.0237412467972717e-05,
+        2.6666328345470447e-05
+      ],
+      "relative_dimension_error_percent": [
+        2.7871680657653997e-05,
+        1.7062354113287864e-05,
+        6.666582086367612e-05
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": true,
+      "surface_error_rms_mm": 0.0033316846551379323,
+      "surface_error_median_mm": 4.157608989724393e-06,
+      "surface_error_p95_mm": 1.1057733310254614e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.9990123900161609,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": 2.9395171607937698e-05
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Running altool at path '/Applications/Xcode.app/Contents/SharedFrameworks/ContentDelivery.framework/Resources/altool'...
+
+2026-10-16 22:19:18.402 ERROR: [altool.10512EFA0] AuthenticationFailure("list-providers does not support APIKey authentication.") (0)

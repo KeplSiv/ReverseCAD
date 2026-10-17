@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "name": "cup_clean",
+  "scene": "cup",
+  "heldout_dimensions": false,
+  "seed": 211,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "cup",
+      "radius_m": 0.035,
+      "inner_radius_m": 0.032,
+      "bottom_y_m": -0.045,
+      "top_y_m": 0.045,
+      "bottom_thickness_m": 0.004
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.033,
+        -0.0312,
+        -0.005
+      ],
+      "max_m": [
+        0.041,
+        -0.019200000000000002,
+        0.005
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.033,
+        0.019200000000000002,
+        -0.005
+      ],
+      "max_m": [
+        0.041,
+        0.0312,
+        0.005
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -35.0,
+      -45.0,
+      -35.0
+    ],
+    "max": [
+      41.0,
+      45.0,
+      35.0
+    ],
+    "extent": [
+      76.00000000000001,
+      90.0,
+      70.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "46c1a5303e9ade038510132738ac5d7fa87fd2eae9ee27782410ceb5e9af75c2"
+}

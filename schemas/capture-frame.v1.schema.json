@@ -1,0 +1,228 @@
+{
+  "$defs": {
+    "FrameQuality": {
+      "additionalProperties": true,
+      "properties": {
+        "blur_score": {
+          "minimum": 0,
+          "title": "Blur Score",
+          "type": "number"
+        },
+        "accepted": {
+          "title": "Accepted",
+          "type": "boolean"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "blur_score",
+        "accepted"
+      ],
+      "title": "FrameQuality",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "scan_id": {
+      "title": "Scan Id",
+      "type": "string"
+    },
+    "segment_id": {
+      "title": "Segment Id",
+      "type": "string"
+    },
+    "frame_id": {
+      "title": "Frame Id",
+      "type": "string"
+    },
+    "timestamp_s": {
+      "minimum": 0,
+      "title": "Timestamp S",
+      "type": "number"
+    },
+    "rgb_path": {
+      "title": "Rgb Path",
+      "type": "string"
+    },
+    "rgb_width": {
+      "exclusiveMinimum": 0,
+      "maximum": 8192,
+      "title": "Rgb Width",
+      "type": "integer"
+    },
+    "rgb_height": {
+      "exclusiveMinimum": 0,
+      "maximum": 8192,
+      "title": "Rgb Height",
+      "type": "integer"
+    },
+    "orientation": {
+      "const": "up",
+      "default": "up",
+      "title": "Orientation",
+      "type": "string"
+    },
+    "depth_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Depth Path"
+    },
+    "depth_width": {
+      "maximum": 2048,
+      "minimum": 0,
+      "title": "Depth Width",
+      "type": "integer"
+    },
+    "depth_height": {
+      "maximum": 2048,
+      "minimum": 0,
+      "title": "Depth Height",
+      "type": "integer"
+    },
+    "depth_row_bytes": {
+      "maximum": 65536,
+      "minimum": 0,
+      "title": "Depth Row Bytes",
+      "type": "integer"
+    },
+    "depth_byte_order": {
+      "const": "little",
+      "default": "little",
+      "title": "Depth Byte Order",
+      "type": "string"
+    },
+    "confidence_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence Path"
+    },
+    "mask_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mask Path"
+    },
+    "depth_calibration_mode": {
+      "default": "pixel_center",
+      "enum": [
+        "pixel_center",
+        "native_arkit"
+      ],
+      "title": "Depth Calibration Mode",
+      "type": "string"
+    },
+    "depth_intrinsics": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 9,
+          "minItems": 9,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Depth Intrinsics"
+    },
+    "intrinsics": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 9,
+      "minItems": 9,
+      "title": "Intrinsics",
+      "type": "array"
+    },
+    "intrinsics_width": {
+      "exclusiveMinimum": 0,
+      "maximum": 8192,
+      "title": "Intrinsics Width",
+      "type": "integer"
+    },
+    "intrinsics_height": {
+      "exclusiveMinimum": 0,
+      "maximum": 8192,
+      "title": "Intrinsics Height",
+      "type": "integer"
+    },
+    "T_world_camera": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 16,
+      "minItems": 16,
+      "title": "T World Camera",
+      "type": "array"
+    },
+    "tracking_state": {
+      "enum": [
+        "normal",
+        "limited",
+        "unavailable"
+      ],
+      "title": "Tracking State",
+      "type": "string"
+    },
+    "quality": {
+      "$ref": "#/$defs/FrameQuality"
+    }
+  },
+  "required": [
+    "schema_version",
+    "scan_id",
+    "segment_id",
+    "frame_id",
+    "timestamp_s",
+    "rgb_path",
+    "rgb_width",
+    "rgb_height",
+    "depth_width",
+    "depth_height",
+    "depth_row_bytes",
+    "intrinsics",
+    "intrinsics_width",
+    "intrinsics_height",
+    "T_world_camera",
+    "tracking_state",
+    "quality"
+  ],
+  "title": "CaptureFrame",
+  "type": "object"
+}

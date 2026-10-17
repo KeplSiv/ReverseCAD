@@ -1,0 +1,35 @@
+{
+  "T_object_part_mm": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "family": "bridge_handle",
+  "generator_version": "1.0.0",
+  "parameters": {
+    "grip_depth": 9.0,
+    "grip_width": 12.0,
+    "hole_diameter": 4.0,
+    "pad_length": 24.0,
+    "pad_thickness": 4.0,
+    "pad_width": 24.0,
+    "span": 80.0,
+    "standoff": 30.0
+  },
+  "revision_id": "3e77686bb37a8d63",
+  "scan_revision": 0,
+  "unit": "mm"
+}

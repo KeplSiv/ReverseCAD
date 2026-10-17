@@ -1,0 +1,26 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "family": {
+      "enum": [
+        "bridge_handle",
+        "cup_handle",
+        "bracket"
+      ],
+      "title": "Family",
+      "type": "string"
+    },
+    "attachment_method": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Attachment Method",
+      "type": "string"
+    }
+  },
+  "required": [
+    "family",
+    "attachment_method"
+  ],
+  "title": "CandidateRequest",
+  "type": "object"
+}

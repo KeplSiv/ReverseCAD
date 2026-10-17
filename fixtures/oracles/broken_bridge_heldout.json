@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "name": "broken_bridge_heldout",
+  "scene": "broken_bridge",
+  "heldout_dimensions": true,
+  "seed": 227,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.0685,
+        -0.03,
+        -0.01
+      ],
+      "max_m": [
+        0.0685,
+        0.03,
+        0
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.0585,
+        -0.01,
+        0
+      ],
+      "max_m": [
+        -0.0385,
+        0.01,
+        0.012
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.0385,
+        -0.01,
+        0
+      ],
+      "max_m": [
+        0.0585,
+        0.01,
+        0.012
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.052500000000000005,
+        -0.006,
+        0.012
+      ],
+      "max_m": [
+        -0.0445,
+        0.006,
+        0.021
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -68.5,
+      -30.0,
+      -10.0
+    ],
+    "max": [
+      68.5,
+      30.0,
+      21.0
+    ],
+    "extent": [
+      137.0,
+      60.0,
+      31.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "d1a22575c0c9546fe8e22a1b268f2c58cdcbac88ddf68d4c5fbc9c7f3313b70c"
+}

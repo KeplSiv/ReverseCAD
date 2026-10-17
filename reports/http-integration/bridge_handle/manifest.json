@@ -1,0 +1,101 @@
+{
+  "artifacts": [
+    {
+      "name": "coupon.3mf",
+      "path": "coupon.3mf",
+      "sha256": "e96ecf4fd60170e7eb2479f5db7c90caf956eae8990a194a1a924a75236a56da",
+      "size": 6409
+    },
+    {
+      "name": "coupon.json",
+      "path": "coupon.json",
+      "sha256": "274eeae4c3f3da4f63477f22c028b8192b58333b1ffe832eb731ee3f5aa4ad6c",
+      "size": 462
+    },
+    {
+      "name": "coupon.step",
+      "path": "coupon.step",
+      "sha256": "09d00cb89536c811a4dc50ce266c1b82c3c7d1a7573dea942a02d3b090e4cd29",
+      "size": 19063
+    },
+    {
+      "name": "coupon.stl",
+      "path": "coupon.stl",
+      "sha256": "f55f28547b54b68a3f1ad48e0f634688799109fe643c14e078d79d6e0621fcaa",
+      "size": 21884
+    },
+    {
+      "name": "generator.py",
+      "path": "generator.py",
+      "sha256": "e41f4669edffd71c2c1f2e5ad7a2b962cff060cdd2e1366a4da36cc203094f5a",
+      "size": 23792
+    },
+    {
+      "name": "input_provenance.json",
+      "path": "input_provenance.json",
+      "sha256": "4838e55c002d2c1577de9ded237d327927c17c64a478547d8b89a47843930ad5",
+      "size": 275
+    },
+    {
+      "name": "intent.json",
+      "path": "intent.json",
+      "sha256": "ac871d3251a33c8a990b4c695b5a9a8a2f37524ddcd1b97b97f17467711d8896",
+      "size": 1163
+    },
+    {
+      "name": "parameters.json",
+      "path": "parameters.json",
+      "sha256": "25eb57b8d3118afcff0a696032012b0d6d6c9f2c3006042ce51698c97ae30f95",
+      "size": 519
+    },
+    {
+      "name": "part.3mf",
+      "path": "part.3mf",
+      "sha256": "cf0c694a8b742869988b78931ec7c89e91dae32d3e88026d2808f918e4ad5eec",
+      "size": 38352
+    },
+    {
+      "name": "part.py",
+      "path": "part.py",
+      "sha256": "2b0aa138c7a555af1f5c82736bf4039f693dae6ddcb45b73a995868f67d9ed20",
+      "size": 807
+    },
+    {
+      "name": "part.step",
+      "path": "part.step",
+      "sha256": "b2db8860e4ca8c646cc141dc78f53a7a9b9f4bc05fd7c8b6d249f12415e79237",
+      "size": 200878
+    },
+    {
+      "name": "part.stl",
+      "path": "part.stl",
+      "sha256": "ae8728d3b06373eeaefc14159766d0c78b246dc2e90cf4b413dc6c75480b5067",
+      "size": 89584
+    },
+    {
+      "name": "preview.json",
+      "path": "preview.json",
+      "sha256": "1876addc48b740e0012b28f48e2226c1a9ddb8c614020750df065e0ab4937d90",
+      "size": 232691
+    },
+    {
+      "name": "report.txt",
+      "path": "report.txt",
+      "sha256": "393a5e6e7c59888aec907f83f5d88300f42c3315cf34a748e2e567f6abe19195",
+      "size": 911
+    },
+    {
+      "name": "validation.json",
+      "path": "validation.json",
+      "sha256": "5a088c3edaf52c677bba856bfaabc65984d9cf3cbc3719693348537fd9d37941",
+      "size": 4685
+    }
+  ],
+  "family": "bridge_handle",
+  "generator_version": "1.0.0",
+  "parameters_sha256": "25eb57b8d3118afcff0a696032012b0d6d6c9f2c3006042ce51698c97ae30f95",
+  "revision_id": "3e77686bb37a8d63",
+  "scan_revision": 0,
+  "schema_version": 1,
+  "unit": "mm"
+}

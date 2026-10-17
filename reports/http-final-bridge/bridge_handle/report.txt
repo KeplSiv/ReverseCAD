@@ -1,0 +1,26 @@
+Reverse CAD revision 01c114ab36bed0c4
+Family: bridge_handle; generator 1.0.1; all dimensions mm
+CAD/exports: passed. Fit status: needs_input.
+Physical sensing, printed fit, material strength and attachment strength: NOT TESTED.
+
+Parameters:
+  span: 80 mm
+  standoff: 30 mm
+  grip_width: 12 mm
+  grip_depth: 9 mm
+  pad_width: 24 mm
+  pad_length: 24 mm
+  pad_thickness: 4 mm
+  hole_diameter: 4 mm
+
+Provenance: measurements/observations remain in scan report. The generator proposes replacement shape; it does not measure missing material.
+Tessellation tolerance: 0.05 mm; this is not sensor accuracy.
+
+Unresolved:
+  Confirm selected contact frames and alignment
+  Resolve collision/contact/path evidence before claiming fit
+  Confirm critical dimensions: hole_diameter, span
+
+Assembly: blocked
+Thickness: Sampled chords, not a proof of global minimum wall thickness; template checks also required. No strength estimate.
+Support needed in current orientation: True

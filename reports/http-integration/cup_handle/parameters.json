@@ -1,0 +1,36 @@
+{
+  "T_object_part_mm": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "family": "cup_handle",
+  "generator_version": "1.0.0",
+  "parameters": {
+    "contact_gap": 0.4,
+    "contact_spacing": 55.0,
+    "cup_radius": 40.0,
+    "cup_radius_top": 40.0,
+    "grip_depth": 8.0,
+    "grip_width": 10.0,
+    "pad_height": 16.0,
+    "pad_thickness": 4.0,
+    "standoff": 32.0
+  },
+  "revision_id": "8c4ddf933e600979",
+  "scan_revision": 0,
+  "unit": "mm"
+}

@@ -1,0 +1,519 @@
+{
+  "job_id": "88eb7ca8693743279c9d852dc39c870a",
+  "state": "complete",
+  "progress": 1.0,
+  "message": "CAD checks passed; physical fit remains untested",
+  "repair_id": "8fe9599a7c6a4302b2bae06a702d4310",
+  "revision": 1,
+  "result": {
+    "family": "cup_handle",
+    "parameters": {
+      "cup_radius": 40.0,
+      "contact_spacing": 55.0,
+      "standoff": 32.0,
+      "grip_width": 10.0,
+      "grip_depth": 8.0,
+      "pad_height": 16.0,
+      "pad_thickness": 4.0,
+      "contact_gap": 0.4,
+      "cup_radius_top": 40.0
+    },
+    "revision_id": "250a6abc30b37678",
+    "validation": {
+      "cad_valid": true,
+      "coupon": {
+        "contact_gap_mm": 0.4,
+        "printed_measurements_required": true,
+        "radius_mm": 40.0,
+        "type": "saddle_radius_contact_gap"
+      },
+      "dimensions": {
+        "analytic_expected_bounds_mm": null,
+        "bounds_mm": [
+          39.2062431941286,
+          21.537163703226366,
+          71.0000002
+        ],
+        "cup_contact_radius_probes": [
+          {
+            "angle_rad": -0.08,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": -27.5
+          },
+          {
+            "angle_rad": 0,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": -27.5
+          },
+          {
+            "angle_rad": 0.08,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": -27.5
+          },
+          {
+            "angle_rad": -0.08,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": 27.5
+          },
+          {
+            "angle_rad": 0,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": 27.5
+          },
+          {
+            "angle_rad": 0.08,
+            "passed": true,
+            "radius_mm": 40.4,
+            "z_mm": 27.5
+          }
+        ],
+        "max_bound_error_mm": 0,
+        "mounting_holes": [],
+        "passed": true,
+        "tolerance_mm": 0.1
+      },
+      "exports": {
+        "3mf": {
+          "components": 1,
+          "degenerate_faces": 0,
+          "expected_components": 1,
+          "max_bound_error_mm": 1.0000000116860974e-07,
+          "passed": true,
+          "self_intersecting": false,
+          "tolerance_mm": 0.15000000000000002,
+          "triangles": 946,
+          "unit": "millimeter",
+          "vertices": 475,
+          "volume_mm3": 9826.624402936082,
+          "watertight": true,
+          "winding_consistent": true
+        },
+        "passed": true,
+        "step": {
+          "declares_millimeters": true,
+          "max_bound_error_mm": 8.313350008393172e-13,
+          "passed": true,
+          "solids": 1,
+          "tolerance_mm": 0.1,
+          "valid_brep": true
+        },
+        "stl": {
+          "components": 1,
+          "degenerate_faces": 0,
+          "expected_components": 1,
+          "max_bound_error_mm": 1.4258789065024757e-06,
+          "passed": true,
+          "self_intersecting": false,
+          "tolerance_mm": 0.15000000000000002,
+          "triangles": 946,
+          "unit": "mm (documented; STL has no unit field)",
+          "vertices": 475,
+          "volume_mm3": 9826.624314755454,
+          "watertight": true,
+          "winding_consistent": true
+        }
+      },
+      "fit": {
+        "assembly": {
+          "direction_object": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "first_blocked_offset_mm": null,
+          "status": "sampled_path_clear",
+          "step_mm": 1.9782608695652173,
+          "travel_mm": 91.0
+        },
+        "collision": {
+          "allowed_penetration_mm": 0.2,
+          "checked_points": 4000,
+          "excessive_contact_penetration_points": 0,
+          "noncontact_inside_points": 0,
+          "observed_points": 38465,
+          "status": "no_sampled_interference"
+        },
+        "intentional_contacts": {
+          "patches": [],
+          "status": "needs_input",
+          "surface_points": 0
+        },
+        "limitations": [
+          "Only observed points checked; unobserved and thin between-sample obstacles remain unknown.",
+          "Straight translation sampled at up to 2 mm; flexible assembly, screw/tool access and rotational assembly are not certified.",
+          "Contact distances include scan uncertainty and do not certify bond area or strength."
+        ],
+        "status": "needs_input"
+      },
+      "manufacturing": {
+        "downward_overhang_area_mm2": 581.6746202766748,
+        "fits_build_volume_under_axis_permutation": true,
+        "note": "Review orientation/supports in slicer. Geometric checks do not establish material, adhesive or load performance.",
+        "passed": true,
+        "profile": {
+          "build_volume_mm": [
+            220.0,
+            220.0,
+            250.0
+          ],
+          "layer_height_mm": 0.2,
+          "material": "unspecified",
+          "minimum_wall_mm": 1.2,
+          "nozzle_diameter_mm": 0.4
+        },
+        "strength": "not_evaluated",
+        "support_required_in_current_z_orientation": true,
+        "thickness": {
+          "method": "Independent STL inward surface-normal ray intersections; area-stratified triangle centers",
+          "minimum_sampled_mm": 3.972063632184337,
+          "passed": true,
+          "rays_cast": 249,
+          "rays_with_exit": 249,
+          "required_mm": 1.2,
+          "scope": "Sampled chords, not a proof of global minimum wall thickness; template checks also required. No strength estimate."
+        }
+      },
+      "passed": true,
+      "physical_fit": "not_tested",
+      "placement": {
+        "T_object_part_mm": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "reason": "Select contact patches to align repair with measured object",
+        "source": "canonical_template_frame",
+        "status": "needs_input"
+      },
+      "ready_for_test_print": false,
+      "revision_id": "250a6abc30b37678",
+      "schema_version": 1,
+      "sensor_accuracy": "not_validated_by_cad",
+      "solid": {
+        "count": 1,
+        "valid": true,
+        "volume_mm3": 9830.997495916707
+      },
+      "status": "needs_input",
+      "unit": "mm",
+      "unresolved": [
+        "Confirm selected contact frames and alignment",
+        "Resolve collision/contact/path evidence before claiming fit",
+        "Confirm critical dimensions: body_radius, contact_spacing, cup_radius"
+      ]
+    },
+    "artifacts": [
+      {
+        "id": "1ee5c54b4cb54cdb9307208a7bec9eaf",
+        "name": "coupon.3mf",
+        "sha256": "cbb798fa990fac90a9270765c04f8f23c4aa89e5b8503460e0c0422762ef2d0a",
+        "size": 2071
+      },
+      {
+        "id": "207e3a0a8cf34f5787b340bf324723a2",
+        "name": "coupon.json",
+        "sha256": "5b197f118e09f2aca256dfb35e27189a3a308841a45f5882c6c423efa3af4a04",
+        "size": 1302
+      },
+      {
+        "id": "d8adf7f46c1e4ec6a0af1354c68b7406",
+        "name": "coupon.step",
+        "sha256": "e0f544e2416c9412c22e8c38d4715ae0a71533d9dd1e95d26147f240c10c307b",
+        "size": 19307
+      },
+      {
+        "id": "e77230b3c1754a038c5886a97f5118a5",
+        "name": "coupon.stl",
+        "sha256": "61b5d62751fa633414a7483102b0fba88240238d47bc7bec0f7f08f4163a72ae",
+        "size": 3884
+      },
+      {
+        "id": "d535760972c14a50b90da64d4f4245e1",
+        "name": "generator.py",
+        "sha256": "3274a4d8103e138a1077ad5558cbdb9dc049fc42442205a44e242d8d45b78acc",
+        "size": 29805
+      },
+      {
+        "id": "2f2c776efab046e198e6abf0301010ec",
+        "name": "input_provenance.json",
+        "sha256": "7006ac22c190eb63f522a402c73b866c1cbe80e243691ecaecba5f02e2673d90",
+        "size": 358
+      },
+      {
+        "id": "09994951dca0433392ef957b63d40743",
+        "name": "intent.json",
+        "sha256": "55decf0e4b0e8aadc89eadc081dcb8b40634c61ab492b6b777309edc9871aa58",
+        "size": 1299
+      },
+      {
+        "id": "cf8ac22d6c3045ed8ac1cb67dfd767be",
+        "name": "manifest.json",
+        "sha256": "1e218ab87d54212f4985dc79bb68e0ccfd1bdec846172d8886ace130e26eae0a",
+        "size": 3306
+      },
+      {
+        "id": "2d25dd18998c4930b2301db30fccf581",
+        "name": "parameters.json",
+        "sha256": "43f50cc155881a9022030fa423ecb995200308272bc98a6c39e0e24be6554ca1",
+        "size": 2632
+      },
+      {
+        "id": "13652ca3763a4e308347ddf69a91da81",
+        "name": "part.3mf",
+        "sha256": "401ab9775d9a8a639c6304d75e05d55636ba835ef024563df27f7e2a83195e6f",
+        "size": 14745
+      },
+      {
+        "id": "e889f9aabf9243019f8ffe8e9eaee9d4",
+        "name": "part.py",
+        "sha256": "2b0aa138c7a555af1f5c82736bf4039f693dae6ddcb45b73a995868f67d9ed20",
+        "size": 807
+      },
+      {
+        "id": "58de10b838194f5d8e4df3bdc3f48608",
+        "name": "part.step",
+        "sha256": "6a56438c9ace8aa64a5615422cfdedc18db23642d54c15e8ab5618a0d48e8291",
+        "size": 216976
+      },
+      {
+        "id": "bf61fd0bc05e4e5a92ac14e32ae52816",
+        "name": "part.stl",
+        "sha256": "959c1bcee46197e027e882b46d50b741b389664c99aeedaba295fba3ca3dd84d",
+        "size": 47384
+      },
+      {
+        "id": "70442dcf58624bab955563f43bb066d7",
+        "name": "preview.json",
+        "sha256": "9dc9c78599dbeafc396d3fe21307f2302db70fce89cce75bcc5b750196d1b010",
+        "size": 121219
+      },
+      {
+        "id": "2a10c2ebbc154989bf8d550cbe2a7ffc",
+        "name": "report.txt",
+        "sha256": "77e6bc9edd5cdaedc8a4eace6053a8faa1c80a3041dae8f58306f92fa81cc8ea",
+        "size": 1027
+      },
+      {
+        "id": "7b6a59e4789640c591414c99946ace55",
+        "name": "validation.json",
+        "sha256": "5c0f04acbda6d8c8695a5982e075ea08a31c01f41018ef1185f826de599e82f7",
+        "size": 5224
+      }
+    ],
+    "preview_path": "preview.json",
+    "manifest": {
+      "schema_version": 1,
+      "revision_id": "250a6abc30b37678",
+      "family": "cup_handle",
+      "unit": "mm",
+      "scan_id": "cup_clean",
+      "scan_revision": 0,
+      "repair_id": "8fe9599a7c6a4302b2bae06a702d4310",
+      "repair_revision": 1,
+      "generator_version": "1.0.0",
+      "parameters_sha256": "43f50cc155881a9022030fa423ecb995200308272bc98a6c39e0e24be6554ca1",
+      "artifacts": [
+        {
+          "name": "coupon.3mf",
+          "path": "coupon.3mf",
+          "size": 2071,
+          "sha256": "cbb798fa990fac90a9270765c04f8f23c4aa89e5b8503460e0c0422762ef2d0a"
+        },
+        {
+          "name": "coupon.json",
+          "path": "coupon.json",
+          "size": 1302,
+          "sha256": "5b197f118e09f2aca256dfb35e27189a3a308841a45f5882c6c423efa3af4a04"
+        },
+        {
+          "name": "coupon.step",
+          "path": "coupon.step",
+          "size": 19307,
+          "sha256": "e0f544e2416c9412c22e8c38d4715ae0a71533d9dd1e95d26147f240c10c307b"
+        },
+        {
+          "name": "coupon.stl",
+          "path": "coupon.stl",
+          "size": 3884,
+          "sha256": "61b5d62751fa633414a7483102b0fba88240238d47bc7bec0f7f08f4163a72ae"
+        },
+        {
+          "name": "generator.py",
+          "path": "generator.py",
+          "size": 29805,
+          "sha256": "3274a4d8103e138a1077ad5558cbdb9dc049fc42442205a44e242d8d45b78acc"
+        },
+        {
+          "name": "input_provenance.json",
+          "path": "input_provenance.json",
+          "size": 358,
+          "sha256": "7006ac22c190eb63f522a402c73b866c1cbe80e243691ecaecba5f02e2673d90"
+        },
+        {
+          "name": "intent.json",
+          "path": "intent.json",
+          "size": 1299,
+          "sha256": "55decf0e4b0e8aadc89eadc081dcb8b40634c61ab492b6b777309edc9871aa58"
+        },
+        {
+          "name": "parameters.json",
+          "path": "parameters.json",
+          "size": 2632,
+          "sha256": "43f50cc155881a9022030fa423ecb995200308272bc98a6c39e0e24be6554ca1"
+        },
+        {
+          "name": "part.3mf",
+          "path": "part.3mf",
+          "size": 14745,
+          "sha256": "401ab9775d9a8a639c6304d75e05d55636ba835ef024563df27f7e2a83195e6f"
+        },
+        {
+          "name": "part.py",
+          "path": "part.py",
+          "size": 807,
+          "sha256": "2b0aa138c7a555af1f5c82736bf4039f693dae6ddcb45b73a995868f67d9ed20"
+        },
+        {
+          "name": "part.step",
+          "path": "part.step",
+          "size": 216976,
+          "sha256": "6a56438c9ace8aa64a5615422cfdedc18db23642d54c15e8ab5618a0d48e8291"
+        },
+        {
+          "name": "part.stl",
+          "path": "part.stl",
+          "size": 47384,
+          "sha256": "959c1bcee46197e027e882b46d50b741b389664c99aeedaba295fba3ca3dd84d"
+        },
+        {
+          "name": "preview.json",
+          "path": "preview.json",
+          "size": 121219,
+          "sha256": "9dc9c78599dbeafc396d3fe21307f2302db70fce89cce75bcc5b750196d1b010"
+        },
+        {
+          "name": "report.txt",
+          "path": "report.txt",
+          "size": 1027,
+          "sha256": "77e6bc9edd5cdaedc8a4eace6053a8faa1c80a3041dae8f58306f92fa81cc8ea"
+        },
+        {
+          "name": "validation.json",
+          "path": "validation.json",
+          "size": 5224,
+          "sha256": "5c0f04acbda6d8c8695a5982e075ea08a31c01f41018ef1185f826de599e82f7"
+        }
+      ],
+      "input_hashes": {
+        "input_manifest_sha256": "46c1a5303e9ade038510132738ac5d7fa87fd2eae9ee27782410ceb5e9af75c2",
+        "input_checksums_sha256": "dc9fc148627e947abe6e7f1450623f1a939281686c3e26fddc035caa82ce44a1",
+        "intent_sha256": "55decf0e4b0e8aadc89eadc081dcb8b40634c61ab492b6b777309edc9871aa58"
+      }
+    },
+    "repair_id": "8fe9599a7c6a4302b2bae06a702d4310",
+    "revision": 1,
+    "intent": {
+      "schema_version": 1,
+      "family": "cup_handle",
+      "parameters": {
+        "cup_radius": 40.0,
+        "contact_spacing": 55.0,
+        "standoff": 32.0,
+        "grip_width": 10.0,
+        "grip_depth": 8.0,
+        "pad_height": 16.0,
+        "pad_thickness": 4.0,
+        "contact_gap": 0.4
+      },
+      "measurement_refs": [],
+      "attachment_method": "saddle",
+      "questions": [],
+      "explanation": "User-selected deterministic template.",
+      "requested_validation": [
+        "solid",
+        "mesh",
+        "dimensions",
+        "collision",
+        "assembly",
+        "thickness",
+        "print"
+      ],
+      "provenance": {
+        "cup_radius": {
+          "name": "cup_radius",
+          "value": 40.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "contact_spacing": {
+          "name": "contact_spacing",
+          "value": 55.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "standoff": {
+          "name": "standoff",
+          "value": 32.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "grip_width": {
+          "name": "grip_width",
+          "value": 10.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "grip_depth": {
+          "name": "grip_depth",
+          "value": 8.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "pad_height": {
+          "name": "pad_height",
+          "value": 16.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "pad_thickness": {
+          "name": "pad_thickness",
+          "value": 4.0,
+          "source": "design_inference",
+          "measurement_id": null
+        },
+        "contact_gap": {
+          "name": "contact_gap",
+          "value": 0.4,
+          "source": "design_inference",
+          "measurement_id": null
+        }
+      },
+      "unresolved_measurements": [],
+      "provider_status": "manual_no_provider"
+    },
+    "provider_status": "manual_no_provider",
+    "prototype_export_acknowledged": true,
+    "worker_metrics": {
+      "peak_rss_bytes": 729448448
+    }
+  },
+  "error": null
+}

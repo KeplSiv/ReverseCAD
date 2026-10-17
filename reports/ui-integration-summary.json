@@ -1,0 +1,52 @@
+{
+  "scope": "Actual Simulator app persisted downloads, independently reimported after the passing UI run",
+  "project_id": "1B6D83D2-28BB-40E4-85BD-346028F96168",
+  "scan_id": "04f7221c-f9f6-4f58-9020-251223ffbe09",
+  "source": "synthetic",
+  "current_revision": 2,
+  "current_revision_artifacts_hash_verified": 16,
+  "feedback": "Synthetic software UI test note; no print performed",
+  "physical_fit": "Not tested",
+  "revisions": [
+    {
+      "revision_directory": "repair-d36a94e9f4b240758456a22e838b93d1-r1",
+      "parameters": {
+        "grip_depth": 9.0,
+        "grip_width": 12.0,
+        "hole_diameter": 0.0,
+        "pad_length": 24.0,
+        "pad_thickness": 4.0,
+        "pad_width": 24.0,
+        "span": 80.0,
+        "standoff": 30.0
+      },
+      "step_valid": true,
+      "solid_count": 1,
+      "stl_watertight": true,
+      "cad_valid": true,
+      "fit_status": "needs_input",
+      "physical_fit": "not_tested",
+      "part_step_sha256": "85ddcd20bc30497b479aad07639a459e65f6d31b3160c3fcd9d52c613a182521"
+    },
+    {
+      "revision_directory": "repair-d36a94e9f4b240758456a22e838b93d1-r2",
+      "parameters": {
+        "grip_depth": 9.0,
+        "grip_width": 12.0,
+        "hole_diameter": 0.0,
+        "pad_length": 24.0,
+        "pad_thickness": 4.0,
+        "pad_width": 24.0,
+        "span": 80.0,
+        "standoff": 34.0
+      },
+      "step_valid": true,
+      "solid_count": 1,
+      "stl_watertight": true,
+      "cad_valid": true,
+      "fit_status": "needs_input",
+      "physical_fit": "not_tested",
+      "part_step_sha256": "c66c3a4ca5137a8d1398853e6d24822b490c598a0ced47b8080e8b5a32f28620"
+    }
+  ]
+}

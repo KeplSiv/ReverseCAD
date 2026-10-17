@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "name": "broken_bridge_clean",
+  "scene": "broken_bridge",
+  "heldout_dimensions": false,
+  "seed": 211,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.06,
+        -0.03,
+        -0.01
+      ],
+      "max_m": [
+        0.06,
+        0.03,
+        0
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.05,
+        -0.01,
+        0
+      ],
+      "max_m": [
+        -0.03,
+        0.01,
+        0.012
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.03,
+        -0.01,
+        0
+      ],
+      "max_m": [
+        0.05,
+        0.01,
+        0.012
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.044,
+        -0.006,
+        0.012
+      ],
+      "max_m": [
+        -0.036000000000000004,
+        0.006,
+        0.021
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -60.0,
+      -30.0,
+      -10.0
+    ],
+    "max": [
+      60.0,
+      30.0,
+      21.0
+    ],
+    "extent": [
+      120.0,
+      60.0,
+      31.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "da2ec15ab83b792d221d1796632dc0e7eabcede0c40166d6fa9fc037cb16dff4"
+}

@@ -1,0 +1,89 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "scan_id": {
+      "title": "Scan Id",
+      "type": "string"
+    },
+    "family": {
+      "enum": [
+        "bridge_handle",
+        "cup_handle",
+        "bracket"
+      ],
+      "title": "Family",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "maxProperties": 48,
+      "title": "Parameters",
+      "type": "object"
+    },
+    "attachment_method": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Attachment Method",
+      "type": "string"
+    },
+    "mode": {
+      "default": "manual",
+      "enum": [
+        "manual",
+        "fixture",
+        "live"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "acknowledge_uncertainty": {
+      "default": false,
+      "title": "Acknowledge Uncertainty",
+      "type": "boolean"
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Request Id"
+    },
+    "manufacturing": {
+      "additionalProperties": true,
+      "title": "Manufacturing",
+      "type": "object"
+    },
+    "provider_consent": {
+      "default": false,
+      "title": "Provider Consent",
+      "type": "boolean"
+    },
+    "candidate_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Candidate Id"
+    }
+  },
+  "required": [
+    "scan_id",
+    "family",
+    "attachment_method"
+  ],
+  "title": "RepairRequest",
+  "type": "object"
+}

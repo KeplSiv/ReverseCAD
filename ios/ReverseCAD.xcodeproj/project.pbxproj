@@ -1,0 +1,613 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
+		181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
+		23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
+		3595E0308D932DDDF08D2017 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
+		383E6DF1C60887DDEB64353C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */; };
+		3AFED07087B23DE167770979 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30484792CA155DC21C8792D /* ResultsView.swift */; };
+		54445C0F07B618816ADCB07E /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
+		5B074FB03641B99B4ABC23DD /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 25FFCB0D865A60006FF56F0B /* ReverseCADCore */; };
+		5CD37544FC738ACE5BA72927 /* SampleScan in Resources */ = {isa = PBXBuildFile; fileRef = E8925DB27A66F56068E98FE2 /* SampleScan */; };
+		79DA1E350113D8BF497090E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
+		9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */; };
+		919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */; };
+		99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
+		9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
+		A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD495AA0DD470634824266B4 /* CaptureTests.swift */; };
+		AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC6703596E6A072522048B /* WorkflowTests.swift */; };
+		D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
+		DAA42DE363BAA5D45FFEAC36 /* VerifiedArtifactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1FD38CDC9DFEDB6CF896ABE3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAD2ADA07515BE7B9270F07B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 05278DC82E8E6634A74CB86D;
+			remoteInfo = ReverseCAD;
+		};
+		9783BF4CFCBA2A2511426CFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAD2ADA07515BE7B9270F07B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 05278DC82E8E6634A74CB86D;
+			remoteInfo = ReverseCAD;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifacts.swift; sourceTree = "<group>"; };
+		44149E87E66872F41062845F /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
+		4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceView.swift; sourceTree = "<group>"; };
+		56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePatchNormalTests.swift; sourceTree = "<group>"; };
+		5F233DECD28562188E374166 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		62C4B8D600B0E72F9EF6D166 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		69E20958356C2A7F12BCBCFE /* ReverseCADUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverseCADUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B2216233562031C3EFE9C22 /* ReverseCADTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverseCADTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifactsTests.swift; sourceTree = "<group>"; };
+		7CFE6C8638AD2CFA973ADF5D /* ReverseCADCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ReverseCADCore; path = ../packages/ReverseCADCore; sourceTree = SOURCE_ROOT; };
+		82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryPreview.swift; sourceTree = "<group>"; };
+		84696686C7DD94C3B948F938 /* CaptureARKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureARKit.swift; sourceTree = "<group>"; };
+		AACC6703596E6A072522048B /* WorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowTests.swift; sourceTree = "<group>"; };
+		AF39E9701704FC422CE5D383 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B9D214CCC12922586EB05086 /* ReverseCADApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverseCADApp.swift; sourceTree = "<group>"; };
+		CD495AA0DD470634824266B4 /* CaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureTests.swift; sourceTree = "<group>"; };
+		CD62E45CC23E859803453CF8 /* CaptureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureController.swift; sourceTree = "<group>"; };
+		CE93717EBC7FBAAD9179530D /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		E8925DB27A66F56068E98FE2 /* SampleScan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleScan; path = ReverseCAD/SampleScan; sourceTree = SOURCE_ROOT; };
+		F30484792CA155DC21C8792D /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		ECCCFF724CE2D40592A74932 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B074FB03641B99B4ABC23DD /* ReverseCADCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08E425FF1497AFE2B1AFD6FD /* ReverseCADUITests */ = {
+			isa = PBXGroup;
+			children = (
+				AACC6703596E6A072522048B /* WorkflowTests.swift */,
+			);
+			path = ReverseCADUITests;
+			sourceTree = "<group>";
+		};
+		2B32A39245C83B62328434D7 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				7CFE6C8638AD2CFA973ADF5D /* ReverseCADCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		5036B616C253B4320E2FDFB8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				10F0953B46DB70FC38DB1355 /* ReverseCAD.app */,
+				7B2216233562031C3EFE9C22 /* ReverseCADTests.xctest */,
+				69E20958356C2A7F12BCBCFE /* ReverseCADUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C4915D5D7E645BD6A57EF676 /* ReverseCAD */ = {
+			isa = PBXGroup;
+			children = (
+				CE93717EBC7FBAAD9179530D /* AppModel.swift */,
+				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
+				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
+				CD62E45CC23E859803453CF8 /* CaptureController.swift */,
+				62C4B8D600B0E72F9EF6D166 /* ContentView.swift */,
+				44149E87E66872F41062845F /* DesignView.swift */,
+				4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */,
+				82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */,
+				5F233DECD28562188E374166 /* Info.plist */,
+				66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */,
+				F30484792CA155DC21C8792D /* ResultsView.swift */,
+				B9D214CCC12922586EB05086 /* ReverseCADApp.swift */,
+				2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */,
+			);
+			path = ReverseCAD;
+			sourceTree = "<group>";
+		};
+		DABD3CE837AEEC9E14425014 = {
+			isa = PBXGroup;
+			children = (
+				E8925DB27A66F56068E98FE2 /* SampleScan */,
+				2B32A39245C83B62328434D7 /* Packages */,
+				C4915D5D7E645BD6A57EF676 /* ReverseCAD */,
+				F2CED649D766DE0532119BB7 /* ReverseCADTests */,
+				08E425FF1497AFE2B1AFD6FD /* ReverseCADUITests */,
+				5036B616C253B4320E2FDFB8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F2CED649D766DE0532119BB7 /* ReverseCADTests */ = {
+			isa = PBXGroup;
+			children = (
+				CD495AA0DD470634824266B4 /* CaptureTests.swift */,
+				56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */,
+				7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */,
+			);
+			path = ReverseCADTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		05278DC82E8E6634A74CB86D /* ReverseCAD */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 08A10C0FBD968A39EC36C8B9 /* Build configuration list for PBXNativeTarget "ReverseCAD" */;
+			buildPhases = (
+				6DE9CB73F6B7A05A65C747A6 /* Sources */,
+				83895580367A7D664F213EEC /* Resources */,
+				ECCCFF724CE2D40592A74932 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ReverseCAD;
+			packageProductDependencies = (
+				25FFCB0D865A60006FF56F0B /* ReverseCADCore */,
+			);
+			productName = ReverseCAD;
+			productReference = 10F0953B46DB70FC38DB1355 /* ReverseCAD.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9D91E802A3252855769FC2ED /* ReverseCADUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36EEF080E4A4D87A5A4456E6 /* Build configuration list for PBXNativeTarget "ReverseCADUITests" */;
+			buildPhases = (
+				9D33CC26801852010413A049 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E57193AA3B8A730DCC5842D7 /* PBXTargetDependency */,
+			);
+			name = ReverseCADUITests;
+			packageProductDependencies = (
+			);
+			productName = ReverseCADUITests;
+			productReference = 69E20958356C2A7F12BCBCFE /* ReverseCADUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		B741F086A39095953C01965A /* ReverseCADTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A237ACBA55E41617688A8D8D /* Build configuration list for PBXNativeTarget "ReverseCADTests" */;
+			buildPhases = (
+				C513DD0027161B8598936A53 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA4AF977374D17EFCC6E43D0 /* PBXTargetDependency */,
+			);
+			name = ReverseCADTests;
+			packageProductDependencies = (
+			);
+			productName = ReverseCADTests;
+			productReference = 7B2216233562031C3EFE9C22 /* ReverseCADTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FAD2ADA07515BE7B9270F07B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					05278DC82E8E6634A74CB86D = {
+						DevelopmentTeam = 5B3Y68ZB2Y;
+						ProvisioningStyle = Automatic;
+					};
+					9D91E802A3252855769FC2ED = {
+						DevelopmentTeam = 5B3Y68ZB2Y;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 05278DC82E8E6634A74CB86D;
+					};
+					B741F086A39095953C01965A = {
+						DevelopmentTeam = 5B3Y68ZB2Y;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = D7FB16E9D089C885CA505A82 /* Build configuration list for PBXProject "ReverseCAD" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = DABD3CE837AEEC9E14425014;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				ECEE649A785E7CB6D8F8018B /* XCLocalSwiftPackageReference "../packages/ReverseCADCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5036B616C253B4320E2FDFB8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				05278DC82E8E6634A74CB86D /* ReverseCAD */,
+				B741F086A39095953C01965A /* ReverseCADTests */,
+				9D91E802A3252855769FC2ED /* ReverseCADUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		83895580367A7D664F213EEC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79DA1E350113D8BF497090E6 /* Assets.xcassets in Resources */,
+				383E6DF1C60887DDEB64353C /* PrivacyInfo.xcprivacy in Resources */,
+				5CD37544FC738ACE5BA72927 /* SampleScan in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6DE9CB73F6B7A05A65C747A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
+				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
+				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
+				99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */,
+				9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */,
+				181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */,
+				919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */,
+				3AFED07087B23DE167770979 /* ResultsView.swift in Sources */,
+				D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */,
+				3595E0308D932DDDF08D2017 /* VerifiedArtifacts.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9D33CC26801852010413A049 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C513DD0027161B8598936A53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */,
+				9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */,
+				DAA42DE363BAA5D45FFEAC36 /* VerifiedArtifactsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA4AF977374D17EFCC6E43D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 05278DC82E8E6634A74CB86D /* ReverseCAD */;
+			targetProxy = 9783BF4CFCBA2A2511426CFF /* PBXContainerItemProxy */;
+		};
+		E57193AA3B8A730DCC5842D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 05278DC82E8E6634A74CB86D /* ReverseCAD */;
+			targetProxy = 1FD38CDC9DFEDB6CF896ABE3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		012D7F73A8AFCF84C28C77AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		2BE45BC44A6A07768E4806CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCADTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReverseCAD.app/ReverseCAD";
+			};
+			name = Release;
+		};
+		69DF0139153B3A617467A32B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ReverseCAD/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCAD;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6E63CB576F26DFBBFE0E7FB2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCADUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReverseCAD;
+			};
+			name = Release;
+		};
+		83915CD986546F78899B98E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8821B67C48731AFD73488888 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ReverseCAD/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCAD;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ADA4EBB557CE20BFF758025E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCADTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReverseCAD.app/ReverseCAD";
+			};
+			name = Debug;
+		};
+		B80C17AE95FA3BDD94DB1291 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pranav.ReverseCADUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReverseCAD;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		08A10C0FBD968A39EC36C8B9 /* Build configuration list for PBXNativeTarget "ReverseCAD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8821B67C48731AFD73488888 /* Debug */,
+				69DF0139153B3A617467A32B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		36EEF080E4A4D87A5A4456E6 /* Build configuration list for PBXNativeTarget "ReverseCADUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B80C17AE95FA3BDD94DB1291 /* Debug */,
+				6E63CB576F26DFBBFE0E7FB2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A237ACBA55E41617688A8D8D /* Build configuration list for PBXNativeTarget "ReverseCADTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ADA4EBB557CE20BFF758025E /* Debug */,
+				2BE45BC44A6A07768E4806CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D7FB16E9D089C885CA505A82 /* Build configuration list for PBXProject "ReverseCAD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83915CD986546F78899B98E8 /* Debug */,
+				012D7F73A8AFCF84C28C77AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		ECEE649A785E7CB6D8F8018B /* XCLocalSwiftPackageReference "../packages/ReverseCADCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../packages/ReverseCADCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		25FFCB0D865A60006FF56F0B /* ReverseCADCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ReverseCADCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FAD2ADA07515BE7B9270F07B /* Project object */;
+}

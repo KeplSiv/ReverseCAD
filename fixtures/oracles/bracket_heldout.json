@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "name": "bracket_heldout",
+  "scene": "bracket",
+  "heldout_dimensions": true,
+  "seed": 227,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.0355,
+        -0.004,
+        -0.0435
+      ],
+      "max_m": [
+        0.0355,
+        0,
+        0.0435
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.0355,
+        0,
+        0.03949999999999999
+      ],
+      "max_m": [
+        0.0355,
+        0.049,
+        0.0435
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -35.5,
+      -4.0,
+      -43.5
+    ],
+    "max": [
+      35.5,
+      49.0,
+      43.5
+    ],
+    "extent": [
+      71.0,
+      53.00000000000001,
+      87.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "292572e621be6b5939fd281d915ecde187b2767d82eabfec8447668045aa8a8f"
+}

@@ -1,0 +1,95 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "FC181D81-9FAA-48AA-8676-F89309AA069B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05-service-reconnected_0_469237EF-D195-4D97-9677-0B95C079F47A.png",
+        "timestamp" : 1792183227.608
+      }
+    ],
+    "testIdentifier" : "WorkflowTests/testConnectionFailureRecovery()",
+    "testIdentifierURL" : "test://com.apple.xcode/ReverseCAD/ReverseCADUITests/WorkflowTests/testConnectionFailureRecovery"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "CC4FF900-7F86-4FB4-8185-0D31FF9CC545.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-feedback-persisted-no-physical-claim_0_9EC47F7E-CC96-4883-833F-4E343F4473F8.png",
+        "timestamp" : 1792183347.171
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "86EAC51E-674C-4C9F-9F2D-408BB8A6CCE5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04-edited-revision-preserved-scan_0_FD957842-2892-463F-8847-00F5C76E1DB2.png",
+        "timestamp" : 1792183320.862
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "71036E94-36A6-491C-ACC1-6E4B3F32737C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-native-export-sheet_0_921F8C54-4582-458E-A386-3995115A8780.png",
+        "timestamp" : 1792183292.208
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "0C5B1BB3-1D8F-4819-952E-0E66713A6893.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-cad-comparison-validation_0_0BF30C30-66C2-4A7E-BADE-29F57197A4B1.png",
+        "timestamp" : 1792183284.983
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "A909200D-5985-4FDF-8681-ED8DB146BE30.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01c-evidence-linked-candidates_0_4D59BB1C-8640-44C4-A898-63065AB0B0BA.png",
+        "timestamp" : 1792183264.131
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "A31E8C4F-C5FB-4FE5-90FF-25383A625B03.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01b-two-observed-contact-patches_0_C7F5481D-56A4-44FE-9542-B80AD9859FAE.png",
+        "timestamp" : 1792183245.921
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "345C6CC3-B3CE-400D-B171-CE1329B72F8B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-reconstructed-synthetic-scan_0_95325044-E0CC-492C-82DA-91D79A6E2E56.png",
+        "timestamp" : 1792183242.51
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "503EA668-5D0D-49BE-B61A-EEDF94C2B4D7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "00-native-scan-package-export_0_743495A5-EF70-4077-8FC6-09BBB790474C.png",
+        "timestamp" : 1792183234.357
+      }
+    ],
+    "testIdentifier" : "WorkflowTests/testReplayToRealServiceCADExportAndPersistence()",
+    "testIdentifierURL" : "test://com.apple.xcode/ReverseCAD/ReverseCADUITests/WorkflowTests/testReplayToRealServiceCADExportAndPersistence"
+  }
+]

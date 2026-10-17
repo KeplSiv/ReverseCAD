@@ -1,0 +1,11 @@
+Reverse CAD 1.0 — first iPhone trial
+
+Capture a stationary object with a LiDAR-capable iPhone, inspect saved RGB/depth/pose evidence, annotate contacts and damage, confirm critical dimensions, and generate an editable bridge handle, cup saddle handle, or flat/L bracket.
+
+The companion service must run on your Mac. Use the same reachable local network. In Service settings, enter http://48.local:8767 and the private pairing token from var/service/pairing-token on the Mac. Allow Camera and Local Network access. Keep the Mac awake. Start the service with ./scripts/start_service.sh --lan from the Reverse CAD project.
+
+Begin with the included synthetic scan replay, then follow PHONE_TEST_PLAN.md for a real calibration object, repeated scans, independent measurements, fit coupons and a replacement fit test. Export the raw scan package to preserve the first trial as regression evidence.
+
+Manual and deterministic intent workflows are available. Live AI requires a separately configured server API key and was not exercised in automated validation. Unsupported devices offer explicitly labeled replay/import and limited camera/manual capture.
+
+Automated tests do not establish real iPhone measurement accuracy, printed fit or strength. Check all critical dimensions and retain the Not tested fit state until you physically verify the print.

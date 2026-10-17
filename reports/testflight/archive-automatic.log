@@ -1,0 +1,59 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/ReverseCAD.xcodeproj -scheme ReverseCAD -configuration Release -destination generic/platform=iOS -derivedDataPath var/TestFlightDerivedData -archivePath var/testflight/ReverseCAD-1.0-1-automatic.xcarchive DEVELOPMENT_TEAM=5B3Y68ZB2Y MARKETING_VERSION=1.0 CURRENT_PROJECT_VERSION=1 CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates archive
+
+Build settings from command line:
+    CODE_SIGN_STYLE = Automatic
+    CURRENT_PROJECT_VERSION = 1
+    DEVELOPMENT_TEAM = 5B3Y68ZB2Y
+    MARKETING_VERSION = 1.0
+
+2026-10-16 22:19:41.894 xcodebuild[22846:915768]  DVTDeveloperAccountManager: Failed to load credentials for FF1F3182-D203-403A-9851-B91502C208D2: Error Domain=DVTDeveloperAccountCredentialsError Code=0 "Invalid credentials in keychain for FF1F3182-D203-403A-9851-B91502C208D2, missing Xcode-Username" UserInfo={NSLocalizedDescription=Invalid credentials in keychain for FF1F3182-D203-403A-9851-B91502C208D2, missing Xcode-Username}
+Resolve Package Graph
+
+
+Resolved source packages:
+  ReverseCADCore: /Users/pranav/Desktop/hack-harvard/reverse-cad/packages/ReverseCADCore
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'ReverseCAD' in project 'ReverseCAD'
+        ➜ Explicit dependency on target 'ReverseCADCore' in project 'ReverseCADCore'
+    Target 'ReverseCADCore' in project 'ReverseCADCore'
+        ➜ Explicit dependency on target 'ReverseCADCore' in project 'ReverseCADCore'
+    Target 'ReverseCADCore' in project 'ReverseCADCore' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 885fcbbb4aea2cab015ff45bde94c90b
+Build description path: /Users/pranav/Desktop/hack-harvard/reverse-cad/var/TestFlightDerivedData/Build/Intermediates.noindex/ArchiveIntermediates/ReverseCAD/IntermediateBuildFilesPath/XCBuildData/885fcbbb4aea2cab015ff45bde94c90b.xcbuilddata
+/Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj: error: No Accounts: Add a new account in Accounts settings. (in target 'ReverseCAD' from project 'ReverseCAD')
+/Users/pranav/Desktop/hack-harvard/reverse-cad/ios/ReverseCAD.xcodeproj: error: No profiles for 'com.pranav.ReverseCAD' were found: Xcode couldn't find any iOS App Development provisioning profiles matching 'com.pranav.ReverseCAD'. (in target 'ReverseCAD' from project 'ReverseCAD')
+** ARCHIVE FAILED **
+
+
+The following build commands failed:
+	Archiving project ReverseCAD with scheme ReverseCAD
+(1 failure)

@@ -1,0 +1,185 @@
+{
+  "cad_valid": true,
+  "coupon": {
+    "hole_diameter_mm": 4.0,
+    "printed_measurements_required": true,
+    "thickness_mm": 4.0,
+    "type": "mounting_hole"
+  },
+  "dimensions": {
+    "analytic_expected_bounds_mm": [
+      30.0,
+      65.0,
+      25.0
+    ],
+    "bounds_mm": [
+      30.0,
+      65.0,
+      25.0
+    ],
+    "cup_contact_radius_probes": [],
+    "max_bound_error_mm": 0.0,
+    "mounting_holes": [
+      {
+        "center_xy_mm": [
+          0.0,
+          -17.5
+        ],
+        "diameter_mm": 4.0,
+        "passed": true
+      },
+      {
+        "center_xy_mm": [
+          0.0,
+          17.5
+        ],
+        "diameter_mm": 4.0,
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "tolerance_mm": 0.1
+  },
+  "exports": {
+    "3mf": {
+      "components": 1,
+      "degenerate_faces": 0,
+      "expected_components": 1,
+      "max_bound_error_mm": 0.0,
+      "passed": true,
+      "self_intersecting": false,
+      "tolerance_mm": 0.15000000000000002,
+      "triangles": 868,
+      "unit": "millimeter",
+      "vertices": 432,
+      "volume_mm3": 10219.529021372344,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    "passed": true,
+    "step": {
+      "declares_millimeters": true,
+      "max_bound_error_mm": 0.0,
+      "passed": true,
+      "solids": 1,
+      "tolerance_mm": 0.1,
+      "valid_brep": true
+    },
+    "stl": {
+      "components": 1,
+      "degenerate_faces": 0,
+      "expected_components": 1,
+      "max_bound_error_mm": 0.0,
+      "passed": true,
+      "self_intersecting": false,
+      "tolerance_mm": 0.15000000000000002,
+      "triangles": 868,
+      "unit": "mm (documented; STL has no unit field)",
+      "vertices": 432,
+      "volume_mm3": 10219.52901897018,
+      "watertight": true,
+      "winding_consistent": true
+    }
+  },
+  "fit": {
+    "assembly": {
+      "direction_object": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "first_blocked_offset_mm": 1.9767441860465116,
+      "status": "blocked",
+      "step_mm": 1.9767441860465116,
+      "travel_mm": 85.0
+    },
+    "collision": {
+      "allowed_penetration_mm": 0.2,
+      "checked_points": 4000,
+      "excessive_contact_penetration_points": 0,
+      "noncontact_inside_points": 48,
+      "observed_points": 18325,
+      "status": "interference"
+    },
+    "intentional_contacts": {
+      "patches": [],
+      "status": "needs_input",
+      "surface_points": 0
+    },
+    "limitations": [
+      "Only observed points checked; unobserved and thin between-sample obstacles remain unknown.",
+      "Straight translation sampled at up to 2 mm; flexible assembly, screw/tool access and rotational assembly are not certified.",
+      "Contact distances include scan uncertainty and do not certify bond area or strength."
+    ],
+    "status": "needs_input"
+  },
+  "manufacturing": {
+    "downward_overhang_area_mm2": 0.0,
+    "fits_build_volume_under_axis_permutation": true,
+    "note": "Review orientation/supports in slicer. Geometric checks do not establish material, adhesive or load performance.",
+    "passed": true,
+    "profile": {
+      "build_volume_mm": [
+        220.0,
+        220.0,
+        250.0
+      ],
+      "layer_height_mm": 0.2,
+      "material": "unspecified",
+      "minimum_wall_mm": 1.2,
+      "nozzle_diameter_mm": 0.4
+    },
+    "strength": "not_evaluated",
+    "support_required_in_current_z_orientation": false,
+    "thickness": {
+      "method": "Independent STL inward surface-normal ray intersections; area-stratified triangle centers",
+      "minimum_sampled_mm": 3.999999999999997,
+      "passed": true,
+      "rays_cast": 52,
+      "rays_with_exit": 52,
+      "required_mm": 1.2,
+      "scope": "Sampled chords, not a proof of global minimum wall thickness; template checks also required. No strength estimate."
+    }
+  },
+  "passed": true,
+  "physical_fit": "not_tested",
+  "placement": {
+    "T_object_part_mm": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "reason": "Select contact patches to align repair with measured object",
+    "source": "canonical_template_frame",
+    "status": "needs_input"
+  },
+  "ready_for_test_print": false,
+  "revision_id": "ae06ac731a3a848f",
+  "schema_version": 1,
+  "sensor_accuracy": "not_validated_by_cad",
+  "solid": {
+    "count": 1,
+    "valid": true,
+    "volume_mm3": 10219.469035085125
+  },
+  "status": "needs_input",
+  "unit": "mm",
+  "unresolved": [
+    "Confirm selected contact frames and alignment",
+    "Resolve collision/contact/path evidence before claiming fit",
+    "Confirm critical dimensions: hole_diameter, hole_spacing"
+  ]
+}

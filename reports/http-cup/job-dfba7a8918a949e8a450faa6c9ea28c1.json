@@ -1,0 +1,339 @@
+{
+  "job_id": "dfba7a8918a949e8a450faa6c9ea28c1",
+  "state": "complete",
+  "progress": 1.0,
+  "message": "Reconstruction complete",
+  "repair_id": null,
+  "revision": null,
+  "result": {
+    "schema_version": 1,
+    "algorithm_version": "rgbd-1.0.0",
+    "scan_id": "cup_clean",
+    "input_revision": {
+      "manifest_sha256": "46c1a5303e9ade038510132738ac5d7fa87fd2eae9ee27782410ceb5e9af75c2",
+      "annotations_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "source": "synthetic",
+    "stage": "rgb_assisted",
+    "unit": "mm",
+    "warnings": [
+      "rgb_insufficient_texture_or_baseline: depth remains metric; no RGB refinement claimed"
+    ],
+    "measurements": [
+      {
+        "id": "extent_x",
+        "name": "Observed X extent",
+        "value": 76.00001950363449,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      },
+      {
+        "id": "extent_y",
+        "name": "Observed Y extent",
+        "value": 90.00000900922315,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      },
+      {
+        "id": "extent_z",
+        "name": "Observed Z extent",
+        "value": 70.00001678764866,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      },
+      {
+        "id": "body_radius",
+        "name": "Observed body radius at profile origin",
+        "value": 34.983943320033084,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": true,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": 0.004682167459989728,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      }
+    ],
+    "primitives": [
+      {
+        "type": "cylinder",
+        "axis": [
+          0.00012798419482302562,
+          0.9999999914135866,
+          2.8157988034708457e-05
+        ],
+        "center_m": [
+          6.7125238884632905e-06,
+          0.002794367355838947,
+          -2.1542906647436643e-06
+        ],
+        "radius_mm": 34.983943320033084,
+        "taper": -0.00028671384026963823,
+        "height_range_mm": [
+          -47.79873054485742,
+          42.21015018509632
+        ],
+        "fit_residual_mm": 0.1511597694605046,
+        "inlier_fraction": 0.8035384615384615,
+        "angular_support_degrees": 359.3516021609364,
+        "uncertainty_status": "not_calibrated",
+        "source": "depth_fit",
+        "id": "body_profile",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_bootstrap_radius_interval_mm": [
+          34.99651090390499,
+          35.00119307136498
+        ],
+        "view_radius_range_mm": [
+          34.993054406356286,
+          35.005789310774176
+        ],
+        "repeatability_method": "500 bootstrap resamples of per-view radius medians; excludes uncalibrated systematic error"
+      }
+    ],
+    "observations": {
+      "accepted_frames": [
+        "0000",
+        "0001",
+        "0002",
+        "0003",
+        "0004",
+        "0005",
+        "0006",
+        "0007",
+        "0008",
+        "0009",
+        "0010",
+        "0011"
+      ],
+      "rejected_frames": []
+    },
+    "metrics": {
+      "accepted_frames": 12,
+      "rejected_frames": 0,
+      "timestamp_gaps": [],
+      "raw_point_count": 44600,
+      "fused_point_count": 38465,
+      "isolated_points_rejected": 103,
+      "voxel_size_mm": 0.5,
+      "measurement_point_count": 38465,
+      "measurement_support": "confidence-filtered native depth only; RGB anchors do not alter engineering dimensions",
+      "voxel_size_is_accuracy": false,
+      "camera_baseline_m": 0.8325670885006944,
+      "occupied_azimuth_bins_of_12": 8,
+      "coverage_is_complete": false,
+      "rgb": {
+        "status": "insufficient_texture_or_baseline",
+        "matched_features": 0,
+        "triangulated_metric_anchors": 0,
+        "median_reprojection_error_px": null,
+        "inconsistent_fraction": null,
+        "median_depth_disagreement_mm": null,
+        "pose_refinement": "none; fixed metric poses",
+        "pairs": []
+      },
+      "tsdf_vertices": 30226,
+      "depth_consistency": {
+        "compared_visible_samples": 43561,
+        "median_visible_residual_mm": 0.41048914039087947,
+        "free_space_violation_fraction": 0.0038796170886802417,
+        "method": "fixed-pose native-depth reprojection; behind-surface occlusions excluded"
+      },
+      "segment_registration": [],
+      "tsdf_triangles": 59999,
+      "elapsed_s": 3.114830874999825,
+      "masked_native_samples": 44600,
+      "segmentation_sources": [
+        "capture_foreground_mask"
+      ]
+    },
+    "physical_validation": {
+      "phone_sensing": "not_tested",
+      "dimension_accuracy": "not_calibrated",
+      "printed_fit": "not_tested"
+    },
+    "status": "ready",
+    "bounds_mm": {
+      "min": [
+        -35.00000654838165,
+        -45.00000353837216,
+        -35.00000944183507
+      ],
+      "max": [
+        41.00001295525285,
+        45.00000547085098,
+        35.0000073458136
+      ],
+      "extent": [
+        76.00001950363449,
+        90.00000900922315,
+        70.00001678764866
+      ]
+    },
+    "point_count": 38465,
+    "scale_correction": {
+      "factor": 1.0,
+      "reference": null,
+      "original_points": "points_filtered_uncorrected.npz",
+      "raw_depth_preserved": true
+    },
+    "uncertainty_budget": {
+      "capture_mm": null,
+      "registration_mm": null,
+      "reference_mm": null,
+      "cad_mm": null,
+      "printer_mm": null,
+      "combination": "conservative additive only after each bound is independently calibrated",
+      "status": "not_calibrated"
+    },
+    "annotations_revision": 0,
+    "worker_metrics": {
+      "peak_rss_bytes": 780058624
+    },
+    "artifacts": [
+      {
+        "id": "e87565140dd746dd9079aa913e72b70e",
+        "name": "input_provenance.json",
+        "sha256": "f91bea54c94b5d6bbf027aef189142e11b38d9056e1d09fe2c412caa8881792b",
+        "size": 327
+      },
+      {
+        "id": "df045acd1a8a4fcfb070e155b9597bba",
+        "name": "observed_surface.ply",
+        "sha256": "3804b3ec9dca082375ae6d9ce6643c458eac7e2478f865d78711db95d5951e9b",
+        "size": 2321837
+      },
+      {
+        "id": "ded1efadf9a346568134d745d6e119b7",
+        "name": "points_filtered.npz",
+        "sha256": "c07f30d3dcd4065c386ee49c9cafd51d5797495469f3f30e19e28b192c1a5920",
+        "size": 1043117
+      },
+      {
+        "id": "d8852310b8ef4b25b50d4fa2eddb5278",
+        "name": "points_filtered_uncorrected.npz",
+        "sha256": "c07f30d3dcd4065c386ee49c9cafd51d5797495469f3f30e19e28b192c1a5920",
+        "size": 1043117
+      },
+      {
+        "id": "08cb33d6afcb4162b272f207a7d0a18e",
+        "name": "points_measurement.npz",
+        "sha256": "c07f30d3dcd4065c386ee49c9cafd51d5797495469f3f30e19e28b192c1a5920",
+        "size": 1043117
+      },
+      {
+        "id": "72b787091aa74f35b7137c23467f2a36",
+        "name": "points_raw.npz",
+        "sha256": "5314acaeb1f0f219d28096e34b262990a8e1b2270d4585cb34c34decc7a0e41d",
+        "size": 1202727
+      },
+      {
+        "id": "7f0b6be4226d4091986aa4886d609c46",
+        "name": "reconstruction.json",
+        "sha256": "e090fb391ebb2e56709d8d8969c194c26c6bad1771cbba1d9bef16b0886d8763",
+        "size": 7058
+      },
+      {
+        "id": "6d7edfe210914101b5812d6a957d689f",
+        "name": "rgb_metric_anchors.npz",
+        "sha256": "8b418757806542ee4fe7412b49f6a8f8c8e1db06b5845caab5ba54c46973cc75",
+        "size": 398
+      },
+      {
+        "id": "25b581c02ee847c593e3de063c8f909a",
+        "name": "scan_preview.json",
+        "sha256": "d17223f62e2d1bfbd8988a15788cbb66c8c8f326f2c0808729791520f97ec79d",
+        "size": 10727437
+      }
+    ]
+  },
+  "error": null
+}

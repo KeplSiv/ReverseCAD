@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "name": "bracket_clean",
+  "scene": "bracket",
+  "heldout_dimensions": false,
+  "seed": 211,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.03,
+        -0.004,
+        -0.0375
+      ],
+      "max_m": [
+        0.03,
+        0,
+        0.0375
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.03,
+        0,
+        0.0335
+      ],
+      "max_m": [
+        0.03,
+        0.04,
+        0.0375
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -30.0,
+      -4.0,
+      -37.5
+    ],
+    "max": [
+      30.0,
+      40.0,
+      37.5
+    ],
+    "extent": [
+      60.0,
+      44.0,
+      75.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "036a49aacb613949e9064e3ddb885c85856c9d379fafeaf2ee1920fc6d71a56e"
+}

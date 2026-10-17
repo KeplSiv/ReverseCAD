@@ -1,0 +1,16 @@
+{
+  "source": "real HTTP service with synthetic raw RGB-D replay",
+  "reconstruction_state": "complete",
+  "scan_id": "cup_clean",
+  "results": [
+    {
+      "family": "cup_handle",
+      "job_id": "88eb7ca8693743279c9d852dc39c870a",
+      "artifacts_downloaded": 16,
+      "step_valid": true,
+      "stl_watertight": true,
+      "provider_status": "manual_no_provider",
+      "physical_fit": "not_tested"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "name": "asymmetric_clean",
+  "scene": "asymmetric",
+  "heldout_dimensions": false,
+  "seed": 211,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.045,
+        -0.025,
+        -0.02
+      ],
+      "max_m": [
+        0.035,
+        0.015,
+        0.015
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.035,
+        -0.012,
+        -0.008
+      ],
+      "max_m": [
+        0.045000000000000005,
+        0.006,
+        0.01
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.04,
+        0.015,
+        0.005
+      ],
+      "max_m": [
+        -0.022,
+        0.038,
+        0.02
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.012,
+        -0.023,
+        0.015
+      ],
+      "max_m": [
+        0.011,
+        -0.004,
+        0.025
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -45.0,
+      -25.0,
+      -20.0
+    ],
+    "max": [
+      45.00000000000001,
+      38.0,
+      25.0
+    ],
+    "extent": [
+      90.0,
+      63.0,
+      45.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "3f4f7ca084bc819fcbde308f86c149daa7b0240388938140b405d214ce61a5a1"
+}

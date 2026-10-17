@@ -1,0 +1,110 @@
+{
+  "T_object_part_mm": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "attachment_method": "saddle",
+  "family": "cup_handle",
+  "generator_version": "1.0.0",
+  "input_hashes": {
+    "input_checksums_sha256": "dc9fc148627e947abe6e7f1450623f1a939281686c3e26fddc035caa82ce44a1",
+    "input_manifest_sha256": "46c1a5303e9ade038510132738ac5d7fa87fd2eae9ee27782410ceb5e9af75c2",
+    "intent_sha256": "55decf0e4b0e8aadc89eadc081dcb8b40634c61ab492b6b777309edc9871aa58"
+  },
+  "parameter_provenance": {
+    "contact_gap": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "contact_spacing": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "cup_radius": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "cup_radius_top": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "grip_depth": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "grip_width": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "pad_height": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "pad_thickness": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "standoff": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    }
+  },
+  "parameters": {
+    "contact_gap": 0.4,
+    "contact_spacing": 55.0,
+    "cup_radius": 40.0,
+    "cup_radius_top": 40.0,
+    "grip_depth": 8.0,
+    "grip_width": 10.0,
+    "pad_height": 16.0,
+    "pad_thickness": 4.0,
+    "standoff": 32.0
+  },
+  "repair_id": "8fe9599a7c6a4302b2bae06a702d4310",
+  "repair_revision": 1,
+  "revision_id": "250a6abc30b37678",
+  "scan_id": "cup_clean",
+  "scan_revision": 0,
+  "unit": "mm"
+}

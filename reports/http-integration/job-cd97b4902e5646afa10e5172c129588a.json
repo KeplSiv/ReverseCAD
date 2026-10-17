@@ -1,0 +1,491 @@
+{
+  "job_id": "cd97b4902e5646afa10e5172c129588a",
+  "state": "complete",
+  "progress": 1.0,
+  "message": "CAD checks passed; physical fit remains untested",
+  "repair_id": "5340aa189e3748e9b91e87270c5aa927",
+  "revision": 1,
+  "result": {
+    "family": "bridge_handle",
+    "parameters": {
+      "span": 80.0,
+      "standoff": 30.0,
+      "grip_width": 12.0,
+      "grip_depth": 9.0,
+      "pad_width": 24.0,
+      "pad_length": 24.0,
+      "pad_thickness": 4.0,
+      "hole_diameter": 4.0
+    },
+    "revision_id": "3e77686bb37a8d63",
+    "validation": {
+      "cad_valid": true,
+      "coupon": {
+        "hole_diameter_mm": 4.0,
+        "printed_measurements_required": true,
+        "thickness_mm": 4.0,
+        "type": "mounting_hole"
+      },
+      "dimensions": {
+        "analytic_expected_bounds_mm": [
+          104.0,
+          24.0,
+          36.5
+        ],
+        "bounds_mm": [
+          104.0000002,
+          24.0000002,
+          36.5000002
+        ],
+        "cup_contact_radius_probes": [],
+        "max_bound_error_mm": 2.0000000233721948e-07,
+        "mounting_holes": [
+          {
+            "center_xy_mm": [
+              -40.0,
+              0
+            ],
+            "diameter_mm": 4.0,
+            "passed": true
+          },
+          {
+            "center_xy_mm": [
+              40.0,
+              0
+            ],
+            "diameter_mm": 4.0,
+            "passed": true
+          }
+        ],
+        "passed": true,
+        "tolerance_mm": 0.1
+      },
+      "exports": {
+        "3mf": {
+          "components": 1,
+          "degenerate_faces": 0,
+          "expected_components": 1,
+          "max_bound_error_mm": 0.03135950949666011,
+          "passed": true,
+          "self_intersecting": false,
+          "tolerance_mm": 0.15000000000000002,
+          "triangles": 1790,
+          "unit": "millimeter",
+          "vertices": 893,
+          "volume_mm3": 15620.041654131048,
+          "watertight": true,
+          "winding_consistent": true
+        },
+        "passed": true,
+        "step": {
+          "max_bound_error_mm": 0.031177993783273905,
+          "passed": true,
+          "solids": 1,
+          "tolerance_mm": 0.1,
+          "valid_brep": true
+        },
+        "stl": {
+          "components": 1,
+          "degenerate_faces": 0,
+          "expected_components": 1,
+          "max_bound_error_mm": 0.031361199252025074,
+          "passed": true,
+          "self_intersecting": false,
+          "tolerance_mm": 0.15000000000000002,
+          "triangles": 1790,
+          "unit": "mm (documented; STL has no unit field)",
+          "vertices": 893,
+          "volume_mm3": 15620.041512383163,
+          "watertight": true,
+          "winding_consistent": true
+        }
+      },
+      "fit": {
+        "assembly": {
+          "direction_object": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "first_blocked_offset_mm": 2.0,
+          "status": "blocked",
+          "step_mm": 2.0,
+          "travel_mm": 124.0
+        },
+        "collision": {
+          "allowed_penetration_mm": 0.2,
+          "checked_points": 4000,
+          "excessive_contact_penetration_points": 0,
+          "noncontact_inside_points": 214,
+          "observed_points": 30118,
+          "status": "interference"
+        },
+        "intentional_contacts": {
+          "patches": [],
+          "status": "needs_input",
+          "surface_points": 0
+        },
+        "limitations": [
+          "Only observed points checked; unobserved and thin between-sample obstacles remain unknown.",
+          "Straight translation sampled at up to 2 mm; flexible assembly, screw/tool access and rotational assembly are not certified.",
+          "Contact distances include scan uncertainty and do not certify bond area or strength."
+        ],
+        "status": "needs_input"
+      },
+      "manufacturing": {
+        "downward_overhang_area_mm2": 758.6432386724591,
+        "fits_build_volume_under_axis_permutation": true,
+        "note": "Review orientation/supports in slicer. Geometric checks do not establish material, adhesive or load performance.",
+        "passed": true,
+        "profile": {
+          "build_volume_mm": [
+            220.0,
+            220.0,
+            250.0
+          ],
+          "layer_height_mm": 0.2,
+          "material": "unspecified",
+          "minimum_wall_mm": 1.2,
+          "nozzle_diameter_mm": 0.4
+        },
+        "strength": "not_evaluated",
+        "support_required_in_current_z_orientation": true,
+        "thickness": {
+          "method": "Independent STL inward surface-normal ray intersections; area-stratified triangle centers",
+          "minimum_sampled_mm": 1.66163237981915,
+          "passed": true,
+          "rays_cast": 209,
+          "rays_with_exit": 209,
+          "required_mm": 1.2,
+          "scope": "Sampled chords, not a proof of global minimum wall thickness; template checks also required. No strength estimate."
+        }
+      },
+      "passed": true,
+      "physical_fit": "not_tested",
+      "placement": {
+        "T_object_part_mm": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "reason": "Select contact patches to align repair with measured object",
+        "source": "canonical_template_frame",
+        "status": "needs_input"
+      },
+      "ready_for_test_print": false,
+      "revision_id": "3e77686bb37a8d63",
+      "schema_version": 1,
+      "sensor_accuracy": "not_validated_by_cad",
+      "solid": {
+        "count": 1,
+        "valid": true,
+        "volume_mm3": 15623.130657364472
+      },
+      "status": "needs_input",
+      "unit": "mm",
+      "unresolved": [
+        "Confirm selected contact frames and alignment",
+        "Resolve collision/contact/path evidence before claiming fit"
+      ]
+    },
+    "artifacts": [
+      {
+        "id": "26f48ea8ce824bb69317e18a649bd02a",
+        "name": "coupon.3mf",
+        "sha256": "e96ecf4fd60170e7eb2479f5db7c90caf956eae8990a194a1a924a75236a56da",
+        "size": 6409
+      },
+      {
+        "id": "13013e7941234e359f3a949bf0c1a20d",
+        "name": "coupon.json",
+        "sha256": "274eeae4c3f3da4f63477f22c028b8192b58333b1ffe832eb731ee3f5aa4ad6c",
+        "size": 462
+      },
+      {
+        "id": "78f0cdadba3b4cc3a791046fa9392c28",
+        "name": "coupon.step",
+        "sha256": "09d00cb89536c811a4dc50ce266c1b82c3c7d1a7573dea942a02d3b090e4cd29",
+        "size": 19063
+      },
+      {
+        "id": "dd6a10ab0c424f3686e00f3c66f23c1f",
+        "name": "coupon.stl",
+        "sha256": "f55f28547b54b68a3f1ad48e0f634688799109fe643c14e078d79d6e0621fcaa",
+        "size": 21884
+      },
+      {
+        "id": "24c9c166f3384a7dbc82d6c13e03fbaf",
+        "name": "generator.py",
+        "sha256": "e41f4669edffd71c2c1f2e5ad7a2b962cff060cdd2e1366a4da36cc203094f5a",
+        "size": 23792
+      },
+      {
+        "id": "9ed9727b5aa04c669c1ef5511d3420b6",
+        "name": "input_provenance.json",
+        "sha256": "4838e55c002d2c1577de9ded237d327927c17c64a478547d8b89a47843930ad5",
+        "size": 275
+      },
+      {
+        "id": "4365b132556c488c9902e0ab4252bb64",
+        "name": "intent.json",
+        "sha256": "ac871d3251a33c8a990b4c695b5a9a8a2f37524ddcd1b97b97f17467711d8896",
+        "size": 1163
+      },
+      {
+        "id": "473990f2b6724fb1a7332b7e42243f72",
+        "name": "manifest.json",
+        "sha256": "8363a523d9d693bae7be13ba8023dd7518c63c08cf17fb19dc3443d038af2b29",
+        "size": 2898
+      },
+      {
+        "id": "add38c7d0fca4bcc93cd271f0fde706b",
+        "name": "parameters.json",
+        "sha256": "25eb57b8d3118afcff0a696032012b0d6d6c9f2c3006042ce51698c97ae30f95",
+        "size": 519
+      },
+      {
+        "id": "a0e1f7184a224f82a9b25215ae306fc6",
+        "name": "part.3mf",
+        "sha256": "cf0c694a8b742869988b78931ec7c89e91dae32d3e88026d2808f918e4ad5eec",
+        "size": 38352
+      },
+      {
+        "id": "f27e2e4ebad44de39ccf567491babe5d",
+        "name": "part.py",
+        "sha256": "2b0aa138c7a555af1f5c82736bf4039f693dae6ddcb45b73a995868f67d9ed20",
+        "size": 807
+      },
+      {
+        "id": "722c680748934edc876fe280468ff124",
+        "name": "part.step",
+        "sha256": "b2db8860e4ca8c646cc141dc78f53a7a9b9f4bc05fd7c8b6d249f12415e79237",
+        "size": 200878
+      },
+      {
+        "id": "c03cd4cfda35486d8ed345825ae246c9",
+        "name": "part.stl",
+        "sha256": "ae8728d3b06373eeaefc14159766d0c78b246dc2e90cf4b413dc6c75480b5067",
+        "size": 89584
+      },
+      {
+        "id": "da7e58be3fdc4c709835182cdc5aa77f",
+        "name": "preview.json",
+        "sha256": "1876addc48b740e0012b28f48e2226c1a9ddb8c614020750df065e0ab4937d90",
+        "size": 232691
+      },
+      {
+        "id": "8b23ffc979aa4861b6f7f49513deaf3d",
+        "name": "report.txt",
+        "sha256": "393a5e6e7c59888aec907f83f5d88300f42c3315cf34a748e2e567f6abe19195",
+        "size": 911
+      },
+      {
+        "id": "08bb2e767eb84f4b9681bc7b91aaf190",
+        "name": "validation.json",
+        "sha256": "5a088c3edaf52c677bba856bfaabc65984d9cf3cbc3719693348537fd9d37941",
+        "size": 4685
+      }
+    ],
+    "preview_path": "preview.json",
+    "manifest": {
+      "schema_version": 1,
+      "revision_id": "3e77686bb37a8d63",
+      "family": "bridge_handle",
+      "unit": "mm",
+      "scan_revision": 0,
+      "generator_version": "1.0.0",
+      "parameters_sha256": "25eb57b8d3118afcff0a696032012b0d6d6c9f2c3006042ce51698c97ae30f95",
+      "artifacts": [
+        {
+          "name": "coupon.3mf",
+          "path": "coupon.3mf",
+          "size": 6409,
+          "sha256": "e96ecf4fd60170e7eb2479f5db7c90caf956eae8990a194a1a924a75236a56da"
+        },
+        {
+          "name": "coupon.json",
+          "path": "coupon.json",
+          "size": 462,
+          "sha256": "274eeae4c3f3da4f63477f22c028b8192b58333b1ffe832eb731ee3f5aa4ad6c"
+        },
+        {
+          "name": "coupon.step",
+          "path": "coupon.step",
+          "size": 19063,
+          "sha256": "09d00cb89536c811a4dc50ce266c1b82c3c7d1a7573dea942a02d3b090e4cd29"
+        },
+        {
+          "name": "coupon.stl",
+          "path": "coupon.stl",
+          "size": 21884,
+          "sha256": "f55f28547b54b68a3f1ad48e0f634688799109fe643c14e078d79d6e0621fcaa"
+        },
+        {
+          "name": "generator.py",
+          "path": "generator.py",
+          "size": 23792,
+          "sha256": "e41f4669edffd71c2c1f2e5ad7a2b962cff060cdd2e1366a4da36cc203094f5a"
+        },
+        {
+          "name": "input_provenance.json",
+          "path": "input_provenance.json",
+          "size": 275,
+          "sha256": "4838e55c002d2c1577de9ded237d327927c17c64a478547d8b89a47843930ad5"
+        },
+        {
+          "name": "intent.json",
+          "path": "intent.json",
+          "size": 1163,
+          "sha256": "ac871d3251a33c8a990b4c695b5a9a8a2f37524ddcd1b97b97f17467711d8896"
+        },
+        {
+          "name": "parameters.json",
+          "path": "parameters.json",
+          "size": 519,
+          "sha256": "25eb57b8d3118afcff0a696032012b0d6d6c9f2c3006042ce51698c97ae30f95"
+        },
+        {
+          "name": "part.3mf",
+          "path": "part.3mf",
+          "size": 38352,
+          "sha256": "cf0c694a8b742869988b78931ec7c89e91dae32d3e88026d2808f918e4ad5eec"
+        },
+        {
+          "name": "part.py",
+          "path": "part.py",
+          "size": 807,
+          "sha256": "2b0aa138c7a555af1f5c82736bf4039f693dae6ddcb45b73a995868f67d9ed20"
+        },
+        {
+          "name": "part.step",
+          "path": "part.step",
+          "size": 200878,
+          "sha256": "b2db8860e4ca8c646cc141dc78f53a7a9b9f4bc05fd7c8b6d249f12415e79237"
+        },
+        {
+          "name": "part.stl",
+          "path": "part.stl",
+          "size": 89584,
+          "sha256": "ae8728d3b06373eeaefc14159766d0c78b246dc2e90cf4b413dc6c75480b5067"
+        },
+        {
+          "name": "preview.json",
+          "path": "preview.json",
+          "size": 232691,
+          "sha256": "1876addc48b740e0012b28f48e2226c1a9ddb8c614020750df065e0ab4937d90"
+        },
+        {
+          "name": "report.txt",
+          "path": "report.txt",
+          "size": 911,
+          "sha256": "393a5e6e7c59888aec907f83f5d88300f42c3315cf34a748e2e567f6abe19195"
+        },
+        {
+          "name": "validation.json",
+          "path": "validation.json",
+          "size": 4685,
+          "sha256": "5a088c3edaf52c677bba856bfaabc65984d9cf3cbc3719693348537fd9d37941"
+        }
+      ]
+    },
+    "repair_id": "5340aa189e3748e9b91e87270c5aa927",
+    "revision": 1,
+    "intent": {
+      "schema_version": 1,
+      "family": "bridge_handle",
+      "parameters": {
+        "span": 80.0,
+        "standoff": 30.0,
+        "grip_width": 12.0,
+        "grip_depth": 9.0,
+        "pad_width": 24.0,
+        "pad_length": 24.0,
+        "pad_thickness": 4.0,
+        "hole_diameter": 4.0
+      },
+      "measurement_refs": [],
+      "attachment_method": "screws",
+      "questions": [],
+      "explanation": "User-selected deterministic template.",
+      "requested_validation": [
+        "solid",
+        "mesh",
+        "dimensions",
+        "collision",
+        "assembly",
+        "thickness",
+        "print"
+      ],
+      "provenance": {
+        "span": {
+          "name": "span",
+          "value": 80.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "standoff": {
+          "name": "standoff",
+          "value": 30.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "grip_width": {
+          "name": "grip_width",
+          "value": 12.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "grip_depth": {
+          "name": "grip_depth",
+          "value": 9.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "pad_width": {
+          "name": "pad_width",
+          "value": 24.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "pad_length": {
+          "name": "pad_length",
+          "value": 24.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "pad_thickness": {
+          "name": "pad_thickness",
+          "value": 4.0,
+          "source": "manual",
+          "measurement_id": null
+        },
+        "hole_diameter": {
+          "name": "hole_diameter",
+          "value": 4.0,
+          "source": "manual",
+          "measurement_id": null
+        }
+      },
+      "provider_status": "manual_no_provider"
+    },
+    "provider_status": "manual_no_provider",
+    "prototype_export_acknowledged": true,
+    "worker_metrics": {
+      "peak_rss_bytes": 1211088896
+    }
+  },
+  "error": null
+}

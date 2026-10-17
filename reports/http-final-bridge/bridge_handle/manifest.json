@@ -1,0 +1,109 @@
+{
+  "artifacts": [
+    {
+      "name": "coupon.3mf",
+      "path": "coupon.3mf",
+      "sha256": "b86ef104e76431ec80bf07e22a3cb13d6f0efc08d0274013f1d5360fde4ae8e3",
+      "size": 6410
+    },
+    {
+      "name": "coupon.json",
+      "path": "coupon.json",
+      "sha256": "690554a1dd554de1b28aedcf5b2027794a3e8cab76686b910d0b9f7e601912cd",
+      "size": 1245
+    },
+    {
+      "name": "coupon.step",
+      "path": "coupon.step",
+      "sha256": "c2788e6a0169e2cb3aad144afe1367308531285baf73880a3239d0e70cb89cf9",
+      "size": 19063
+    },
+    {
+      "name": "coupon.stl",
+      "path": "coupon.stl",
+      "sha256": "ca302e2dc0077d7fa6dff2cb87b041cd6b729692621025063e8c16d5d07a65df",
+      "size": 89948
+    },
+    {
+      "name": "generator.py",
+      "path": "generator.py",
+      "sha256": "278684894cc504953d3e5bbc9f78664aba31ef66b3f3fd05e48278919636a634",
+      "size": 31552
+    },
+    {
+      "name": "input_provenance.json",
+      "path": "input_provenance.json",
+      "sha256": "6849b99e6f4336ab83cdff66f2c3478a9dd1201b1a39fec4be703c4cd0adc51d",
+      "size": 360
+    },
+    {
+      "name": "intent.json",
+      "path": "intent.json",
+      "sha256": "73b93967a312e3ac7121ffa62adf34269d1921be0d7ae25d8957190a65a611bc",
+      "size": 1272
+    },
+    {
+      "name": "parameters.json",
+      "path": "parameters.json",
+      "sha256": "935aa15a89df8a952ed7ad3995cef005ee61be2fe753ef313bdd2246ec47b206",
+      "size": 2408
+    },
+    {
+      "name": "part.3mf",
+      "path": "part.3mf",
+      "sha256": "751aca1ce1c51f982a08df538232c4949decac1966c9561222c448899fb1b221",
+      "size": 38347
+    },
+    {
+      "name": "part.py",
+      "path": "part.py",
+      "sha256": "d16e56b01ca6fe906deeab46b62ee842f2429e713064b336cab24f01050b6d08",
+      "size": 770
+    },
+    {
+      "name": "part.step",
+      "path": "part.step",
+      "sha256": "243ba4af3b89e5b187ceb0ef716f34afe08d938653b7bc690b7687d26913adc9",
+      "size": 200878
+    },
+    {
+      "name": "part.stl",
+      "path": "part.stl",
+      "sha256": "18f93543745353735a773a36ed7e270cdc7a213de7d339c43fd6df55dd7f2d16",
+      "size": 453786
+    },
+    {
+      "name": "preview.json",
+      "path": "preview.json",
+      "sha256": "028af822c18af7f2b5f495ea57f0d212925f83e9933bf262862cf484c42e4de9",
+      "size": 232925
+    },
+    {
+      "name": "report.txt",
+      "path": "report.txt",
+      "sha256": "aa54cbbc6abb78bc0df402267378b8f1a8e1906af5e7091a0281fd050ea6e2e6",
+      "size": 962
+    },
+    {
+      "name": "validation.json",
+      "path": "validation.json",
+      "sha256": "93b031e1ac728bf0defa8f6ed9eb8512d048ec8d3b7fa6d7fd8e94cd3a5eded1",
+      "size": 4767
+    }
+  ],
+  "family": "bridge_handle",
+  "generator_version": "1.0.1",
+  "input_hashes": {
+    "input_checksums_sha256": "2fd3fa9a0fa0f18b854c0fbd8cdb33d7845292d857bc9f0953987f8b53587f64",
+    "input_manifest_sha256": "982f3af65377dc67e57bd4d0d502c1111b1b34a8be139e47870379b58ab57f81",
+    "intent_sha256": "73b93967a312e3ac7121ffa62adf34269d1921be0d7ae25d8957190a65a611bc"
+  },
+  "parameters_sha256": "935aa15a89df8a952ed7ad3995cef005ee61be2fe753ef313bdd2246ec47b206",
+  "repair_id": "9d976ad0d144487890c2d8bec18b6f6c",
+  "repair_revision": 1,
+  "revision_id": "01c114ab36bed0c4",
+  "scan_id": "sample_scan",
+  "scan_revision": 0,
+  "schema_version": 1,
+  "unit": "mm"
+}

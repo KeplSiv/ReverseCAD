@@ -1,0 +1,20 @@
+{
+  "contact_gap_mm": 0.4,
+  "printed_measurements_required": true,
+  "radius_mm": 40.0,
+  "revision_id": "8c4ddf933e600979",
+  "type": "saddle_radius_contact_gap",
+  "unit": "mm",
+  "validation": {
+    "components": 1,
+    "degenerate_faces": 0,
+    "expected_components": 1,
+    "passed": true,
+    "self_intersecting": false,
+    "triangles": 76,
+    "vertices": 40,
+    "volume_mm3": 1328.8911987328174,
+    "watertight": true,
+    "winding_consistent": true
+  }
+}

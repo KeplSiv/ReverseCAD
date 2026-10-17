@@ -1,0 +1,512 @@
+{
+  "job_id": "c42ace75fcdd492488ffbc25b14ac75d",
+  "state": "complete",
+  "progress": 1.0,
+  "message": "Reconstruction complete",
+  "repair_id": null,
+  "revision": null,
+  "result": {
+    "schema_version": 1,
+    "algorithm_version": "rgbd-1.0.0",
+    "scan_id": "bracket_clean",
+    "input_revision": {
+      "manifest_sha256": "036a49aacb613949e9064e3ddb885c85856c9d379fafeaf2ee1920fc6d71a56e",
+      "annotations_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "source": "synthetic",
+    "stage": "rgb_assisted",
+    "unit": "mm",
+    "warnings": [],
+    "measurements": [
+      {
+        "id": "extent_x",
+        "name": "Observed X extent",
+        "value": 60.00002743747762,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      },
+      {
+        "id": "extent_y",
+        "name": "Observed Y extent",
+        "value": 44.00001134589712,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      },
+      {
+        "id": "extent_z",
+        "name": "Observed Z extent",
+        "value": 75.0000250392762,
+        "unit": "mm",
+        "source": "depth_fit",
+        "confirmed": false,
+        "critical": false,
+        "uncertainty_mm": null,
+        "uncertainty_status": "not_calibrated",
+        "uncertainty_method": "No real-device error calibration; fit residual/repeatability do not bound systematic sensor error",
+        "repeatability_mm": null,
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ]
+      }
+    ],
+    "primitives": [
+      {
+        "id": "plane_0",
+        "type": "plane",
+        "center_m": [
+          -0.00022086566423550023,
+          -6.487634689362417e-05,
+          -0.002666101181566729
+        ],
+        "normal": [
+          -1.16475714717664e-05,
+          0.9999967374276824,
+          -0.002554407626994227
+        ],
+        "fit_residual_mm": 0.3605977493191441,
+        "inlier_count": 5585,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.7134722547780842,
+          0.0765615245184729
+        ],
+        "uncertainty_status": "not_calibrated"
+      },
+      {
+        "id": "plane_1",
+        "type": "plane",
+        "center_m": [
+          4.7719027865655253e-05,
+          -0.003880306355743364,
+          -4.4662762024950275e-05
+        ],
+        "normal": [
+          -0.0002015225114534043,
+          0.9999999721025797,
+          0.00012322141587855533
+        ],
+        "fit_residual_mm": 0.33836658502455796,
+        "inlier_count": 4861,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.11980996650211534,
+          0.7487072585815169
+        ],
+        "uncertainty_status": "not_calibrated"
+      },
+      {
+        "id": "plane_2",
+        "type": "plane",
+        "center_m": [
+          -7.482983640093659e-05,
+          0.020953602260506087,
+          0.03744414647835646
+        ],
+        "normal": [
+          -0.00018751570709586322,
+          0.0033376568427354904,
+          0.9999944124267194
+        ],
+        "fit_residual_mm": 0.22827058164615033,
+        "inlier_count": 4286,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.8093201464499731,
+          0.04877105870958106
+        ],
+        "uncertainty_status": "not_calibrated"
+      },
+      {
+        "id": "plane_3",
+        "type": "plane",
+        "center_m": [
+          0.00012730898533866493,
+          0.023574582709484537,
+          0.033592560798221906
+        ],
+        "normal": [
+          -0.00037895372436693,
+          -0.004662586479632996,
+          0.9999890582808367
+        ],
+        "fit_residual_mm": 0.3063765055270229,
+        "inlier_count": 3158,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.12484984785611115,
+          0.8623732711421204
+        ],
+        "uncertainty_status": "not_calibrated"
+      },
+      {
+        "id": "plane_4",
+        "type": "plane",
+        "center_m": [
+          -0.0009673614604252672,
+          -0.0019937521328937664,
+          -0.011593313998185074
+        ],
+        "normal": [
+          0.00021444959523001262,
+          0.9999996579288402,
+          -0.0007988451499095285
+        ],
+        "fit_residual_mm": 0.22199127425471063,
+        "inlier_count": 263,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.12937187071192702,
+          0.09067239146717153
+        ],
+        "uncertainty_status": "not_calibrated"
+      },
+      {
+        "id": "plane_5",
+        "type": "plane",
+        "center_m": [
+          -0.0010858730900627411,
+          0.02544665374608961,
+          0.03550178224208597
+        ],
+        "normal": [
+          0.00030342957906538573,
+          -0.0019244900184126335,
+          0.9999981021325288
+        ],
+        "fit_residual_mm": 0.24836478087857436,
+        "inlier_count": 172,
+        "degenerate": false,
+        "source": "depth_fit",
+        "observation_ids": [
+          "0000",
+          "0001",
+          "0002",
+          "0003",
+          "0004",
+          "0005",
+          "0006",
+          "0007",
+          "0008",
+          "0009",
+          "0010",
+          "0011"
+        ],
+        "view_support_count": 12,
+        "view_offset_range_mm": [
+          -0.36616514836805936,
+          0.15021819628464228
+        ],
+        "uncertainty_status": "not_calibrated"
+      }
+    ],
+    "observations": {
+      "accepted_frames": [
+        "0000",
+        "0001",
+        "0002",
+        "0003",
+        "0004",
+        "0005",
+        "0006",
+        "0007",
+        "0008",
+        "0009",
+        "0010",
+        "0011"
+      ],
+      "rejected_frames": []
+    },
+    "metrics": {
+      "accepted_frames": 12,
+      "rejected_frames": 0,
+      "timestamp_gaps": [],
+      "raw_point_count": 19650,
+      "fused_point_count": 18343,
+      "isolated_points_rejected": 0,
+      "voxel_size_mm": 0.5,
+      "measurement_point_count": 18325,
+      "measurement_support": "confidence-filtered native depth only; RGB anchors do not alter engineering dimensions",
+      "voxel_size_is_accuracy": false,
+      "camera_baseline_m": 0.8325670885006944,
+      "occupied_azimuth_bins_of_12": 8,
+      "coverage_is_complete": false,
+      "rgb": {
+        "status": "supported",
+        "matched_features": 41,
+        "triangulated_metric_anchors": 25,
+        "median_reprojection_error_px": 2.520440131338969,
+        "inconsistent_fraction": 0.1951219512195122,
+        "median_depth_disagreement_mm": 1.566688595228581,
+        "pose_refinement": "none; fixed metric poses",
+        "pairs": [
+          {
+            "from": "0000",
+            "to": "0001",
+            "matches": 16,
+            "metric_consistent": 10,
+            "baseline_m": 0.30115085057420693
+          },
+          {
+            "from": "0005",
+            "to": "0006",
+            "matches": 13,
+            "metric_consistent": 10,
+            "baseline_m": 0.30115085057420693
+          },
+          {
+            "from": "0006",
+            "to": "0007",
+            "matches": 12,
+            "metric_consistent": 5,
+            "baseline_m": 0.30115085057420693
+          }
+        ]
+      },
+      "tsdf_vertices": 30154,
+      "depth_consistency": {
+        "compared_visible_samples": 19831,
+        "median_visible_residual_mm": 0.6017890715110386,
+        "free_space_violation_fraction": 0.012404820735212546,
+        "method": "fixed-pose native-depth reprojection; behind-surface occlusions excluded"
+      },
+      "segment_registration": [],
+      "tsdf_triangles": 60000,
+      "elapsed_s": 2.03491033300088,
+      "masked_native_samples": 19650,
+      "segmentation_sources": [
+        "capture_foreground_mask"
+      ]
+    },
+    "physical_validation": {
+      "phone_sensing": "not_tested",
+      "dimension_accuracy": "not_calibrated",
+      "printed_fit": "not_tested"
+    },
+    "status": "ready",
+    "bounds_mm": {
+      "min": [
+        -30.00001371873884,
+        -4.000004684972164,
+        -37.50001214750412
+      ],
+      "max": [
+        30.00001371873878,
+        40.00000666092496,
+        37.50001289177207
+      ],
+      "extent": [
+        60.00002743747762,
+        44.00001134589712,
+        75.0000250392762
+      ]
+    },
+    "point_count": 18343,
+    "scale_correction": {
+      "factor": 1.0,
+      "reference": null,
+      "original_points": "points_filtered_uncorrected.npz",
+      "raw_depth_preserved": true
+    },
+    "uncertainty_budget": {
+      "capture_mm": null,
+      "registration_mm": null,
+      "reference_mm": null,
+      "cad_mm": null,
+      "printer_mm": null,
+      "combination": "conservative additive only after each bound is independently calibrated",
+      "status": "not_calibrated"
+    },
+    "annotations_revision": 0,
+    "worker_metrics": {
+      "peak_rss_bytes": 544423936
+    },
+    "artifacts": [
+      {
+        "id": "a735818a09d946a198bf6d05a881a226",
+        "name": "input_provenance.json",
+        "sha256": "8c235dcdf2db02e449884f017fe72b1842f532ca2115006a08cb7168cebd6fe0",
+        "size": 331
+      },
+      {
+        "id": "1b1c16a4506f49288fd57a6b10543553",
+        "name": "observed_surface.ply",
+        "sha256": "08d85d4e6bd792e3f0bc72def574dca780b61cafd7ce56abf33ea2bc5a80e4df",
+        "size": 2318178
+      },
+      {
+        "id": "7befade736d742b4b8b1006d2d2cb4ee",
+        "name": "points_filtered.npz",
+        "sha256": "e751ac4c1e074d555c727dc6d809cb05ab7012e6376bfef821f3019d65017ed7",
+        "size": 441282
+      },
+      {
+        "id": "e5835dce25d34f43a247932e43aac86f",
+        "name": "points_filtered_uncorrected.npz",
+        "sha256": "e751ac4c1e074d555c727dc6d809cb05ab7012e6376bfef821f3019d65017ed7",
+        "size": 441282
+      },
+      {
+        "id": "0697422a002b44b7acd088435964d9f5",
+        "name": "points_measurement.npz",
+        "sha256": "aa9e9da65f1655562656a7cd798e3953482c877225de436cf8a0da93fd4bf5d8",
+        "size": 440754
+      },
+      {
+        "id": "01ee2a85bde64ef580dd79fe22555585",
+        "name": "points_raw.npz",
+        "sha256": "9ee17ab9c559fed9003cacac00e6ec1a75bfa59af7a23dab4129955411adff5a",
+        "size": 462106
+      },
+      {
+        "id": "21f550478266447b8404b715c07e7a61",
+        "name": "reconstruction.json",
+        "sha256": "404e57bbcada246717d6f47489c3acbaf79b527514d3ff1300caba23829df560",
+        "size": 10530
+      },
+      {
+        "id": "31200e0beed8484cab9661fef5e0cd0f",
+        "name": "rgb_metric_anchors.npz",
+        "sha256": "6c9f898cd7d16b26287806f614c736bffaae57eb3e953fe2d1d5bf338cd905b9",
+        "size": 1301
+      },
+      {
+        "id": "7f17e0c9e86942d5aee39870e7f412be",
+        "name": "scan_preview.json",
+        "sha256": "b77da9725deb3c761f966f67c862a98cecb703626bb068998e45a3de36317fd8",
+        "size": 10648205
+      }
+    ]
+  },
+  "error": null
+}

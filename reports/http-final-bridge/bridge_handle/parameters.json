@@ -1,0 +1,102 @@
+{
+  "T_object_part_mm": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "attachment_method": "screws",
+  "family": "bridge_handle",
+  "generator_version": "1.0.1",
+  "input_hashes": {
+    "input_checksums_sha256": "2fd3fa9a0fa0f18b854c0fbd8cdb33d7845292d857bc9f0953987f8b53587f64",
+    "input_manifest_sha256": "982f3af65377dc67e57bd4d0d502c1111b1b34a8be139e47870379b58ab57f81",
+    "intent_sha256": "73b93967a312e3ac7121ffa62adf34269d1921be0d7ae25d8957190a65a611bc"
+  },
+  "parameter_provenance": {
+    "grip_depth": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "grip_width": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "hole_diameter": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "pad_length": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "pad_thickness": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "pad_width": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "span": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    },
+    "standoff": {
+      "confirmed": false,
+      "measurement_id": null,
+      "observation_ids": [],
+      "source": "design_inference",
+      "uncertainty_mm": null
+    }
+  },
+  "parameters": {
+    "grip_depth": 9.0,
+    "grip_width": 12.0,
+    "hole_diameter": 4.0,
+    "pad_length": 24.0,
+    "pad_thickness": 4.0,
+    "pad_width": 24.0,
+    "span": 80.0,
+    "standoff": 30.0
+  },
+  "repair_id": "9d976ad0d144487890c2d8bec18b6f6c",
+  "repair_revision": 1,
+  "revision_id": "01c114ab36bed0c4",
+  "scan_id": "sample_scan",
+  "scan_revision": 0,
+  "unit": "mm"
+}

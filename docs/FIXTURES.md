@@ -1,0 +1,30 @@
+# Independent synthetic observations and evaluation
+
+The fixture renderer in `scripts/generate_fixtures.py` uses analytic ray/box and ray/cup-surface intersections. It does not call production reconstruction, CAD, geometry transforms, or their fitted parameters. `fixtures/sample_scan` is a compact, explicitly synthetic broken two-mount assembly for the app's replay provider. Its input contains the surviving base and two mounting stubs; it contains no invented replacement grip and no correct-answer dimensions.
+
+Generate the inputs with the project's pinned Python environment:
+
+```sh
+.venv/bin/python scripts/generate_fixtures.py
+.venv/bin/python scripts/generate_fixtures.py --sample-only --output fixtures/sample_scan
+.venv/bin/python scripts/benchmark.py
+.venv/bin/python -m pytest backend/tests/test_benchmark.py -q
+```
+
+The suite has five scene families, each in development and held-out dimensions: calibration block, broken bridge-handle assembly, hollow cup with surviving contacts, L-shaped mating bracket, and asymmetric stepped object. The held-out trajectories also change orbit phase, elevation, and distance. Dimensions are fixed independently in the renderer before reconstruction and are not tuned to reconstruction results.
+
+Twenty additional packages exercise depth noise and confidence-marked outliers, 4% multiplicative depth bias, depth holes, invalid depths, occlusion, RGB blur, insufficient texture, pose drift, an unregistered origin reset, an explicitly registered reset, missing depth, absent confidence, timestamp gaps, incorrect declared RGB dimensions, incomplete manifests, partial coverage, padded depth row stride, an absent foreground mask, rotated portrait-shaped raw arrays, and a richly textured 640×480 RGB / 160×120 depth sequence with 24 smoothly overlapping views. The portrait case rotates the RGB/depth pixels, optical axes, intrinsics, and dimensions together. Its stored orientation remains `up` because calibration describes raw pixels; this is distinct from rotating a phone's display view.
+
+Each normal package has 12 frames, 320×240 calibrated JPEG RGB, 160×120 native Float32 little-endian depth, byte confidence, and byte foreground masks. Depth is camera-z distance in meters, not Euclidean range. Camera transforms are ARKit right/up/back axes in 16 column-major values. Intrinsics describe RGB resolution and pixel-center resizing maps them to depth. Padded rows and alternate raw aspect ratio are explicit variants. Foreground masks isolate geometric reconstruction benchmarking; the separate no-mask fixture tests depth-based object isolation. Texture is a deterministic function of surface world coordinates so it can support real cross-view matches.
+
+Evaluation-only primitive definitions and expected dimensions are stored under `fixtures/oracles`, **outside every capture package**. Never upload or bundle that directory with a scan. Reconstruction workers receive only the raw package path, stage name, and output path. The external evaluator then loads the oracle. Hashes in each oracle tie it to a raw manifest; the scan's checksums cover all observation assets. The renderer has no dependency on the backend.
+
+`benchmark.py` runs the same bytes through the production `raw_depth_pose`, `filtered_fusion`, and `rgb_assisted` stages, each in a fresh Python process. It records all-axis dimension error, signed scale error, analytic point-to-surface RMS/median/95th-percentile error, surface coverage, reconstruction status, warnings, runtime, and peak process RSS. No rigid or similarity alignment is applied; world-axis errors and scale errors remain visible. The reported scalar scale discrepancy is 100 × (norm(measured extents) / norm(reference extents) − 1); per-axis signed/absolute dimension differences remain available, so this size proxy cannot hide directional distortion. Peak RSS includes imported native libraries; reconstruction runtime starts after importing the implementation. All stages run on the same host and input files.
+
+The rich-texture sequence is an additional clean positive case: RGB correspondences must actually triangulate metric anchors, and its engineering dimensions still obey the clean gate. Production dimensions and attachment fits use confidence-filtered native observations; uncertain triangulated RGB anchors are saved separately and may contribute to the visualization cloud, but may not enlarge measured dimensions. Surface-error metrics evaluate the actual stage cloud, including RGB anchors where present.
+
+The clean dimension gate is absolute error ≤ max(0.5 mm, 1% of the reference length), independently for every axis, and for the fitted outer cup radius when the scene is a cup. Full-surface coverage is the fraction of exposed analytic union-surface samples within 2 mm of reconstructed points. It includes hidden surfaces and therefore does not mean that hidden geometry was observed. Point-to-surface error evaluates only reconstructed samples against the analytic surface. The CSG distance oracle is exact on true exposed surfaces; distances inside overlap regions of compound solids are conservative CSG distances, not an exact closest-point BREP solver. There is no claim that RGB assistance improves dimensions unless the measured comparison demonstrates it.
+
+Degraded inputs are not held to the clean numerical gate. Some degradations are detectable (corruption, missing depth, resets), while a consistent unknown depth bias cannot be recovered without independent metric evidence. A correct low-confidence or needs-input response is preferable to fabricated dimensions. A valid synthetic reconstruction remains uncalibrated as a real-device measurement and does not verify fit.
+
+Actual outcomes are in `reports/benchmark/benchmark.json`, per-run `process.log`/`worker_result.json`, and the main test report. These are generated test results, not promises from fixture creation. Real iPhone sensing, dimensional accuracy, print shrinkage, attachment strength, and printed fit require the separate physical test plan.

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "name": "asymmetric_heldout",
+  "scene": "asymmetric",
+  "heldout_dimensions": true,
+  "seed": 227,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.045,
+        -0.025,
+        -0.02
+      ],
+      "max_m": [
+        0.035,
+        0.015,
+        0.015
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.035,
+        -0.012,
+        -0.008
+      ],
+      "max_m": [
+        0.048,
+        0.006,
+        0.01
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.04,
+        0.015,
+        0.005
+      ],
+      "max_m": [
+        -0.022,
+        0.044899999999999995,
+        0.02
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        -0.012,
+        -0.023,
+        0.015
+      ],
+      "max_m": [
+        0.011,
+        -0.004,
+        0.027999999999999997
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -45.0,
+      -25.0,
+      -20.0
+    ],
+    "max": [
+      48.0,
+      44.9,
+      27.999999999999996
+    ],
+    "extent": [
+      93.0,
+      69.89999999999999,
+      48.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "570e3fa41ad962e22c298546788294b8cd6b9e2da527cccdc936fbf8063595b2"
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "calibration_block_heldout",
+  "scene": "calibration_block",
+  "heldout_dimensions": true,
+  "seed": 227,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.0415,
+        -0.0235,
+        -0.0155
+      ],
+      "max_m": [
+        0.0415,
+        0.0235,
+        0.0155
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -41.5,
+      -23.5,
+      -15.5
+    ],
+    "max": [
+      41.5,
+      23.5,
+      15.5
+    ],
+    "extent": [
+      83.0,
+      47.0,
+      31.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "26fb7b0ffe72f4b917afb68ea51b57ebe3eadeb2de1d6f773b60149c4e631179"
+}

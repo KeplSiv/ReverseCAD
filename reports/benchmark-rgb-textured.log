@@ -1,0 +1,21 @@
+{"fixture": "calibration_block_rgb_textured", "stage": "raw_depth_pose", "state": "completed", "dimension_gate_passed": true, "absolute_dimension_error_mm": [2.95825893061874e-05, 0.005814125602704223, 2.988580458662682e-05], "runtime_seconds": 0.8051279170003909}
+{"fixture": "calibration_block_rgb_textured", "stage": "filtered_fusion", "state": "completed", "dimension_gate_passed": true, "absolute_dimension_error_mm": [2.9277626794055323e-05, 0.005814125602704223, 2.988580458662682e-05], "runtime_seconds": 2.455940584000018}
+{"fixture": "calibration_block_rgb_textured", "stage": "rgb_assisted", "state": "completed", "dimension_gate_passed": false, "absolute_dimension_error_mm": [1.806539427822102, 0.12287528069781928, 2.7959740843847527], "runtime_seconds": 2.595134958000017}
+{
+  "schema_version": 1,
+  "scope": "synthetic software validation only; not real iPhone accuracy or printed fit",
+  "stage_comparison": "Identical raw input hashes across stages; separate process per stage. No similarity/rigid alignment.",
+  "dimension_gate": "abs(error) <= max(0.5 mm, 1% reference length) on full clean exposed bounds; all axes must pass",
+  "coverage_definition": "Fraction of all exposed analytic union-surface samples within 2mm of reconstructed points. Includes surfaces unseen by camera, so this is conservative full-object coverage, not a guarantee of hidden geometry.",
+  "memory_definition": "Peak process resident memory including imported native libraries, per fresh process; runtime excludes import and includes reconstruction only.",
+  "oracles": "Analytic primitive definitions outside scan packages; never passed to production reconstruction.",
+  "process_completion_rate": 1.0,
+  "reconstruction_ready_count": 3,
+  "needs_input_count": 0,
+  "explicit_rejection_count": 0,
+  "process_failure_count": 0,
+  "clean_stage_runs": 0,
+  "clean_stage_passes": 0,
+  "clean_all_pass": false,
+  "total_stage_runs": 3
+}

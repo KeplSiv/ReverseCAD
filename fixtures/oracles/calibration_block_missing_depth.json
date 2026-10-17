@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "calibration_block_missing_depth",
+  "scene": "calibration_block",
+  "heldout_dimensions": false,
+  "seed": 211,
+  "degradation": "missing_depth",
+  "primitives": [
+    {
+      "kind": "box",
+      "min_m": [
+        -0.05,
+        -0.03,
+        -0.02
+      ],
+      "max_m": [
+        0.05,
+        0.03,
+        0.02
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -50.0,
+      -30.0,
+      -20.0
+    ],
+    "max": [
+      50.0,
+      30.0,
+      20.0
+    ],
+    "extent": [
+      100.0,
+      60.0,
+      40.0
+    ]
+  },
+  "gate": "quality_or_explicit_failure",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "35913afe8f73b329352ff776bbdd3933c344ba205d793ec61cdb89298473dc87"
+}

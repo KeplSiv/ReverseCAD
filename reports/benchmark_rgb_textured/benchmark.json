@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic software validation only; not real iPhone accuracy or printed fit",
+  "stage_comparison": "Identical raw input hashes across stages; separate process per stage. No similarity/rigid alignment.",
+  "dimension_gate": "abs(error) <= max(0.5 mm, 1% reference length) on full clean exposed bounds; all axes must pass",
+  "coverage_definition": "Fraction of all exposed analytic union-surface samples within 2mm of reconstructed points. Includes surfaces unseen by camera, so this is conservative full-object coverage, not a guarantee of hidden geometry.",
+  "memory_definition": "Peak process resident memory including imported native libraries, per fresh process; runtime excludes import and includes reconstruction only.",
+  "oracles": "Analytic primitive definitions outside scan packages; never passed to production reconstruction.",
+  "process_completion_rate": 1.0,
+  "reconstruction_ready_count": 3,
+  "needs_input_count": 0,
+  "explicit_rejection_count": 0,
+  "process_failure_count": 0,
+  "clean_stage_runs": 0,
+  "clean_stage_passes": 0,
+  "clean_all_pass": false,
+  "total_stage_runs": 3,
+  "records": [
+    {
+      "state": "completed",
+      "runtime_seconds": 0.8051279170003909,
+      "input_checksums_sha256": "be8ab5f8f7487e4e82c93d336c48f54f2af90eadd1bcd452322e2c205d911559",
+      "implementation_sha256": {
+        "reconstruction.py": "1f97fc9c7652dabe857929ffcee24c2853716f83edee2fea65bee770571d14af",
+        "geometry.py": "699d024da52e60632ec5218f2141ad0c700840162871e4deae72406cac365676"
+      },
+      "dependency_versions": {
+        "numpy": "2.2.6",
+        "opencv-python-headless": "4.11.0.86",
+        "open3d": "0.19.0"
+      },
+      "peak_resident_memory_bytes": 200015872,
+      "fixture": "calibration_block_rgb_textured",
+      "scene": "calibration_block",
+      "degradation": "rgb_textured",
+      "heldout_dimensions": false,
+      "stage": "raw_depth_pose",
+      "wall_seconds": 1.0277586250003878,
+      "oracle_file": "fixtures/oracles/calibration_block_rgb_textured.json",
+      "reconstruction_status": "ready",
+      "warnings": [
+        "surface_mesh_unavailable: observed colored point cloud retained"
+      ],
+      "reconstruction_metrics": {
+        "accepted_frames": 24,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 73916,
+        "fused_point_count": 73908,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8600710938600935,
+        "occupied_azimuth_bins_of_12": 6,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "not_requested"
+        },
+        "tsdf_vertices": 0,
+        "depth_consistency": {
+          "compared_visible_samples": 42828,
+          "median_visible_residual_mm": 0.23583460440759763,
+          "free_space_violation_fraction": 0.029256561128233865,
+          "method": "fixed-pose native-depth reprojection; behind-surface occlusions excluded"
+        },
+        "segment_registration": [],
+        "tsdf_triangles": 0,
+        "elapsed_s": 0.8037072079996506,
+        "masked_native_samples": 73916,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 50000,
+      "dimension_mm": [
+        100.0000295825893,
+        59.994185874397296,
+        40.00002988580459
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        2.95825893061874e-05,
+        0.005814125602704223,
+        2.988580458662682e-05
+      ],
+      "relative_dimension_error_percent": [
+        2.95825893061874e-05,
+        0.009690209337840372,
+        7.471451146656705e-05
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": true,
+      "primitive_dimension_checks": [],
+      "surface_error_rms_mm": 6.68028050868264e-06,
+      "surface_error_median_mm": 4.854734047057829e-06,
+      "surface_error_p95_mm": 1.2468323443148854e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.8699048303106482,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": -0.002267637172315151
+    },
+    {
+      "state": "completed",
+      "runtime_seconds": 2.455940584000018,
+      "input_checksums_sha256": "be8ab5f8f7487e4e82c93d336c48f54f2af90eadd1bcd452322e2c205d911559",
+      "implementation_sha256": {
+        "reconstruction.py": "1f97fc9c7652dabe857929ffcee24c2853716f83edee2fea65bee770571d14af",
+        "geometry.py": "699d024da52e60632ec5218f2141ad0c700840162871e4deae72406cac365676"
+      },
+      "dependency_versions": {
+        "numpy": "2.2.6",
+        "opencv-python-headless": "4.11.0.86",
+        "open3d": "0.19.0"
+      },
+      "peak_resident_memory_bytes": 678789120,
+      "fixture": "calibration_block_rgb_textured",
+      "scene": "calibration_block",
+      "degradation": "rgb_textured",
+      "heldout_dimensions": false,
+      "stage": "filtered_fusion",
+      "wall_seconds": 2.7357512500002485,
+      "oracle_file": "fixtures/oracles/calibration_block_rgb_textured.json",
+      "reconstruction_status": "ready",
+      "warnings": [],
+      "reconstruction_metrics": {
+        "accepted_frames": 24,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 73916,
+        "fused_point_count": 59878,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8600710938600935,
+        "occupied_azimuth_bins_of_12": 6,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "not_requested"
+        },
+        "tsdf_vertices": 30288,
+        "depth_consistency": {
+          "compared_visible_samples": 42828,
+          "median_visible_residual_mm": 0.23583460440759763,
+          "free_space_violation_fraction": 0.029256561128233865,
+          "method": "fixed-pose native-depth reprojection; behind-surface occlusions excluded"
+        },
+        "segment_registration": [],
+        "tsdf_triangles": 60000,
+        "elapsed_s": 2.4527953329998127,
+        "masked_native_samples": 73916,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 50000,
+      "dimension_mm": [
+        100.0000292776268,
+        59.994185874397296,
+        40.00002988580459
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        2.9277626794055323e-05,
+        0.005814125602704223,
+        2.988580458662682e-05
+      ],
+      "relative_dimension_error_percent": [
+        2.9277626794055323e-05,
+        0.009690209337840372,
+        7.471451146656705e-05
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": true,
+      "primitive_dimension_checks": [],
+      "surface_error_rms_mm": 0.00472694636010893,
+      "surface_error_median_mm": 4.994076395481439e-06,
+      "surface_error_p95_mm": 1.2140817971621753e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.8699048303106482,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": -0.002267837810154827
+    },
+    {
+      "state": "completed",
+      "runtime_seconds": 2.595134958000017,
+      "input_checksums_sha256": "be8ab5f8f7487e4e82c93d336c48f54f2af90eadd1bcd452322e2c205d911559",
+      "implementation_sha256": {
+        "reconstruction.py": "1f97fc9c7652dabe857929ffcee24c2853716f83edee2fea65bee770571d14af",
+        "geometry.py": "699d024da52e60632ec5218f2141ad0c700840162871e4deae72406cac365676"
+      },
+      "dependency_versions": {
+        "numpy": "2.2.6",
+        "opencv-python-headless": "4.11.0.86",
+        "open3d": "0.19.0"
+      },
+      "peak_resident_memory_bytes": 681213952,
+      "fixture": "calibration_block_rgb_textured",
+      "scene": "calibration_block",
+      "degradation": "rgb_textured",
+      "heldout_dimensions": false,
+      "stage": "rgb_assisted",
+      "wall_seconds": 2.8938501660004476,
+      "oracle_file": "fixtures/oracles/calibration_block_rgb_textured.json",
+      "reconstruction_status": "ready",
+      "warnings": [],
+      "reconstruction_metrics": {
+        "accepted_frames": 24,
+        "rejected_frames": 0,
+        "timestamp_gaps": [],
+        "raw_point_count": 73916,
+        "fused_point_count": 60946,
+        "isolated_points_rejected": 0,
+        "voxel_size_mm": 0.5,
+        "voxel_size_is_accuracy": false,
+        "camera_baseline_m": 0.8600710938600935,
+        "occupied_azimuth_bins_of_12": 6,
+        "coverage_is_complete": false,
+        "rgb": {
+          "status": "supported",
+          "matched_features": 1824,
+          "triangulated_metric_anchors": 1751,
+          "median_reprojection_error_px": 0.9464426955358425,
+          "inconsistent_fraction": 0.013157894736842105,
+          "median_depth_disagreement_mm": 0.7038020992139654,
+          "pose_refinement": "none; fixed metric poses",
+          "pairs": [
+            {
+              "from": "0000",
+              "to": "0001",
+              "matches": 140,
+              "metric_consistent": 134,
+              "baseline_m": 0.08043757894022656
+            },
+            {
+              "from": "0001",
+              "to": "0002",
+              "matches": 123,
+              "metric_consistent": 119,
+              "baseline_m": 0.07832528304736888
+            },
+            {
+              "from": "0002",
+              "to": "0003",
+              "matches": 77,
+              "metric_consistent": 75,
+              "baseline_m": 0.07697618414774529
+            },
+            {
+              "from": "0003",
+              "to": "0004",
+              "matches": 32,
+              "metric_consistent": 31,
+              "baseline_m": 0.07751632364089499
+            },
+            {
+              "from": "0004",
+              "to": "0005",
+              "matches": 20,
+              "metric_consistent": 18,
+              "baseline_m": 0.07948542510660812
+            },
+            {
+              "from": "0005",
+              "to": "0006",
+              "matches": 70,
+              "metric_consistent": 68,
+              "baseline_m": 0.0813218758111415
+            },
+            {
+              "from": "0006",
+              "to": "0007",
+              "matches": 28,
+              "metric_consistent": 28,
+              "baseline_m": 0.0818668599957973
+            },
+            {
+              "from": "0007",
+              "to": "0008",
+              "matches": 21,
+              "metric_consistent": 18,
+              "baseline_m": 0.08127211279711576
+            },
+            {
+              "from": "0008",
+              "to": "0009",
+              "matches": 52,
+              "metric_consistent": 45,
+              "baseline_m": 0.08066689564681614
+            },
+            {
+              "from": "0009",
+              "to": "0010",
+              "matches": 103,
+              "metric_consistent": 97,
+              "baseline_m": 0.08092184021694336
+            },
+            {
+              "from": "0010",
+              "to": "0011",
+              "matches": 119,
+              "metric_consistent": 115,
+              "baseline_m": 0.08167909579689722
+            },
+            {
+              "from": "0011",
+              "to": "0012",
+              "matches": 188,
+              "metric_consistent": 184,
+              "baseline_m": 0.08175510448441443
+            },
+            {
+              "from": "0012",
+              "to": "0013",
+              "matches": 153,
+              "metric_consistent": 151,
+              "baseline_m": 0.08043757894022657
+            },
+            {
+              "from": "0013",
+              "to": "0014",
+              "matches": 111,
+              "metric_consistent": 110,
+              "baseline_m": 0.07832528304736883
+            },
+            {
+              "from": "0014",
+              "to": "0015",
+              "matches": 68,
+              "metric_consistent": 63,
+              "baseline_m": 0.0769761841477452
+            },
+            {
+              "from": "0015",
+              "to": "0016",
+              "matches": 27,
+              "metric_consistent": 26,
+              "baseline_m": 0.07751632364089492
+            },
+            {
+              "from": "0016",
+              "to": "0017",
+              "matches": 28,
+              "metric_consistent": 27,
+              "baseline_m": 0.07948542510660828
+            },
+            {
+              "from": "0017",
+              "to": "0018",
+              "matches": 89,
+              "metric_consistent": 86,
+              "baseline_m": 0.08132187581114143
+            },
+            {
+              "from": "0018",
+              "to": "0019",
+              "matches": 49,
+              "metric_consistent": 48,
+              "baseline_m": 0.08186685999579724
+            },
+            {
+              "from": "0019",
+              "to": "0020",
+              "matches": 29,
+              "metric_consistent": 26,
+              "baseline_m": 0.08127211279711588
+            },
+            {
+              "from": "0020",
+              "to": "0021",
+              "matches": 43,
+              "metric_consistent": 35,
+              "baseline_m": 0.08066689564681602
+            },
+            {
+              "from": "0021",
+              "to": "0022",
+              "matches": 110,
+              "metric_consistent": 107,
+              "baseline_m": 0.08092184021694321
+            },
+            {
+              "from": "0022",
+              "to": "0023",
+              "matches": 144,
+              "metric_consistent": 140,
+              "baseline_m": 0.08167909579689722
+            }
+          ]
+        },
+        "tsdf_vertices": 30288,
+        "depth_consistency": {
+          "compared_visible_samples": 42828,
+          "median_visible_residual_mm": 0.23583460440759763,
+          "free_space_violation_fraction": 0.029256561128233865,
+          "method": "fixed-pose native-depth reprojection; behind-surface occlusions excluded"
+        },
+        "segment_registration": [],
+        "tsdf_triangles": 60000,
+        "elapsed_s": 2.592281166000248,
+        "masked_native_samples": 73916,
+        "segmentation_sources": [
+          "capture_foreground_mask"
+        ]
+      },
+      "evaluated_points": 50000,
+      "dimension_mm": [
+        101.8065394278221,
+        60.12287528069782,
+        42.79597408438475
+      ],
+      "reference_dimension_mm": [
+        100.0,
+        60.0,
+        40.0
+      ],
+      "absolute_dimension_error_mm": [
+        1.806539427822102,
+        0.12287528069781928,
+        2.7959740843847527
+      ],
+      "relative_dimension_error_percent": [
+        1.806539427822102,
+        0.20479213449636546,
+        6.989935210961882
+      ],
+      "dimension_limits_mm": [
+        1.0,
+        0.6,
+        0.5
+      ],
+      "dimension_gate_passed": false,
+      "primitive_dimension_checks": [],
+      "surface_error_rms_mm": 0.07068857832828374,
+      "surface_error_median_mm": 5.146719122064991e-06,
+      "surface_error_p95_mm": 1.312584820625795e-05,
+      "full_analytic_surface_coverage_within_2mm": 0.8699048303106482,
+      "full_analytic_surface_samples": 11138,
+      "alignment": "none",
+      "scale_error_percent": 1.9895086197542655
+    }
+  ]
+}

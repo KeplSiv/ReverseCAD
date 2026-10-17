@@ -1,0 +1,34 @@
+{
+  "T_object_part_mm": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "family": "bracket",
+  "generator_version": "1.0.0",
+  "parameters": {
+    "hole_diameter": 4.0,
+    "hole_offset": 0.0,
+    "hole_spacing": 35.0,
+    "leg_height": 25.0,
+    "length": 65.0,
+    "thickness": 4.0,
+    "width": 30.0
+  },
+  "revision_id": "71e0a7b70957551f",
+  "scan_revision": 0,
+  "unit": "mm"
+}

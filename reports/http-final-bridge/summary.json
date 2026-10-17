@@ -1,0 +1,16 @@
+{
+  "source": "real HTTP service with synthetic raw RGB-D replay",
+  "reconstruction_state": "complete",
+  "scan_id": "sample_scan",
+  "results": [
+    {
+      "family": "bridge_handle",
+      "job_id": "71347f5df605410eb4ee264abc785902",
+      "artifacts_downloaded": 16,
+      "step_valid": true,
+      "stl_watertight": true,
+      "provider_status": "manual_no_provider",
+      "physical_fit": "not_tested"
+    }
+  ]
+}

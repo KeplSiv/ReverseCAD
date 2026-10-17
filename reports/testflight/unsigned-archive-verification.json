@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-10-17T02:20:36.991035+00:00",
+  "bundleId": "com.pranav.ReverseCAD",
+  "version": "1.0",
+  "build": "1",
+  "archive": "var/testflight/ReverseCAD-1.0-1-unsigned.xcarchive",
+  "signed": false,
+  "uploaded": false,
+  "appIcon": true,
+  "privacyManifest": true,
+  "localNetworkingOnly": true,
+  "executableSHA256": "13da47e05b44b9be1af93e8d79ece92d99a3f79e881b8e3ad8082c42a100993a"
+}

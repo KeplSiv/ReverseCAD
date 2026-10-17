@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "Segment": {
+      "additionalProperties": true,
+      "properties": {
+        "segment_id": {
+          "title": "Segment Id",
+          "type": "string"
+        },
+        "T_object_world": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 16,
+          "minItems": 16,
+          "title": "T Object World",
+          "type": "array"
+        },
+        "registered": {
+          "title": "Registered",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "segment_id",
+        "T_object_world",
+        "registered"
+      ],
+      "title": "Segment",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "scan_id": {
+      "title": "Scan Id",
+      "type": "string"
+    },
+    "source": {
+      "enum": [
+        "synthetic",
+        "arkit",
+        "camera_manual"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "device": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Device",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "complete": {
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "segments": {
+      "items": {
+        "$ref": "#/$defs/Segment"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Segments",
+      "type": "array"
+    },
+    "frame_count": {
+      "maximum": 240,
+      "minimum": 1,
+      "title": "Frame Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "scan_id",
+    "source",
+    "device",
+    "created_at",
+    "complete",
+    "segments",
+    "frame_count"
+  ],
+  "title": "ScanManifest",
+  "type": "object"
+}

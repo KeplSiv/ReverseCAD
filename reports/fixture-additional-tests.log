@@ -1,0 +1,24 @@
+.F..                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_degraded_inputs_never_claim_verified_fit[pose_drift] ___________
+
+tmp_path = PosixPath('/private/var/folders/8d/xk_s7l5d4w9gyhczqx8yn_480000gn/T/pytest-of-pranav/pytest-12/test_degraded_inputs_never_cla1')
+degradation = 'pose_drift'
+
+    @pytest.mark.parametrize("degradation",["origin_reset","missing_depth","blur","mismatched_image_sizes","partial_coverage","incomplete","pose_drift"])
+    def test_degraded_inputs_never_claim_verified_fit(tmp_path,degradation):
+        from reversecad.reconstruction import reconstruct
+        package=tmp_path/"scan"
+        generate_package(package,degradation=degradation)
+        try:result=reconstruct(package,tmp_path/"output")
+        except (ValueError,RuntimeError):return
+>       assert result["status"]=="needs_input"
+E       AssertionError: assert 'ready' == 'needs_input'
+E         
+E         - needs_input
+E         + ready
+
+backend/tests/test_benchmark.py:99: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/test_benchmark.py::test_degraded_inputs_never_claim_verified_fit[pose_drift]
+1 failed, 3 passed, 23 deselected in 9.55s

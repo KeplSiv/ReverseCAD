@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "name": "cup_heldout",
+  "scene": "cup",
+  "heldout_dimensions": true,
+  "seed": 227,
+  "degradation": "clean",
+  "primitives": [
+    {
+      "kind": "cup",
+      "radius_m": 0.0435,
+      "inner_radius_m": 0.040499999999999994,
+      "bottom_y_m": -0.0515,
+      "top_y_m": 0.0515,
+      "bottom_thickness_m": 0.004
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.041499999999999995,
+        -0.03484,
+        -0.005
+      ],
+      "max_m": [
+        0.049499999999999995,
+        -0.02284,
+        0.005
+      ]
+    },
+    {
+      "kind": "box",
+      "min_m": [
+        0.041499999999999995,
+        0.02284,
+        -0.005
+      ],
+      "max_m": [
+        0.049499999999999995,
+        0.03484,
+        0.005
+      ]
+    }
+  ],
+  "bounds_mm": {
+    "min": [
+      -43.5,
+      -51.5,
+      -43.5
+    ],
+    "max": [
+      49.49999999999999,
+      51.5,
+      43.5
+    ],
+    "extent": [
+      93.0,
+      103.0,
+      87.0
+    ]
+  },
+  "gate": "clean_dimension_error_le_max_0.5mm_1pct",
+  "reference_unit": "m",
+  "alignment": "none; object coordinates are already metric",
+  "renderer_version": 1,
+  "package_manifest_sha256": "6e5c98b5a33af1d2f49ac8e70cf48092a4791497639c7573c226d7d986ae8e75"
+}

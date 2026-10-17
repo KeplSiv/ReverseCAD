@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scan_id": "asymmetric_heldout",
+  "source": "synthetic",
+  "device": "Independent analytic ray renderer v1 (not a phone)",
+  "created_at": "2026-10-16T00:00:00Z",
+  "complete": true,
+  "segments": [
+    {
+      "segment_id": "segment-0",
+      "T_object_world": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "registered": true
+    }
+  ],
+  "frame_count": 12
+}

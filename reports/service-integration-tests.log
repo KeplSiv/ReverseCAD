@@ -1,0 +1,69 @@
+..........................                                               [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.11/site-packages/starlette/testclient.py:37
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:609: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    simple_dir = oneOf(["X", "Y", "Z", "XY", "XZ", "YZ"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:613: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    cqtype = oneOf(
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:616: PyparsingDeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    cqtype = cqtype.setParseAction(pyparsing_common.upcaseTokens)
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:622: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    direction_op = oneOf([">", "<"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:625: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    center_nth_op = oneOf([">>", "<<"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:635: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    other_op = oneOf(["|", "#", "+", "-"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:638: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    named_view = oneOf(["front", "back", "left", "right", "top", "bottom"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:763: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    delta_op = oneOf(["exc", "except"])
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:770: PyparsingDeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    atom.setParseAction(atom_callback)
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/selectors.py:793: PyparsingDeprecationWarning: 'infixNotation' deprecated - use 'infix_notation'
+    expr = infixNotation(
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/assembly.py:65: PyparsingDeprecationWarning: 'delimitedList' deprecated - use 'DelimitedList'
+    Name = delimitedList(
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/assembly.py:67: PyparsingDeprecationWarning: 'setResultsName' deprecated - use 'set_results_name'
+    ).setResultsName("name")
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/assembly.py:68: PyparsingDeprecationWarning: 'setResultsName' deprecated - use 'set_results_name'
+    Tag = Word(alphas, alphanums + "_").setResultsName("tag")
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/assembly.py:69: PyparsingDeprecationWarning: 'setResultsName' deprecated - use 'set_results_name'
+    Selector = _selector_grammar.setResultsName("selector")
+
+backend/tests/test_service_integration.py::test_full_uploaded_scan_to_reimported_cad[bridge_handle-broken_bridge_clean]
+  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/cadquery/assembly.py:73: PyparsingDeprecationWarning: 'setResultsName' deprecated - use 'set_results_name'
+    ).setResultsName("selector_kind")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/pranav/Desktop/hack-harvard/reverse-cad/reports/service-integration-junit.xml -
+26 passed, 16 warnings in 37.69s

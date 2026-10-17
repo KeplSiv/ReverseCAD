@@ -1,0 +1,16 @@
+{
+  "source": "real HTTP service with synthetic raw RGB-D replay",
+  "reconstruction_state": "complete",
+  "scan_id": "bracket_clean",
+  "results": [
+    {
+      "family": "bracket",
+      "job_id": "bf3f11801c964d8fb78982ff1ae37dfd",
+      "artifacts_downloaded": 16,
+      "step_valid": true,
+      "stl_watertight": true,
+      "provider_status": "manual_no_provider",
+      "physical_fit": "not_tested"
+    }
+  ]
+}

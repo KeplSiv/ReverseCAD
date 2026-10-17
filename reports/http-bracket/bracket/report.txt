@@ -1,0 +1,25 @@
+Reverse CAD revision ae06ac731a3a848f
+Family: bracket; generator 1.0.0; all dimensions mm
+CAD/exports: passed. Fit status: needs_input.
+Physical sensing, printed fit, material strength and attachment strength: NOT TESTED.
+
+Parameters:
+  width: 30 mm
+  length: 65 mm
+  thickness: 4 mm
+  leg_height: 25 mm
+  hole_diameter: 4 mm
+  hole_spacing: 35 mm
+  hole_offset: 0 mm
+
+Provenance: measurements/observations remain in scan report. The generator proposes replacement shape; it does not measure missing material.
+Tessellation tolerance: 0.05 mm; this is not sensor accuracy.
+
+Unresolved:
+  Confirm selected contact frames and alignment
+  Resolve collision/contact/path evidence before claiming fit
+  Confirm critical dimensions: hole_diameter, hole_spacing
+
+Assembly: blocked
+Thickness: Sampled chords, not a proof of global minimum wall thickness; template checks also required. No strength estimate.
+Support needed in current orientation: False

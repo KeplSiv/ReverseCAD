@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "ProposalParameter": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "source": {
+          "enum": [
+            "measurement",
+            "manual",
+            "design_inference"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "measurement_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Measurement Id"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "source",
+        "measurement_id"
+      ],
+      "title": "ProposalParameter",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "family": {
+      "enum": [
+        "bridge_handle",
+        "cup_handle",
+        "bracket",
+        "unsupported"
+      ],
+      "title": "Family",
+      "type": "string"
+    },
+    "explanation": {
+      "maxLength": 2000,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "parameters": {
+      "items": {
+        "$ref": "#/$defs/ProposalParameter"
+      },
+      "maxItems": 24,
+      "title": "Parameters",
+      "type": "array"
+    },
+    "measurement_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Measurement Refs",
+      "type": "array"
+    },
+    "attachment_method": {
+      "maxLength": 80,
+      "title": "Attachment Method",
+      "type": "string"
+    },
+    "questions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "title": "Questions",
+      "type": "array"
+    },
+    "requested_validation": {
+      "items": {
+        "enum": [
+          "solid",
+          "mesh",
+          "dimensions",
+          "collision",
+          "assembly",
+          "thickness",
+          "print"
+        ],
+        "type": "string"
+      },
+      "maxItems": 7,
+      "title": "Requested Validation",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "family",
+    "explanation",
+    "parameters",
+    "measurement_refs",
+    "attachment_method",
+    "questions",
+    "requested_validation"
+  ],
+  "title": "RepairIntent",
+  "type": "object"
+}
