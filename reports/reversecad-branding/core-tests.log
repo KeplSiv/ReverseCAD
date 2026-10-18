@@ -1,0 +1,122 @@
+Building for debugging...
+[0/4] Write sources
+[2/4] Write swift-version--58304C5D6DBC2206.txt
+[4/6] Compiling ReverseCADCore ObservedSurface.swift
+[5/6] Emitting module ReverseCADCore
+[6/9] Emitting module ReverseCADCoreTests
+[7/9] Compiling ReverseCADCoreTests ObservedSurfaceTests.swift
+[7/9] Write Objects.LinkFileList
+[8/9] Linking ReverseCADCorePackageTests
+Build complete! (0.80s)
+Test Suite 'All tests' started at 2026-10-18 08:10:55.316.
+Test Suite 'ReverseCADCorePackageTests.xctest' started at 2026-10-18 08:10:55.316.
+Test Suite 'CaptureFirstTests' started at 2026-10-18 08:10:55.316.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testAdjustedDisplayBoxRetainsRawCoordinates]' started.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testAdjustedDisplayBoxRetainsRawCoordinates]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testConsensusNeedsSameInstanceMajorityAndReferenceContainsTap]' started.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testConsensusNeedsSameInstanceMajorityAndReferenceContainsTap]' passed (0.001 seconds).
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testEditableSelectionClampsMoveAndEveryCorner]' started.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testEditableSelectionClampsMoveAndEveryCorner]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testSelectionRejectsBlurAndDuplicatesAndKeepsInitialReference]' started.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testSelectionRejectsBlurAndDuplicatesAndKeepsInitialReference]' passed (0.004 seconds).
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testThirdsAndInverseDisplayMappingForRotatedAndCroppedPreview]' started.
+Test Case '-[ReverseCADCoreTests.CaptureFirstTests testThirdsAndInverseDisplayMappingForRotatedAndCroppedPreview]' passed (0.000 seconds).
+Test Suite 'CaptureFirstTests' passed at 2026-10-18 08:10:55.322.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'GeometryTests' started at 2026-10-18 08:10:55.322.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentNativeARKitRayWithNoncentralPixelAndTwoTransforms]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentNativeARKitRayWithNoncentralPixelAndTwoTransforms]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentResizedSyntheticPixelCenterRay]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentResizedSyntheticPixelCenterRay]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testInvalidDepthAndCalibrationRejected]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testInvalidDepthAndCalibrationRejected]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testNativeAndResizedCalibrationMustNotConflatePrincipalPoints]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testNativeAndResizedCalibrationMustNotConflatePrincipalPoints]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testPaddedStridePreservesOnlyRealBytes]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testPaddedStridePreservesOnlyRealBytes]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testPreviewUnitsConvertExactlyOnce]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testPreviewUnitsConvertExactlyOnce]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testReflectionsScaleAndNonfiniteTransformsRejected]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testReflectionsScaleAndNonfiniteTransformsRejected]' passed (0.000 seconds).
+Test Suite 'GeometryTests' passed at 2026-10-18 08:10:55.322.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'JevClientTests' started at 2026-10-18 08:10:55.322.
+Test Case '-[ReverseCADCoreTests.JevClientTests testAbsentAmbiguousAndMalformedBoxesAreRejected]' started.
+Test Case '-[ReverseCADCoreTests.JevClientTests testAbsentAmbiguousAndMalformedBoxesAreRejected]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.JevClientTests testActionableErrorsDoNotExposeProviderBodyOrKeepRetryingBadCredentials]' started.
+Test Case '-[ReverseCADCoreTests.JevClientTests testActionableErrorsDoNotExposeProviderBodyOrKeepRetryingBadCredentials]' passed (0.006 seconds).
+Test Case '-[ReverseCADCoreTests.JevClientTests testDirectAuthenticatedRequestNeedsNoCompanionSettings]' started.
+Test Case '-[ReverseCADCoreTests.JevClientTests testDirectAuthenticatedRequestNeedsNoCompanionSettings]' passed (0.001 seconds).
+Test Case '-[ReverseCADCoreTests.JevClientTests testOptInLiveTypeSafeRequest]' started.
+/Users/pranav/.codex/worktrees/reversecad-testflight/reverse-cad/packages/ReverseCADCore/Tests/ReverseCADCoreTests/JevClientTests.swift:96: -[ReverseCADCoreTests.JevClientTests testOptInLiveTypeSafeRequest] : Test skipped - Real provider check requires explicit key and fixture paths.
+Test Case '-[ReverseCADCoreTests.JevClientTests testOptInLiveTypeSafeRequest]' skipped (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.JevClientTests testOptInSavedViewReferenceRequest]' started.
+/Users/pranav/.codex/worktrees/reversecad-testflight/reverse-cad/packages/ReverseCADCore/Tests/ReverseCADCoreTests/JevClientTests.swift:85: -[ReverseCADCoreTests.JevClientTests testOptInSavedViewReferenceRequest] : Test skipped - Explicit live fixture configuration required
+Test Case '-[ReverseCADCoreTests.JevClientTests testOptInSavedViewReferenceRequest]' skipped (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.JevClientTests testRateLimitDelayIsAppliedToSchedule]' started.
+Test Case '-[ReverseCADCoreTests.JevClientTests testRateLimitDelayIsAppliedToSchedule]' passed (0.000 seconds).
+Test Suite 'JevClientTests' passed at 2026-10-18 08:10:55.331.
+	 Executed 6 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'LiveIdentificationTests' started at 2026-10-18 08:10:55.331.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testCadenceAndBackpressureWithoutCatchUpBurst]' started.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testCadenceAndBackpressureWithoutCatchUpBurst]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testExpiredAndPreviousSessionRepliesAreRejected]' started.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testExpiredAndPreviousSessionRepliesAreRejected]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testFailureBackoffAndRecovery]' started.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testFailureBackoffAndRecovery]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testOlderNegativeReplyCannotEraseNewerTarget]' started.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testOlderNegativeReplyCannotEraseNewerTarget]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testTimeoutStillBacksOffButCannotReplaceANewerReply]' started.
+Test Case '-[ReverseCADCoreTests.LiveIdentificationTests testTimeoutStillBacksOffButCannotReplaceANewerReply]' passed (0.000 seconds).
+Test Suite 'LiveIdentificationTests' passed at 2026-10-18 08:10:55.331.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'ObservedSurfaceTests' started at 2026-10-18 08:10:55.331.
+Test Case '-[ReverseCADCoreTests.ObservedSurfaceTests testAccumulatorAddsObservedSurfacesWithoutDuplicateOrInventedFaces]' started.
+Test Case '-[ReverseCADCoreTests.ObservedSurfaceTests testAccumulatorAddsObservedSurfacesWithoutDuplicateOrInventedFaces]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.ObservedSurfaceTests testDepthPreviewPreservesMaskHolesAndRejectsDepthEdges]' started.
+Test Case '-[ReverseCADCoreTests.ObservedSurfaceTests testDepthPreviewPreservesMaskHolesAndRejectsDepthEdges]' passed (0.001 seconds).
+Test Suite 'ObservedSurfaceTests' passed at 2026-10-18 08:10:55.332.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PersistenceTests' started at 2026-10-18 08:10:55.332.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testDuplicateTimestampAndWrongSegmentDoNotDestroyCommittedFrame]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testDuplicateTimestampAndWrongSegmentDoNotDestroyCommittedFrame]' passed (0.018 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFixtureCrossLanguageContractAndMatrixSerialization]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFixtureCrossLanguageContractAndMatrixSerialization]' passed (0.015 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFrameCommitAndChecksumCorruption]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFrameCommitAndChecksumCorruption]' passed (0.008 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testImportedPackageAndDurableJobCheckpoint]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testImportedPackageAndDurableJobCheckpoint]' passed (0.010 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testIncompleteRecoveryPreservesCommittedFramesAndOptionalVideo]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testIncompleteRecoveryPreservesCommittedFramesAndOptionalVideo]' passed (0.010 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testLegacyFrameDecodingDefaultsCalibrationAndNativeEncodingPreservesMatrixKey]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testLegacyFrameDecodingDefaultsCalibrationAndNativeEncodingPreservesMatrixKey]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testMissingDepthAndConfidenceAreExplicit]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testMissingDepthAndConfidenceAreExplicit]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testPathTraversalSymlinksAndMissingAssetRejected]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testPathTraversalSymlinksAndMissingAssetRejected]' passed (0.003 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testSparseOriginalsSurviveCommitRecoveryAndImport]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testSparseOriginalsSurviveCommitRecoveryAndImport]' passed (0.023 seconds).
+Test Suite 'PersistenceTests' passed at 2026-10-18 08:10:55.420.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.088 (0.088) seconds
+Test Suite 'PhoneCalibrationProfileTests' started at 2026-10-18 08:10:55.420.
+Test Case '-[ReverseCADCoreTests.PhoneCalibrationProfileTests testReferenceDoesNotInventRearCalibrationAndRevisionsRemainRecoverable]' started.
+Test Case '-[ReverseCADCoreTests.PhoneCalibrationProfileTests testReferenceDoesNotInventRearCalibrationAndRevisionsRemainRecoverable]' passed (0.001 seconds).
+Test Case '-[ReverseCADCoreTests.PhoneCalibrationProfileTests testRejectsMissingReferenceDigest]' started.
+Test Case '-[ReverseCADCoreTests.PhoneCalibrationProfileTests testRejectsMissingReferenceDigest]' passed (0.000 seconds).
+Test Suite 'PhoneCalibrationProfileTests' passed at 2026-10-18 08:10:55.421.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'ScanGuidanceTests' started at 2026-10-18 08:10:55.421.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testQualityAndFramingTakePriorityOverOrbit]' started.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testQualityAndFramingTakePriorityOverOrbit]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testRotationInPlaceDoesNotCreateCoverageAndNewRingIsRequested]' started.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testRotationInPlaceDoesNotCreateCoverageAndNewRingIsRequested]' passed (0.000 seconds).
+Test Suite 'ScanGuidanceTests' passed at 2026-10-18 08:10:55.422.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'ReverseCADCorePackageTests.xctest' passed at 2026-10-18 08:10:55.422.
+	 Executed 38 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.104 (0.106) seconds
+Test Suite 'All tests' passed at 2026-10-18 08:10:55.422.
+	 Executed 38 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.104 (0.106) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

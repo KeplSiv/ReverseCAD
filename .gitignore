@@ -25,6 +25,7 @@ xcuserdata/
 reports/**/runs/
 reports/testflight/release-*/
 reports/testflight/prelude-release-*/
+reports/testflight/reversecad-scanner-release-*/
 reports/testflight/provisioning.json
 reports/testflight/app-record.json
 
