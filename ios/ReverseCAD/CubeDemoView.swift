@@ -76,9 +76,9 @@ struct CubeDemoView: View {
                                     Label("Export model", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                                 }.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("exportCube")
                                 if finding != nil { Button("Adjust size") { files = []; cadReview = nil } }
-                                Button(reviewingCAD ? "Reviewing CAD…" : "Review CAD with Grok") {
+                                Button(reviewingCAD ? "Identifying and reviewing…" : "Review with Jev + Grok") {
                                     showCADConsent = true
-                                }.buttonStyle(.bordered).disabled(reviewingCAD || !files.contains(where: { $0.lastPathComponent == "repair_plan.json" }))
+                                }.buttonStyle(.bordered).disabled(reviewingCAD || !files.contains(where: { $0.lastPathComponent == "repair_plan.json" }) || photo == nil)
                                 if let cadReview {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text("Grok review · unverified").font(.headline)
@@ -157,10 +157,10 @@ struct CubeDemoView: View {
         }
         .sheet(isPresented: $showSettings) { SettingsView().environmentObject(model) }
         .confirmationDialog("Send this CAD for review?", isPresented: $showCADConsent, titleVisibility: .visible) {
-            Button("Send to Grok") { Task { await reviewCAD() } }
+            Button("Send to Jev + Grok") { Task { await reviewCAD() } }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Sends the CAD recipe, geometry summary and current reference photo, when available, to xAI. The API key stays on your Mac. Review does not modify the part.")
+            Text("Sends the current photo to TypeSafe Jev for identification, then the CAD, photo and identification to xAI for review. The API key stays on your Mac. Review does not modify the part.")
         }
         .sheet(isPresented: $showShare) { ShareSheet(urls: files) }
         .alert("Couldn’t create model", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
@@ -174,17 +174,29 @@ struct CubeDemoView: View {
         defer { reviewingCAD = false }
         do {
             let program = try JSONSerialization.jsonObject(with: Data(contentsOf: planURL))
-            var request: [String: Any] = ["program": program, "consent_to_send": true]
+            var request: [String: Any] = ["program": program, "consent_to_send": true, "use_jev": true]
             if let photo, let data = normalized(photo).jpegData(compressionQuality: 0.85) {
                 request["reference_images_base64"] = [data.base64EncodedString()]
             }
             let response = try await model.object("v1/cad/review", method: "POST", json: request)
             guard files.contains(planURL) else { return }
+            if response["status"] as? String == "classification_required" {
+                let classification = response["classification"] as? [String: Any] ?? [:]
+                let state = classification["status"] as? String ?? "unavailable"
+                cadReview = state == "missing_api_key"
+                    ? "Add TYPESAFE_API_KEY to the Mac service .env to enable Jev. Grok was not called; your CAD is unchanged."
+                    : "Jev could not identify a single target (\(state)). Select a clear reference photo and retry. Grok was not called."
+                return
+            }
             guard response["status"] as? String == "reviewed", let review = response["review"] as? [String: Any] else {
                 cadReview = "Review unavailable (\(response["error_code"] as? String ?? response["status"] as? String ?? "unknown")). Your CAD is unchanged."
                 return
             }
-            var lines = [review["summary"] as? String ?? ""]
+            var identification = ""
+            if let detection = response["classification"] as? [String: Any], let category = detection["category"] as? String {
+                identification = "Jev suggests: " + category.replacingOccurrences(of: "_", with: " ") + " (unverified)."
+            }
+            var lines = [identification, review["summary"] as? String ?? ""]
             for observation in review["observations"] as? [[String: Any]] ?? [] {
                 if let claim = observation["claim"] as? String { lines.append("• " + claim) }
             }
@@ -221,6 +233,8 @@ struct CubeDemoView: View {
         let restored = names.map { latest.appendingPathComponent($0) }
         if restored.allSatisfy({ FileManager.default.fileExists(atPath: $0.path) }) {
             let plan = latest.appendingPathComponent("repair_plan.json")
+            photo = UIImage(contentsOfFile: latest.appendingPathComponent("reference.jpg").path)
+            cadReview = nil
             files = restored + (FileManager.default.fileExists(atPath: plan.path) ? [plan] : [])
         }
     }
@@ -301,6 +315,10 @@ struct CubeDemoView: View {
                 saved.append(url)
             }
             guard Set(saved.map(\.lastPathComponent)) == Set(["outer_cubie.py", "outer_cubie.step", "outer_cubie.stl", "measurements.json", "repair_plan.json"]) else { throw ServiceFailure(message: "The cube model is incomplete.") }
+            if let photo, let reference = normalized(photo).jpegData(compressionQuality: 0.85) {
+                try reference.write(to: directory.appendingPathComponent("reference.jpg"), options: .atomic)
+            }
+            cadReview = nil
             files = saved.sorted { $0.lastPathComponent < $1.lastPathComponent }
         } catch { self.error = error.localizedDescription }
     }

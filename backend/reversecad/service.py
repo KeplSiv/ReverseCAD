@@ -374,7 +374,9 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
                 raise ValueError("Reference image exceeds request budget")
             images=[base64.b64decode(data,validate=True) for data in body.reference_images_base64]
             context=context_from_program(body.program)
-            return review_context(context,images,consent=True,model_views=render_shape(execute_cube_program(body.program)[0].val()))
+            from .jev import review_with_jev
+            reviewer = review_with_jev if body.use_jev else review_context
+            return reviewer(context,images,consent=True,model_views=render_shape(execute_cube_program(body.program)[0].val()))
         except (ValueError,TypeError,KeyError) as exc:
             error(422,"invalid_cad_review",str(exc)[:200])
 

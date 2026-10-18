@@ -1,0 +1,133 @@
+{
+  "date": "2026-10-18",
+  "provider_calls": "Live TypeSafe Jev followed by live xAI Grok",
+  "runs": [
+    {
+      "run": "jev-saved-corner",
+      "status": "reviewed",
+      "classification": {
+        "provider": "typesafe_jev",
+        "source_sha256": "2905466d40bcb6d203652526526a4b4cf1a3c5173700f8d126ef527d43ce5f2b",
+        "requested_model": "jev-1.14.0",
+        "verified": false,
+        "status": "classified",
+        "model": "jev-1.14.0",
+        "category": "twisty_puzzle",
+        "confidence": 0.91,
+        "presence": 0.95,
+        "instances": "one",
+        "box": {
+          "left": 0.01,
+          "top": 0.05,
+          "right": 0.67,
+          "bottom": 0.73
+        },
+        "box_confidence": 0.62,
+        "coordinates": "normalized_top_left_exif_oriented_source",
+        "source_size": [
+          1660,
+          1494
+        ],
+        "request_size": [
+          1024,
+          922
+        ],
+        "used_for_metric_geometry": false,
+        "automatic_crop_applied": false
+      },
+      "reference_views": 1,
+      "cad_render_views": 3,
+      "geometry_changed": false,
+      "physical_fit": "not_tested",
+      "numeric_proposals_withheld": 0,
+      "unverified_review_summary": "CAD is a valid B-rep solid (volume 5427 mm\u00b3) depicting a twisty puzzle core with cylindrical axles, spherical ends, and complex BSPLINE surfaces forming a tri-lobed recessed cavity with rounded triangular features and filleted edges. Topology shows multiple small planar and cylindrical faces around the lobes (F14-F18, F26-F37, F45-F59). Renders show the assembled core with a detached tri-lobed cap piece. The single reference photo shows a physical 3x3 Rubik's-style cube, which does not match the CAD's complex internal geometry or detached part; exact correspondence is unestablished."
+    },
+    {
+      "run": "jev-saved-mixed",
+      "status": "reviewed",
+      "classification": {
+        "provider": "typesafe_jev",
+        "source_sha256": "d9b86da44a5d93eb22d2ff7d1a138953c04d51ba01f62482ae1e9c8ea3bcd664",
+        "requested_model": "jev-1.14.0",
+        "verified": false,
+        "status": "classified",
+        "model": "jev-1.14.0",
+        "category": "twisty_puzzle",
+        "confidence": 0.89,
+        "presence": 0.92,
+        "instances": "one",
+        "box": {
+          "left": 0.01,
+          "top": 0.18,
+          "right": 0.67,
+          "bottom": 0.85
+        },
+        "box_confidence": 0.67,
+        "coordinates": "normalized_top_left_exif_oriented_source",
+        "source_size": [
+          1660,
+          1494
+        ],
+        "request_size": [
+          1024,
+          922
+        ],
+        "used_for_metric_geometry": false,
+        "automatic_crop_applied": false
+      },
+      "reference_views": 1,
+      "cad_render_views": 3,
+      "geometry_changed": false,
+      "physical_fit": "not_tested",
+      "numeric_proposals_withheld": 0,
+      "unverified_review_summary": "CAD is a valid B-rep of a twisty puzzle component (corner piece with rounded lobes, cylindrical axles, and complex filleted/bspline transitions at the base). Topology shows multiple BSPLINE faces (F23, F34-F41 etc.) with dense edge networks around cylindrical cutouts and tori. Renders match reference photo geometry for visible external features (lobes, central post, rounded edges)."
+    },
+    {
+      "run": "jev-saved-mixed-with-donor",
+      "status": "reviewed",
+      "classification": {
+        "provider": "typesafe_jev",
+        "source_sha256": "d9b86da44a5d93eb22d2ff7d1a138953c04d51ba01f62482ae1e9c8ea3bcd664",
+        "requested_model": "jev-1.14.0",
+        "verified": false,
+        "status": "classified",
+        "model": "jev-1.14.0",
+        "category": "twisty_puzzle",
+        "confidence": 0.89,
+        "presence": 0.89,
+        "instances": "one",
+        "box": {
+          "left": 0.01,
+          "top": 0.19,
+          "right": 0.67,
+          "bottom": 0.85
+        },
+        "box_confidence": 0.61,
+        "coordinates": "normalized_top_left_exif_oriented_source",
+        "source_size": [
+          1660,
+          1494
+        ],
+        "request_size": [
+          1024,
+          922
+        ],
+        "used_for_metric_geometry": false,
+        "automatic_crop_applied": false
+      },
+      "reference_views": 2,
+      "cad_render_views": 3,
+      "geometry_changed": false,
+      "physical_fit": "not_tested",
+      "numeric_proposals_withheld": 0,
+      "unverified_review_summary": "CAD is a valid B-rep replacement component (volume 5379 mm\u00b3) for a twisty puzzle mechanism. Complex BSPLINE surfaces (F4, F11, F12, F23, F34-F41, F48-F50, F59, F62) form contoured lobes and internal features matching donor photos in outline. Multiple cylindrical/spherical fillets and tori indicate rounded edges. Topology shows no obvious defects per kernel checks. No exact dimensional matches can be claimed without calibrated references."
+    }
+  ],
+  "assessment": {
+    "classification": "Both saved cube images identified as twisty_puzzle. Provider confidence is not measured accuracy.",
+    "boxes": "Advisory only; no segmentation, automatic crop, dimensions or geometry changes.",
+    "grok": "Initial runs confused replacement component with assembly and made unsupported surface claims. Explicit assembly/donor roles improved framing but did not establish detail accuracy.",
+    "result": "Integration demonstrated. Automatic repair and physical fit not validated.",
+    "phone": "Debug build succeeded; installed and launched."
+  }
+}

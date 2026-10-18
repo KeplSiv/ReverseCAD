@@ -137,11 +137,28 @@ separate benchmark; they are not installed by this integration.
 not automatic recovery of a scan's construction history. G-code remains a later
 slicer/CAM output, not the representation used for geometry reasoning here.
 
-Jev handoff status: this checkout contains the TypeSafe Jev specification in
-`docs/SPARSE_RECONSTRUCTION_SPEC.md`, but no executable Jev adapter. The intended
-sequence is Jev category/selection → CAD and image evidence → Grok review →
-geometric validation. The current CAD review endpoint does not yet consume Jev
-detections. Classification is context, not measured shape or proof of fit.
+Jev handoff: the phone's **Review with Jev + Grok** action sends the first
+reference view to TypeSafe Jev, then passes its frame-bound category and bounding
+box to Grok alongside CAD evidence. Set `TYPESAFE_API_KEY` in the Mac service
+`.env`; `REVERSECAD_JEV_MODEL` defaults to `jev-1.14.0`.
+The API uses `use_jev: true`; add `--jev --live` to the CLI command for the same
+flow. Missing credentials, absent/ambiguous targets, low confidence and malformed
+boxes stop the flow before Grok. Thresholds are provisional, not calibrated accuracy.
+
+Coordinates refer to the EXIF-oriented source photo; the adapter records the source
+hash and resize dimensions. Boxes are advisory, not segmentation masks: no automatic
+crop, scale change or geometry modification is applied. Additional reference views
+may show detached donors and do not inherit the first view's bounding box.
+Newly generated phone models save their reference photo for later review. Older
+models without a saved photo cannot use this action until a new photo/model is made.
+
+Live Jev → Grok calls completed on two saved cube scans. Jev classified both as
+twisty puzzles (reported category confidence 0.91 and 0.89). Grok still made
+unsupported component/assembly claims; this does not establish repair accuracy.
+40 focused tests passed, including mocked provider handoff and failure handling.
+Use `--replacement-component` when the STEP represents one part and the first
+reference is an assembled object; further references can show intact donors.
+TypeSafe image/Box API documentation: https://docs.typesafe.ai/primitives/box
 
 Validation for this initial integration: 27 focused backend tests passed; iPhone
 Debug build succeeded and was installed. Three live Grok calls reviewed an edge
