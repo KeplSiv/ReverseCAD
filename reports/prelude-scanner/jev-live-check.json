@@ -1,0 +1,23 @@
+{
+  "input_kind": "existing synthetic calibration block fixture; resized from 320x240 to 640x480 for provider minimum dimensions",
+  "result": {
+    "status": "confirm_target",
+    "category": "container",
+    "box": {
+      "top": 0.3,
+      "bottom": 0.72,
+      "left": 0.24,
+      "right": 0.74
+    },
+    "presence": 0.93,
+    "instances": "one",
+    "confidence": 0.92,
+    "model": "jev-1.14.0",
+    "message": "Confirm the outlined object before scanning.",
+    "experimental": true,
+    "metric_evidence": false,
+    "request_id": "c072fb21-1270-4c79-be8a-ef09397b7d7c",
+    "image_sha256": "fe38706880e7392f9ad89b941816b761e525e085bf64b4e82fdcb75888afff0b",
+    "description": "the rectangular block in the center of the image"
+  }
+}

@@ -10,7 +10,7 @@ This component does not propose a repair, invent a missing part, generate a repl
 
 The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, Jev HTTP integration and confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Live Jev credentials and a fresh physical scan have not yet been verified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
+**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, Jev HTTP integration and confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Jev credentials and a live fixture request are verified; a fresh physical scan remains unverified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
 
 ## 2. User journey
 
@@ -22,7 +22,7 @@ Object description directs identification and foreground selection. It is not ev
 
 ### B. Identify it in the camera view
 
-Open the physical rear 1× camera and use **TypeSafe Jev** for category recognition and the initial object bounding box. The prototype targets `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
+Open the physical rear 1× camera and use **TypeSafe Jev** for category recognition and the initial object bounding box. The prototype requests `jev-preview` and records the returned model `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
 
 Show the proposed target with a visible box and, when supported, a foreground outline. Let the user confirm the correct object or tap a different one. If several objects match, ask which one. If none matches reliably, ask the user to reframe, improve lighting or refine the description. Manual target selection must remain available if identification is unavailable.
 
@@ -50,7 +50,7 @@ Export a package containing supported observed geometry, CAD representation, dim
 
 **Provider resolved: TypeSafe AI’s Jev.** Use the documented HTTP endpoint `POST https://api.typesafe.ai/v1/systemone`, authenticated on the Mac service with a TypeSafe key. Keep credentials out of the phone app, capture packages and repository. The response identifies the actual model and token usage. [API reference](https://docs.typesafe.ai/api)
 
-Pin `jev-1.14.0` for repeatable prototype evaluation; the documented `jev-preview` alias also supports Box. Check the account’s model list before integration and retain the returned model ID. Image-bearing calls need `TypeSafe-Danger-Zone-Images: true`. Send JPEG/PNG through documented assets, preserving the original-to-request image transform. These image capabilities are experimental. [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images)
+The account model list exposes `jev-latest` and `jev-preview`; request `jev-preview` for Box and retain the returned concrete model (verified as `jev-1.14.0`). Check the account’s model list before integration and retain the returned model ID. Image-bearing calls need `TypeSafe-Danger-Zone-Images: true`. Send JPEG/PNG through documented assets, preserving the original-to-request image transform. These image capabilities are experimental. [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images)
 
 One request can ask for category, target presence, instance count and location. `choice` supplies a selected label, option probabilities and confidence; include an explicit fallback category. [Choice](https://docs.typesafe.ai/primitives/choice)
 

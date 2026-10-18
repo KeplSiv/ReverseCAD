@@ -6,7 +6,7 @@ The `PreludeScanner` target presents only object description, Jev identification
 
 TestFlight uses the physical rear wide camera with public ARKit `sceneDepth` and visual-inertial poses. These are Apple's processed estimates; they are not the intercepted sparse stream. The private sparse capture remains isolated in `ReverseCADSparseResearch`, whose Debug/archive guards remain intact.
 
-The description and one portrait JPEG go through the authenticated companion to TypeSafe Jev `jev-1.14.0`. Presence, instance count, category and box are evaluated together. An absent or ambiguous target cannot be confirmed. The user sees the exact queried image and box, and must confirm without moving the camera. Vision then tracks the selected box; instance segmentation is a separate step. Lost tracking ends the capture and saves committed frames. Frames without the selected foreground mask are rejected for measurement.
+The description and one portrait JPEG go through the authenticated companion to TypeSafe Jev `jev-preview` (the verified response identifies `jev-1.14.0`). Presence, instance count, category and box are evaluated together. An absent or ambiguous target cannot be confirmed. The user sees the exact queried image and box, and must confirm without moving the camera. Vision then tracks the selected box; instance segmentation is a separate step. Lost tracking ends the capture and saves committed frames. Frames without the selected foreground mask are rejected for measurement.
 
 Jev's image/Box support is experimental. The confidence gates are conservative application rules, not calibrated accuracy guarantees. Its answers never supply dimensions.
 
@@ -14,7 +14,7 @@ Jev's image/Box support is experimental. The confidence gates are conservative a
 
 Run `./scripts/start_service.sh --lan --port 8769 --data-dir work/sparse-service` from this checkout. Retain the existing private pairing token. Enter the reachable Mac address and token in Prelude's Connection screen if it is not already paired.
 
-Set `TYPESAFE_API_KEY` (or `JEV_API_KEY`) in the companion process environment or the ignored local `.env` before startup. The key stays on the Mac; it is neither bundled in the app nor returned by the API. Missing credentials produce an explicit identification error; the user may instead draw and confirm a manual box on the camera image. Manual selection is labelled in the scan provenance and does not call Jev. No live Jev call is claimed until credentials and a successful response are verified.
+Set `TYPESAFE_API_KEY_FILE` to the private key file, or set `TYPESAFE_API_KEY` (or `JEV_API_KEY`) in the companion process environment or the ignored local `.env` before startup. The key stays on the Mac; it is neither bundled in the app nor returned by the API. Missing credentials produce an explicit identification error; the user may instead draw and confirm a manual box on the camera image. Manual selection is labelled in the scan provenance and does not call Jev. A live provider request succeeded on a resized synthetic fixture and returned model `jev-1.14.0`, one object, a category and a box. This verifies provider integration, not phone capture accuracy.
 
 ## Exports
 

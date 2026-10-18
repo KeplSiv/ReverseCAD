@@ -6,11 +6,12 @@ import io
 import json
 import math
 import os
+from pathlib import Path
 import urllib.request
 import uuid
 from PIL import Image
 
-MODEL = "jev-1.14.0"
+MODEL = "jev-preview"
 CATEGORIES = {"mechanical_part": "A mechanical part, fitting, bracket or fastener", "container": "A cup, bottle, bowl, box or other container", "tool": "A hand tool", "electronic": "An electronic device or accessory", "toy": "A toy, puzzle or figurine", "other": "Another visible physical object", "not_visible": "The requested object is not visible"}
 
 class JevError(ValueError):
@@ -60,12 +61,17 @@ def identify(body: dict) -> dict:
             raise ValueError()
         photo = base64.b64decode(encoded, validate=True)
         with Image.open(io.BytesIO(photo)) as im:
-            if im.format != "JPEG" or min(im.size) < 32 or max(im.size) > 2048:
+            if im.format != "JPEG" or min(im.size) < 280 or max(im.size) > 1568:
                 raise ValueError()
             im.verify()
     except Exception:
-        raise JevError("Send a valid JPEG up to 2048 pixels with a unique request ID") from None
+        raise JevError("Send a valid JPEG with each dimension between 280 and 1568 pixels and a unique request ID") from None
     key = os.environ.get("TYPESAFE_API_KEY") or os.environ.get("JEV_API_KEY")
+    if not key and os.environ.get("TYPESAFE_API_KEY_FILE"):
+        try:
+            key = Path(os.environ["TYPESAFE_API_KEY_FILE"]).read_text().strip()
+        except OSError:
+            raise JevError("The configured Jev key file could not be read on the paired Mac.") from None
     if not key:
         raise JevError("Jev is not configured on the paired Mac. Set TYPESAFE_API_KEY, then restart the companion service.")
     asset = str(uuid.uuid4())
