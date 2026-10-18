@@ -18,7 +18,9 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["Connection"].exists)
         keepScreenshot("reversecad-camera-home")
         app.buttons["setupPhone"].tap()
-        XCTAssertTrue(app.staticTexts["Set up with your first object"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Front reference"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["frontReferenceInstructions"].exists)
+        XCTAssertEqual(app.scrollViews.count,0)
         XCTAssertFalse(app.buttons["Export original reference"].exists)
         keepScreenshot("reversecad-reference-setup")
         app.buttons["Close"].tap()
@@ -51,5 +53,20 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", "Prelude")).firstMatch.exists)
         keepScreenshot("reversecad-about")
         app.buttons["Done"].tap()
+    }
+
+    func testFrontReferenceFitsWithoutScrollingAndHasTopAction() {
+        app.terminate();app.launchArguments=["-frontReferenceCheck"];app.launch()
+        XCTAssertTrue(app.navigationBars["Front reference"].waitForExistence(timeout:10))
+        let instructions=app.staticTexts["frontReferenceInstructions"]
+        XCTAssertTrue(instructions.waitForExistence(timeout:5))
+        XCTAssertEqual(app.scrollViews.count,0)
+        let save=app.buttons["saveFrontReference"]
+        let open=app.buttons["Open selfie camera"]
+        XCTAssertTrue(save.exists || open.waitForExistence(timeout:5))
+        let button=save.exists ? save:open
+        XCTAssertLessThan(button.frame.maxY,instructions.frame.minY+2)
+        XCTAssertTrue(button.isHittable)
+        keepScreenshot("reversecad-front-no-scroll")
     }
 }

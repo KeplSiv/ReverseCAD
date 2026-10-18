@@ -5,7 +5,9 @@ import ReverseCADCore
 /// Public-API capture only. A saved reference is evidence, not a fitted camera profile.
 final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutputSynchronizerDelegate {
     @Published var running = false
-    @Published var message = "Keep the same object and surrounding features still. Capture a short front reference, then turn the phone for the rear scan."
+    @Published var saving = false
+    @Published var canSave = false
+    @Published var message = "Frame the object and nearby texture, hold still, then press Save scan."
     @Published var saved: URL?
     @Published var originalArchive: URL?
     @Published var originalDirectory: URL?
@@ -19,31 +21,57 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
     private var lastTime = -Double.infinity
     private var configured = false
     private var finishing = false
-    private var recordAfter = Double.infinity
     private var captureID = UUID()
+    private var exposureReady = false
+    private var baselineExposure = 0.0
+    private struct Sample {
+        let colour: CMSampleBuffer
+        let depth: AVDepthData
+        let time: Double
+        let depthTime: Double
+        let settings: [String: Any]
+    }
+    private var samples = [Sample]()
+    private let previewLock=NSLock()
+    private var previewFrame:(pixel:CVPixelBuffer,time:Double)?
+    private var deliveredFrames=0,saveRequests=0
+    private var firstFrameTime:Double?,lastDiagnostic = -Double.infinity
+    private var lastSaveTrigger="none"
+    private var lastSharpness=0.0
+    private var depthFrames=0,depthDrops=0
+    private var lastDepthOffset=0.0
+    #if DEBUG
+    private let debugContext=CIContext(options:[.cacheIntermediates:false])
+    private var lastDebugImage = -Double.infinity
+    #endif
+    func latestPreviewFrame() -> (pixel:CVPixelBuffer,time:Double)? {
+        previewLock.lock();defer{previewLock.unlock()};return previewFrame
+    }
 
     func start() {
         guard !running else { return }
-        running = true; saved = nil; originalArchive = nil; originalDirectory = nil
+        running = true; saving = false; canSave = false
+        saved = nil; originalArchive = nil; originalDirectory = nil
         message = "Starting front camera…"
         let requestID = UUID()
-        queue.async { self.captureID = requestID; self.writer = nil; self.finishing = false }
+        queue.async {
+            self.captureID=requestID;self.writer=nil;self.finishing=false;self.samples=[];self.exposureReady=false
+            self.deliveredFrames=0;self.firstFrameTime=nil;self.lastDiagnostic = -.infinity
+            self.saveRequests=0;self.lastSaveTrigger="none"
+        }
         AVCaptureDevice.requestAccess(for: .video) { allowed in
             self.queue.async {
                 guard self.captureID == requestID else { return }
                 do {
                     guard allowed else { throw CameraLabError.message("Allow camera access in Settings.") }
                     if !self.configured { try self.configure() }
-                    self.writer = try ExperimentWriter(source: "ReverseCAD front TrueDepth reference")
-                    let directory = self.writer?.url
-                    DispatchQueue.main.async { self.originalDirectory = directory }
                     self.lastTime = -.infinity; self.finishing = false
-                    self.recordAfter = ProcessInfo.processInfo.systemUptime + 4
-                    let captureID = requestID
-                    try self.writer?.checkpoint(["device_id": self.device?.uniqueID ?? "unknown"])
+                    try self.device?.lockForConfiguration()
+                    if self.device?.isExposureModeSupported(.continuousAutoExposure) == true {self.device?.exposureMode = .continuousAutoExposure}
+                    self.device?.unlockForConfiguration()
                     self.session.startRunning()
-                    self.queue.asyncAfter(deadline:.now()+20) { if self.captureID == captureID { self.finish() } }
-                    DispatchQueue.main.async { self.message = "Use the selfie camera to frame the object and nearby features. Hold the phone steady for this reference burst." }
+                    self.queue.asyncAfter(deadline:.now()+1.5) {self.setShortExposure(requestID:requestID,attempt:0)}
+                    DispatchQueue.main.async { self.message = "Frame the object and nearby texture. The camera stays open until you press Save scan." }
                 } catch { self.fail(error) }
             }
         }
@@ -51,7 +79,10 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
     private func configure() throws {
         guard let device = AVCaptureDevice.default(.builtInTrueDepthCamera, for: .video, position: .front) else { throw CameraLabError.message("This device cannot perform the required front TrueDepth reference. Use a phone with a TrueDepth camera.") }
         let formats = device.formats.filter { $0.supportedDepthDataFormats.contains { [kCVPixelFormatType_DepthFloat16, kCVPixelFormatType_DepthFloat32].contains(CMFormatDescriptionGetMediaSubType($0.formatDescription)) } }
-        guard let format = formats.min(by: { CMVideoFormatDescriptionGetDimensions($0.formatDescription).width < CMVideoFormatDescriptionGetDimensions($1.formatDescription).width }),
+        guard let format = formats.max(by: {a,b in
+                  let x=CMVideoFormatDescriptionGetDimensions(a.formatDescription),y=CMVideoFormatDescriptionGetDimensions(b.formatDescription)
+                  return Int(x.width)*Int(x.height)<Int(y.width)*Int(y.height)
+              }),
               let depthFormat = format.supportedDepthDataFormats.filter({ [kCVPixelFormatType_DepthFloat16,kCVPixelFormatType_DepthFloat32].contains(CMFormatDescriptionGetMediaSubType($0.formatDescription)) }).max(by: { CMVideoFormatDescriptionGetDimensions($0.formatDescription).width < CMVideoFormatDescriptionGetDimensions($1.formatDescription).width }) else { throw CameraLabError.message("No supported numerical TrueDepth format is available.") }
         session.beginConfiguration()
         defer {
@@ -67,9 +98,16 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
         session.addInput(input); session.addOutput(video); session.addOutput(depth)
         try device.lockForConfiguration(); defer { device.unlockForConfiguration() }
         device.activeFormat = format; device.activeDepthDataFormat = depthFormat
+        let maximum=format.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 30
+        let fps=Int32(min(30,maximum))
+        device.activeVideoMinFrameDuration=CMTime(value:1,timescale:fps)
+        device.activeVideoMaxFrameDuration=CMTime(value:1,timescale:fps)
         device.videoZoomFactor = 1
         if device.isGeometricDistortionCorrectionSupported { device.isGeometricDistortionCorrectionEnabled = false }
         video.alwaysDiscardsLateVideoFrames = true
+        video.automaticallyConfiguresOutputBufferDimensions=false
+        video.deliversPreviewSizedOutputBuffers=false
+        video.videoSettings=[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange]
         depth.isFilteringEnabled = false
         for output in [video as AVCaptureOutput, depth as AVCaptureOutput] {
             for connection in output.connections {
@@ -83,24 +121,111 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
         synchronizer?.setDelegate(self, queue: queue)
         configured = true
     }
+    private func setShortExposure(requestID:UUID,attempt:Int) {
+        guard captureID==requestID,session.isRunning,let device else{return}
+        if device.isAdjustingExposure,attempt<8 {
+            queue.asyncAfter(deadline:.now()+0.3) {self.setShortExposure(requestID:requestID,attempt:attempt+1)}
+            return
+        }
+        do {
+            guard device.isExposureModeSupported(.custom) else{throw CameraLabError.message("Short-exposure reference capture is unavailable on this camera.")}
+            try device.lockForConfiguration();defer{device.unlockForConfiguration()}
+            baselineExposure=CMTimeGetSeconds(device.exposureDuration)
+            guard baselineExposure.isFinite,baselineExposure>0 else {throw CameraLabError.message("The camera has not settled its exposure. Reopen the reference camera.")}
+            let duration=FrontReferencePolicy.shutterDuration(baseline:baselineExposure,minimum:CMTimeGetSeconds(device.activeFormat.minExposureDuration))
+            let iso=min(device.activeFormat.maxISO,max(device.activeFormat.minISO,device.iso*Float(baselineExposure/duration)))
+            device.setExposureModeCustom(duration:CMTime(seconds:duration,preferredTimescale:1_000_000_000),iso:iso) {_ in
+                self.queue.async {
+                    guard self.captureID==requestID else{return}
+                    self.samples=[];self.exposureReady=true
+                    DispatchQueue.main.async {self.message="Hold still. Save scan or press a volume button when the image is clear."}
+                }
+            }
+        } catch {fail(error)}
+    }
     func dataOutputSynchronizer(_ synchronizer: AVCaptureDataOutputSynchronizer, didOutput collection: AVCaptureSynchronizedDataCollection) {
-        guard !finishing, let writer else { return }
-        guard ProcessInfo.processInfo.systemUptime >= recordAfter else { return }
+        if let depth=collection.synchronizedData(for:depth) as? AVCaptureSynchronizedDepthData {
+            if depth.depthDataWasDropped {depthDrops+=1} else {
+                depthFrames+=1
+                if let colour=collection.synchronizedData(for:video) as? AVCaptureSynchronizedSampleBufferData {lastDepthOffset=CMTimeGetSeconds(depth.timestamp)-CMTimeGetSeconds(colour.timestamp)}
+            }
+        }
+        if let colour=collection.synchronizedData(for:video) as? AVCaptureSynchronizedSampleBufferData,!colour.sampleBufferWasDropped,
+           let image=CMSampleBufferGetImageBuffer(colour.sampleBuffer) {
+            let time=CMTimeGetSeconds(colour.timestamp)
+            previewLock.lock();previewFrame=(image,time);previewLock.unlock()
+            deliveredFrames+=1;firstFrameTime=firstFrameTime ?? time
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-frontReferenceCheck"),time-lastDiagnostic>1 {
+                lastDiagnostic=time
+                let exposure=device.map{CMTimeGetSeconds($0.exposureDuration)} ?? 0
+                try? cameraJSONWrite(["capture_id":captureID.uuidString,"running":session.isRunning,"delivered_frames":deliveredFrames,"depth_frames":depthFrames,"depth_drops":depthDrops,"rgb_depth_offset_s":lastDepthOffset,"elapsed_s":time-(firstFrameTime ?? time),"buffered_sharp_frames":samples.count,"sharpness":lastSharpness,"save_requests":saveRequests,"last_save_trigger":lastSaveTrigger,"exposure_ready":exposureReady,"exposure_s":exposure,"baseline_exposure_s":baselineExposure,"exposure_ratio":baselineExposure>0 ? exposure/baselineExposure:0,"source_width":CVPixelBufferGetWidth(image),"source_height":CVPixelBufferGetHeight(image),"preview_mode":"native_unwarped","capture_is_interpolated":false],FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-live.json"))
+                let scale=640.0/Double(CVPixelBufferGetWidth(image))
+                if let data=debugContext.jpegRepresentation(of:CIImage(cvPixelBuffer:image).transformed(by:CGAffineTransform(scaleX:scale,y:scale)),colorSpace:CGColorSpaceCreateDeviceRGB()) {
+                    try? data.write(to:FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-preview.jpg"),options:.atomic)
+                }
+            }
+            #endif
+        }
+        guard !finishing,exposureReady else { return }
         guard let colour = collection.synchronizedData(for: video) as? AVCaptureSynchronizedSampleBufferData,
               let sample = collection.synchronizedData(for: depth) as? AVCaptureSynchronizedDepthData,
-              !colour.sampleBufferWasDropped, !sample.depthDataWasDropped else { writer.event("synchronized_sample_missing_or_dropped"); return }
+              !colour.sampleBufferWasDropped, !sample.depthDataWasDropped else { return }
         let time = CMTimeGetSeconds(colour.timestamp), depthTime = CMTimeGetSeconds(sample.timestamp)
-        guard time.isFinite, depthTime.isFinite else { writer.event("invalid_timestamp"); return }
-        guard abs(time-depthTime) <= 1.0/30 else {
-            writer.event("timestamp_offset_rejected",["rgb_depth_offset_s":depthTime-time]); return
+        guard time.isFinite,depthTime.isFinite,abs(time-depthTime)<=1.0/30,time-lastTime>=FrontReferencePolicy.sampleInterval,
+              let image=CMSampleBufferGetImageBuffer(colour.sampleBuffer) else{return}
+        lastTime=time
+        let blur=ARKitCaptureProvider.blurScore(image,region:[0,0,1,1])
+        lastSharpness=blur
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-frontReferenceCheck"),time-lastDebugImage>2 {
+            lastDebugImage=time
+            let scale=640.0/Double(CVPixelBufferGetWidth(image))
+            if let data=debugContext.jpegRepresentation(of:CIImage(cvPixelBuffer:image).transformed(by:CGAffineTransform(scaleX:scale,y:scale)),colorSpace:CGColorSpaceCreateDeviceRGB()) {
+                try? data.write(to:FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-preview.jpg"),options:.atomic)
+            }
         }
-        guard time-lastTime >= 0.25 else { return }
+        #endif
+        guard blur>=7 else {
+            samples=[]
+            DispatchQueue.main.async {self.canSave=false;self.message="The image is blurred. Hold still or add light before saving."}
+            return
+        }
+        let connection=video.connection(with:.video)
+        let settings:[String:Any]=["zoom_factor":device?.videoZoomFactor ?? 1,"lens_position":device?.lensPosition ?? 0,"video_scale_and_crop_factor":connection?.videoScaleAndCropFactor ?? 1,"geometric_correction_enabled":device?.isGeometricDistortionCorrectionEnabled ?? false,"video_rotation_degrees":connection?.videoRotationAngle ?? 0,"mirrored":connection?.isVideoMirrored ?? false,"stabilization_mode":connection?.activeVideoStabilizationMode.rawValue ?? 0,"exposure_duration_s":device.map{CMTimeGetSeconds($0.exposureDuration)} ?? 0,"auto_exposure_baseline_s":baselineExposure,"requested_shutter_ratio":0.5,"iso":device?.iso ?? 0,"sharpness":blur]
         do {
-            let connection = video.connection(with: .video)
-            let settings: [String:Any] = ["zoom_factor": device?.videoZoomFactor ?? 1, "lens_position": device?.lensPosition ?? 0, "video_scale_and_crop_factor": connection?.videoScaleAndCropFactor ?? 1, "geometric_correction_enabled": device?.isGeometricDistortionCorrectionEnabled ?? false, "video_rotation_degrees": connection?.videoRotationAngle ?? 0, "mirrored": connection?.isVideoMirrored ?? false, "stabilization_mode": connection?.activeVideoStabilizationMode.rawValue ?? 0, "exposure_duration_s": device.map { CMTimeGetSeconds($0.exposureDuration) } ?? 0, "iso": device?.iso ?? 0]
-            let id = try writer.save(colour.sampleBuffer, camera: "front", settings: settings)
-            let data = sample.depthData, stem = "lidar/av-\(writer.directDepth.count)"
-            var record: [String:Any] = ["rgb_frame": id, "sensor":"front_TrueDepth", "timestamp_s":depthTime, "rgb_depth_offset_s":depthTime-time, "is_filtered":data.isDepthDataFiltered, "accuracy":data.depthDataAccuracy.rawValue, "quality":data.depthDataQuality.rawValue, "depth":try writer.original(data.depthDataMap, stem:stem), "depth_kind":"optical_axis_z", "units":"m", "preview_mirrored":false, "coordinate_convention":"x right, y down, z forward; unmirrored rotation zero", "registration":"No front-to-rear transform has been estimated"]
+            let copied=try ReferenceBufferCopy.sample(colour.sampleBuffer)
+            let depth=try sample.depthData.replacingDepthDataMap(with:ReferenceBufferCopy.pixel(sample.depthData.depthDataMap))
+            samples.append(Sample(colour:copied,depth:depth,time:time,depthTime:depthTime,settings:settings))
+        } catch {fail(error);return}
+        samples=Array(samples.filter{time-$0.time<=FrontReferencePolicy.maximumWindow}.suffix(FrontReferencePolicy.sampleCount))
+        let ready=FrontReferencePolicy.ready(timestamps:samples.map(\.time),now:time)
+        DispatchQueue.main.async {self.canSave=ready;self.message=ready ? "Ready. Save scan or press a volume button." : "Hold still while the sharp reference frames settle."}
+    }
+    func saveScan(trigger:String = "button") {
+        guard running,!saving else{return}
+        queue.async {
+            self.saveRequests+=1;self.lastSaveTrigger=trigger
+            guard !self.finishing,FrontReferencePolicy.ready(timestamps:self.samples.map(\.time),now:ProcessInfo.processInfo.systemUptime) else{
+                DispatchQueue.main.async{self.message="Wait for a clear, steady image before saving."};return
+            }
+            self.finishing=true
+            let burst=self.samples;self.samples=[]
+            DispatchQueue.main.async{self.saving=true;self.canSave=false;self.message="Saving your chosen reference…"}
+            do {
+                let writer=try ExperimentWriter(source:"ReverseCAD user-selected front TrueDepth reference")
+                writer.experimentContext=["user_requested":true,"capture_trigger":self.lastSaveTrigger,"capture_id":self.captureID.uuidString]
+                self.writer=writer
+                for sample in burst {try self.write(sample,to:writer)}
+                self.finish()
+            } catch {self.fail(error)}
+        }
+    }
+    private func write(_ selected:Sample,to writer:ExperimentWriter)throws {
+        do {
+            let id = try writer.save(selected.colour, camera: "front", settings: selected.settings)
+            let data = selected.depth, stem = "lidar/av-\(writer.directDepth.count)"
+            var record: [String:Any] = ["rgb_frame": id, "sensor":"front_TrueDepth", "timestamp_s":selected.depthTime, "rgb_depth_offset_s":selected.depthTime-selected.time, "is_filtered":data.isDepthDataFiltered, "accuracy":data.depthDataAccuracy.rawValue, "quality":data.depthDataQuality.rawValue, "depth":try writer.original(data.depthDataMap, stem:stem), "depth_kind":"optical_axis_z", "units":"m", "preview_mirrored":false, "coordinate_convention":"x right, y down, z forward; unmirrored rotation zero", "registration":"No front-to-rear transform has been estimated"]
             if let calibration = data.cameraCalibrationData {
                 var c: [String:Any] = ["intrinsics":cameraRows(calibration.intrinsicMatrix), "reference_size":[calibration.intrinsicMatrixReferenceDimensions.width,calibration.intrinsicMatrixReferenceDimensions.height], "distortion_center":[calibration.lensDistortionCenter.x,calibration.lensDistortionCenter.y], "extrinsics_3x4":(0..<3).map { r in (0..<4).map { col in Double(calibration.extrinsicMatrix[col][r]) } }, "extrinsic_translation_units":"mm"]
                 for (name, table) in [("distortion",calibration.lensDistortionLookupTable),("inverse_distortion",calibration.inverseLensDistortionLookupTable)] {
@@ -108,55 +233,46 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
                 }
                 record["calibration"] = c
             }
-            writer.directDepth.append(record); lastTime = time
-            try writer.checkpoint(["device_id":device?.uniqueID ?? "unknown"])
-            let count = writer.frames.count
-            DispatchQueue.main.async { self.message = "Saved \(count) synchronized reference views. Keep the object still." }
-            if count >= 8 { finish() }
-        } catch { fail(error) }
+            writer.directDepth.append(record)
+        }
     }
     func stop() {
         queue.async {
-            // Invalidate a pending permission/configuration callback as well as the timeout.
             self.captureID = UUID()
-            guard self.writer != nil, !self.finishing else {
-                DispatchQueue.main.async { self.running = false }
-                return
-            }
-            self.finish()
+            self.samples=[];self.exposureReady=false;self.session.stopRunning()
+            DispatchQueue.main.async {self.running=false;self.saving=false;self.canSave=false}
         }
     }
     private func finish() {
-        guard !finishing, let writer else { return }
-        finishing = true; session.stopRunning()
+        guard let writer else { return }
         do {
             try writer.checkpoint(["device_id":device?.uniqueID ?? "unknown"], complete:true)
-            var derivationError: Error?
-            do {
-                let reference = try TrueDepthReconstruction.build(dataset:writer.url)
-                try reference.export(to:writer.url.appendingPathComponent("derived"))
-            } catch { derivationError = error }
+            let reference = try TrueDepthReconstruction.build(dataset:writer.url)
+            try reference.export(to:writer.url.appendingPathComponent("derived"))
+            _ = try FrontReferenceEvidence.prepare(root:writer.url)
             try writer.checkpoint(["device_id":device?.uniqueID ?? "unknown"], complete:true)
             let archive = try writer.archive()
-            if let derivationError {
-                DispatchQueue.main.async {
-                    self.running = false; self.originalArchive = archive
-                    self.message = "Original reference saved. No usable inspection surface: " + derivationError.localizedDescription + " Rear cameras still use factory calibration."
-                }
-                return
-            }
+            session.stopRunning()
             DispatchQueue.main.async {
-                self.running = false; self.saved = archive; self.originalArchive = archive
+                self.running = false;self.saving=false;self.saved=archive;self.originalArchive=archive;self.originalDirectory=writer.url
                 self.message = "Front depth saved. Checking that the first object and its surroundings are suitable."
             }
-        } catch { fail(error) }
+        } catch {
+            try? writer.checkpoint(["device_id":device?.uniqueID ?? "unknown"],complete:true)
+            let archive=try? writer.archive()
+            self.writer=nil;self.finishing=false;self.samples=[]
+            DispatchQueue.main.async {
+                self.saving=false;self.canSave=false;self.originalArchive=archive
+                self.message=error.localizedDescription+" The camera is still open. Hold steady and press Save scan again."
+            }
+        }
     }
     private func fail(_ error: Error) {
         session.stopRunning(); finishing = true
         try? writer?.checkpoint(["device_id":device?.uniqueID ?? "unknown"])
         let archive = try? writer?.archive()
         DispatchQueue.main.async {
-            self.running = false; self.originalArchive = archive
+            self.running = false;self.saving=false;self.canSave=false;self.originalArchive = archive
             self.message = error.localizedDescription + " Original samples remain saved."
         }
     }
@@ -174,63 +290,83 @@ struct PhoneReferenceSetup: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment:.leading, spacing:20) {
-                    Text("Set up with your first object").font(.largeTitle.bold())
-                    Text("Both Scan object and Repair damage use this setup. The selfie camera and infrared depth measure a reference first. Then turn the phone and scan the same object with the rear camera system.")
-                    Text("Place the object on a textured surface. Keep it and the surrounding features still. Hold the selfie camera steady, facing the object.")
-                        .foregroundStyle(RepairStyle.secondary)
-                    Text(capture.message).foregroundStyle(RepairStyle.secondary)
+            VStack(spacing:12) {
+                primaryAction
+                Text("Keep the object still on a textured surface. Tap Save scan or press a volume button.")
+                    .font(.subheadline).foregroundStyle(RepairStyle.secondary)
+                    .fixedSize(horizontal:false,vertical:true)
+                    .accessibilityIdentifier("frontReferenceInstructions")
+                ZStack {
                     if capture.running {
-                        ReferenceCameraPreview(session:capture.session).frame(height:260).clipped().clipShape(RoundedRectangle(cornerRadius:22))
-                        ProgressView().tint(RepairStyle.accent)
-                        Button("Save and stop") { capture.stop() }.buttonStyle(RepairButtonStyle(secondary:true))
+                        ReferenceCameraPreview(session:capture.session)
+                    } else if let image=review.image {
+                        Image(uiImage:image).resizable().scaledToFit()
+                            .overlay {AdjustableObjectBox(box:$box,editable:!review.working)}
+                            .onChange(of:box) {_,_ in review.review=nil}
                     } else {
-                        if let image=review.image {
-                            Image(uiImage:image).resizable().aspectRatio(contentMode:.fit)
-                                .overlay { AdjustableObjectBox(box:$box,editable:!review.working) }
-                                .onChange(of:box) { _,_ in review.review=nil }
-                            Text("Adjust the box around your first object. Keep nearby texture visible too.").font(.caption)
-                        }
-                        if review.working {
-                            ProgressView(review.message).tint(RepairStyle.accent)
-                            Button("Cancel check") { review.cancel() }.buttonStyle(RepairButtonStyle(secondary:true))
-                        } else {
-                            if !review.message.isEmpty {Text(review.message).foregroundStyle(RepairStyle.secondary)}
-                            if let archive=capture.saved,let root=capture.originalDirectory {
-                                if review.review?.accepted == true {
-                                    Button("Use reference — turn phone") {
-                                        do {
-                                            try PhoneSetupStore.save(root:root,archive:archive,review:review.review!)
-                                            referenceArchive=archive.path;onSaved?(archive);dismiss()
-                                        } catch {saveError=error.localizedDescription}
-                                    }.buttonStyle(RepairButtonStyle()).accessibilityIdentifier("useFrontReference")
-                                } else {
-                                    Button("Check saved reference") {review.check(root:root,box:box)}.buttonStyle(RepairButtonStyle())
-                                }
-                            }
-                            Button(capture.saved == nil ? "Capture front reference" : "Capture a new reference") {
-                                review.cancel();review.review=nil;saveError=nil;capture.start()
-                            }.buttonStyle(RepairButtonStyle(secondary:capture.saved != nil))
-                        }
-                        if capture.originalArchive != nil {
-                            Text("Your original reference is saved inside ReverseCAD.").font(.caption).foregroundStyle(RepairStyle.secondary)
-                        }
+                        Color.clear.overlay {ProgressView("Opening selfie camera…")}
                     }
-                    if let saveError {Text(saveError).foregroundStyle(.orange)}
-                    Text("Jev checks scene suitability. Captured depth and matching features determine distances. This phone builds the model and supported repairs; original camera records stay inside the app.")
-                        .font(.caption).foregroundStyle(RepairStyle.secondary)
-                }.padding(20).foregroundStyle(RepairStyle.text)
-            }.background(RepairStyle.background.ignoresSafeArea())
-                .navigationTitle("ReverseCAD").navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(RepairStyle.background, for:.navigationBar)
-                .toolbarBackground(.visible, for:.navigationBar)
-                .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Close") { review.cancel();capture.stop();dismiss() } } }
-        }.preferredColorScheme(.dark).tint(RepairStyle.accent).interactiveDismissDisabled(capture.running || review.working)
-            .onDisappear {review.cancel();capture.stop()}
-            .onChange(of:capture.saved) { _,saved in
-                if saved != nil,let root=capture.originalDirectory {review.check(root:root,box:box)}
+                    if capture.saving {ProgressView("Saving reference…").padding().background(.regularMaterial,in:RoundedRectangle(cornerRadius:12))}
+                }
+                .frame(maxWidth:.infinity,maxHeight:.infinity)
+                .background(.black).clipShape(RoundedRectangle(cornerRadius:20))
+                .accessibilityIdentifier("frontReferencePreview")
+                Text(statusText).font(.footnote).foregroundStyle(RepairStyle.secondary)
+                    .lineLimit(3).frame(maxWidth:.infinity,alignment:.leading)
+                    .accessibilityLabel(statusText).accessibilityIdentifier("frontReferenceStatus")
+                if !capture.running,capture.saved != nil {
+                    Button("Retake reference") {restart()}
+                        .buttonStyle(RepairButtonStyle(secondary:true)).disabled(review.working)
+                }
             }
+            .padding(16).foregroundStyle(RepairStyle.text)
+            .background(RepairStyle.background.ignoresSafeArea())
+            .navigationTitle("Front reference").navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(RepairStyle.background,for:.navigationBar)
+            .toolbarBackground(.visible,for:.navigationBar)
+            .toolbar {ToolbarItem(placement:.cancellationAction) {Button("Close") {review.cancel();capture.stop();dismiss()}}}
+            .alert("Reference needs attention",isPresented:Binding(get:{saveError != nil},set:{if !$0 {saveError=nil}})) {
+                Button("OK",role:.cancel) {saveError=nil}
+            } message:{Text(saveError ?? "")}
+        }
+        .preferredColorScheme(.dark).tint(RepairStyle.accent)
+        .interactiveDismissDisabled(capture.running || review.working)
+        .cameraCaptureButton(enabled:capture.running && !capture.saving) {capture.saveScan(trigger:"volume")}
+        .onAppear {capture.start()}
+        .onDisappear {review.cancel();capture.stop()}
+        .onChange(of:capture.saved) {_,saved in
+            if saved != nil,let root=capture.originalDirectory {review.check(root:root,box:box)}
+        }
+    }
+    private var statusText:String {
+        if capture.running {return capture.message}
+        return review.message.isEmpty ? capture.message:review.message
+    }
+    @ViewBuilder private var primaryAction:some View {
+        if capture.running {
+            Button("Save scan",systemImage:"checkmark") {capture.saveScan()}
+                .buttonStyle(RepairButtonStyle()).disabled(capture.saving)
+                .accessibilityIdentifier("saveFrontReference")
+        } else if review.working {
+            Button("Cancel check") {review.cancel()}.buttonStyle(RepairButtonStyle(secondary:true))
+        } else if review.review?.accepted == true {
+            Button("Use reference — turn phone") {useReference()}
+                .buttonStyle(RepairButtonStyle()).accessibilityIdentifier("useFrontReference")
+        } else if let root=capture.originalDirectory,capture.saved != nil {
+            Button("Check reference") {review.check(root:root,box:box)}.buttonStyle(RepairButtonStyle())
+        } else {
+            Button("Open selfie camera") {restart()}.buttonStyle(RepairButtonStyle())
+        }
+    }
+    private func restart() {
+        review.cancel();review.review=nil;saveError=nil;capture.start()
+    }
+    private func useReference() {
+        guard let root=capture.originalDirectory,let archive=capture.saved,let verdict=review.review else{return}
+        do {
+            try PhoneSetupStore.save(root:root,archive:archive,review:verdict)
+            referenceArchive=archive.path;onSaved?(archive);dismiss()
+        } catch {saveError=error.localizedDescription}
     }
 }
 
@@ -238,6 +374,13 @@ private struct ReferenceCameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
     final class Preview: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            let orientation=window?.windowScene?.interfaceOrientation ?? .portrait
+            let angle:CGFloat=orientation == .landscapeLeft ? 0 : orientation == .landscapeRight ? 180 : orientation == .portraitUpsideDown ? 270 : 90
+            let preview=layer as! AVCaptureVideoPreviewLayer
+            if let connection=preview.connection,connection.isVideoRotationAngleSupported(angle) {connection.videoRotationAngle=angle}
+        }
     }
     func makeUIView(context:Context) -> Preview {
         let view = Preview()

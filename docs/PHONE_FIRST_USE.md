@@ -6,6 +6,8 @@ Both camera-first buttons share `PhoneSetupStore`. First use is: capture selfie 
 
 ## Front reference
 
+The front preview stays open until **Save scan** or a volume-button capture. A rolling window provides eight recent sharp samples; there is no automatic completion after eight frames or twenty seconds. A failed stability check leaves the preview open. Selfie shutter duration is requested at half the settled auto-exposure baseline, subject to hardware limits. See [preview and reference behavior](PREVIEW_AND_REFERENCE.md).
+
 The existing Frankly-derived writer retains original buffers, numerical optical-axis depth in metres, per-frame intrinsics/distortion tables, timestamps, mirroring, crop and filtering metadata. The existing per-frame TrueDepth reconstruction applies the inverse distortion mapping once and creates a supported correspondence map. It rejects unstable or mixed-edge samples. Camera movement is screened during the stationary burst. Adequacy is evaluated within the user's box rather than requiring that an object fill the whole sensor. The full scene remains available to constrain registration.
 
 `JevReferenceReview` uses the existing personal-key HTTPS transport. A bounded request returns visual adequacy, a reason and a starting box. It cannot certify metric accuracy. Rejection, cancellation, key failure, rate limiting and retry preserve the saved samples. No companion URL is required for the front check or rear identification.

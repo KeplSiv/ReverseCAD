@@ -47,7 +47,7 @@ struct MultiCameraValidationView:View {
     @StateObject var check=MultiCameraValidation()
     var body:some View {
         VStack {
-            if let camera=check.camera {MultiCameraPreview(layer:camera.preview) {_,_ in }.frame(maxHeight:.infinity)}
+            if let camera=check.camera {MultiCameraPreview(layer:camera.preview,source:{camera.latest().map{($0.pixel,$0.time)}}) {_,_ in }.frame(maxHeight:.infinity)}
             Text(check.message).padding()
         }.task {await check.start()}
     }

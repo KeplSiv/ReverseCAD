@@ -14,6 +14,7 @@
 		0301A30DEB244DA88C3350E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
 		039D0C2BCE352CD02628E895 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36B0EA4A58C5E7D1FBFED931 /* ReverseCADCore */; };
 		03CC1D994339260B9E50709C /* StandaloneScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */; };
+		057662A241DAD7BAFAB488B7 /* CameraCaptureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A820C2C793F729FE07C461B /* CameraCaptureButton.swift */; };
 		09A978E4DB22304328722E84 /* MultiCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F362B8ED980A64DEEFE155B /* MultiCameraPreview.swift */; };
 		09F380E56EE14394DF694C6D /* SparseCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = D14695A268513D7C8F33BDCA /* SparseCapture.m */; };
 		0AE6F440FCA05E143A578E25 /* NativeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D57392D813371C7673B9F9 /* NativeGeometry.swift */; };
@@ -60,14 +61,17 @@
 		464F080A7B6DA582DF12DE1D /* CaptureHardware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41508706E632412278C69D2D /* CaptureHardware.swift */; };
 		46776FB7AB1A68D9AA555D40 /* PhoneSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42855BF446331B35402C7B3 /* PhoneSetupTests.swift */; };
 		4881869DC7CB6F66BC1F7C6A /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30484792CA155DC21C8792D /* ResultsView.swift */; };
+		4A214AEE7B8987C9A2F880B7 /* CameraPreviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0882C7EEBB8AE1FD568C9D70 /* CameraPreviewTests.swift */; };
 		4B5C94F0B8E1132D7786DC45 /* NativeRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3355AD31C102BDF0B2BBEC0B /* NativeRegistration.swift */; };
 		4B6C5513984627825826BF50 /* SensorCaptureProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = B022676F0E5B7B20448DB463 /* SensorCaptureProbe.swift */; };
 		4C1F8EF5798F4247EAF689E9 /* NativeReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3594EAA7CD0D1934D429DAE0 /* NativeReconstruction.swift */; };
 		4E53CF9A6FF11FC2E757370D /* LiveGhost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45E261024AC9CAA356A06F1 /* LiveGhost.swift */; };
 		4F06440EEB2E46DCA660CE7D /* CaptureHardware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41508706E632412278C69D2D /* CaptureHardware.swift */; };
+		4FA6145CDA12351A83F97134 /* SmoothCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534E4B312FF1D7233A8831BB /* SmoothCameraPreview.swift */; };
 		5325ECC5FE87F2B436BAFC12 /* NativeValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C60CB5B28DB007E1899C5E /* NativeValidation.swift */; };
 		5435E897954E43FB62790B41 /* ReverseCADJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1FF463892CD191AA005BC /* ReverseCADJevConfiguration.swift */; };
 		54445C0F07B618816ADCB07E /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
+		5655B6740AAF7B02DB15B8DF /* SmoothCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534E4B312FF1D7233A8831BB /* SmoothCameraPreview.swift */; };
 		5759E5634574A7D06472A2F4 /* PhoneSetupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394E68F7AA18DED68565F576 /* PhoneSetupStore.swift */; };
 		57FA4B2ACFBBF26CAF92C877 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
 		586004D32B2F738468EDEBD0 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
@@ -75,6 +79,7 @@
 		5CD37544FC738ACE5BA72927 /* SampleScan in Resources */ = {isa = PBXBuildFile; fileRef = E8925DB27A66F56068E98FE2 /* SampleScan */; };
 		5E2719F3DCE1460641E86596 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = AAF5B179DB2F1405F35A30B3 /* README.md */; };
 		5FE88618F11A0999B1991BC2 /* ObjectFlowHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */; };
+		6060C33CE3F44FC5A4F17070 /* ReferenceBufferCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B2EAC1562DD17EFD306C2F /* ReferenceBufferCopy.swift */; };
 		6433A806FDB492DE4751B0CC /* SelectionBoxGestureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBA052613467CC007C68D781 /* SelectionBoxGestureTests.swift */; };
 		6759BDD24360A9976EC5B456 /* NativeReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3594EAA7CD0D1934D429DAE0 /* NativeReconstruction.swift */; };
 		69367CC62D52183B646CAF23 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
@@ -99,6 +104,7 @@
 		8D40E2AB13C534BE078B2BFF /* CubeDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EA8B882887DA468C342D7 /* CubeDemoView.swift */; };
 		8EE6974731AA1B31245E512D /* TwoPassScan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF995F5E77D17EB377589D3 /* TwoPassScan.swift */; };
 		8F1FA8E5CBB6420C2DF35D7A /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
+		901F044C81BF356DCBE8C045 /* ReferenceBufferCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B2EAC1562DD17EFD306C2F /* ReferenceBufferCopy.swift */; };
 		9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */; };
 		9149C0EACFAACBE60E5510D8 /* AdjustableObjectBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */; };
 		9177E90D7DBB215B698FC886 /* ObjectSelectionReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */; };
@@ -124,6 +130,8 @@
 		A9B02B9BD35B14C9D5677871 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = E6CC8D264A27F526025C4E1F /* ReverseCADCore */; };
 		AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC6703596E6A072522048B /* WorkflowTests.swift */; };
 		AAE97026C710166640E9B853 /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
+		AB1C7765AD43AF7CE26586B3 /* SmoothCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534E4B312FF1D7233A8831BB /* SmoothCameraPreview.swift */; };
+		AD4022419DD65D4A44F51BD2 /* ReferenceBufferCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B2EAC1562DD17EFD306C2F /* ReferenceBufferCopy.swift */; };
 		B25452FEC59BA28B7863E15E /* NativeValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C60CB5B28DB007E1899C5E /* NativeValidation.swift */; };
 		B6C67CDB7168A8F0F22D0291 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
 		B835CD978CFFFD5F84F62DE8 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
@@ -144,12 +152,14 @@
 		D4C6A3416C3D4A92FEA38BD7 /* TwoPassScan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF995F5E77D17EB377589D3 /* TwoPassScan.swift */; };
 		D58FF7302F5449EE7163D89F /* PatternRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D820EE547C9D7F1B466D52 /* PatternRepairTests.swift */; };
 		D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
+		D74ECC7FED0A3A2073320338 /* CameraCaptureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A820C2C793F729FE07C461B /* CameraCaptureButton.swift */; };
 		D8FFF8B4689D5F632CE1CA42 /* PhoneSetupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394E68F7AA18DED68565F576 /* PhoneSetupStore.swift */; };
 		D95F15F58155144DB95E0725 /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		DAA42DE363BAA5D45FFEAC36 /* VerifiedArtifactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */; };
 		DAF065F97A9BC078357F0BA7 /* PhoneReferenceSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816273DEADC4EA1A795EE077 /* PhoneReferenceSetup.swift */; };
 		DFEE7E87B9C7287FD22FBC32 /* TrueDepthReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BEADDBF10751AD2D23C8C3 /* TrueDepthReconstruction.swift */; };
 		E24E87931F2FC8902C2CD62E /* ReferenceCaptureWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5AC8688F85F8F986AB3C4E /* ReferenceCaptureWriter.swift */; };
+		E2FBBF39B75965D897EE062A /* CameraCaptureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A820C2C793F729FE07C461B /* CameraCaptureButton.swift */; };
 		E490D4078639AE34463441E3 /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
 		EA8A451C71F3B242F23D6019 /* MultiCameraValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A2110E9EC7895DD8A10984 /* MultiCameraValidation.swift */; };
 		EBC2EDE082AD95ED35740D42 /* TrueDepthReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BEADDBF10751AD2D23C8C3 /* TrueDepthReconstruction.swift */; };
@@ -182,7 +192,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0882C7EEBB8AE1FD568C9D70 /* CameraPreviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewTests.swift; sourceTree = "<group>"; };
+		0A820C2C793F729FE07C461B /* CameraCaptureButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureButton.swift; sourceTree = "<group>"; };
 		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		12B2EAC1562DD17EFD306C2F /* ReferenceBufferCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceBufferCopy.swift; sourceTree = "<group>"; };
 		2386A61BF0BD8DDD153CF125 /* NativeScanObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeScanObservation.swift; sourceTree = "<group>"; };
 		2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifacts.swift; sourceTree = "<group>"; };
 		26C3806DEA9982936214676E /* CaptureHardwareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureHardwareTests.swift; sourceTree = "<group>"; };
@@ -197,6 +210,7 @@
 		4BF995F5E77D17EB377589D3 /* TwoPassScan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoPassScan.swift; sourceTree = "<group>"; };
 		4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceView.swift; sourceTree = "<group>"; };
 		50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectFlowHome.swift; sourceTree = "<group>"; };
+		534E4B312FF1D7233A8831BB /* SmoothCameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmoothCameraPreview.swift; sourceTree = "<group>"; };
 		56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePatchNormalTests.swift; sourceTree = "<group>"; };
 		575541115D5D36AB2C5385AD /* RGBDTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RGBDTracking.swift; sourceTree = "<group>"; };
 		57895C5DDDC8194BC90E19CE /* NativeCalibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCalibration.swift; sourceTree = "<group>"; };
@@ -331,6 +345,7 @@
 				CE93717EBC7FBAAD9179530D /* AppModel.swift */,
 				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
 				A5EE04498F6FE2F602F7F24F /* CalibratedRaster.swift */,
+				0A820C2C793F729FE07C461B /* CameraCaptureButton.swift */,
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
 				CD62E45CC23E859803453CF8 /* CaptureController.swift */,
 				F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */,
@@ -360,12 +375,14 @@
 				816273DEADC4EA1A795EE077 /* PhoneReferenceSetup.swift */,
 				394E68F7AA18DED68565F576 /* PhoneSetupStore.swift */,
 				66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */,
+				12B2EAC1562DD17EFD306C2F /* ReferenceBufferCopy.swift */,
 				3A5AC8688F85F8F986AB3C4E /* ReferenceCaptureWriter.swift */,
 				F30484792CA155DC21C8792D /* ResultsView.swift */,
 				B9D214CCC12922586EB05086 /* ReverseCADApp.swift */,
 				9BC1FF463892CD191AA005BC /* ReverseCADJevConfiguration.swift */,
 				575541115D5D36AB2C5385AD /* RGBDTracking.swift */,
 				B022676F0E5B7B20448DB463 /* SensorCaptureProbe.swift */,
+				534E4B312FF1D7233A8831BB /* SmoothCameraPreview.swift */,
 				8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */,
 				F3BEADDBF10751AD2D23C8C3 /* TrueDepthReconstruction.swift */,
 				4BF995F5E77D17EB377589D3 /* TwoPassScan.swift */,
@@ -400,6 +417,7 @@
 		F2CED649D766DE0532119BB7 /* ReverseCADTests */ = {
 			isa = PBXGroup;
 			children = (
+				0882C7EEBB8AE1FD568C9D70 /* CameraPreviewTests.swift */,
 				EEDD5560918913EBC1D82587 /* CaptureFirstWorkflowTests.swift */,
 				26C3806DEA9982936214676E /* CaptureHardwareTests.swift */,
 				CD495AA0DD470634824266B4 /* CaptureTests.swift */,
@@ -638,6 +656,7 @@
 				9149C0EACFAACBE60E5510D8 /* AdjustableObjectBox.swift in Sources */,
 				6F5C096E703294B30ABA0B35 /* AppModel.swift in Sources */,
 				9B457801D57B43C6CCC7FB9B /* CalibratedRaster.swift in Sources */,
+				D74ECC7FED0A3A2073320338 /* CameraCaptureButton.swift in Sources */,
 				1C9856CDBD9611662ABFE08D /* CaptureARKit.swift in Sources */,
 				B835CD978CFFFD5F84F62DE8 /* CaptureController.swift in Sources */,
 				4F06440EEB2E46DCA660CE7D /* CaptureHardware.swift in Sources */,
@@ -667,11 +686,13 @@
 				956F5CBAD82401B8672D0C1B /* PhoneReferenceSetup.swift in Sources */,
 				D8FFF8B4689D5F632CE1CA42 /* PhoneSetupStore.swift in Sources */,
 				B87865EBD5D21107300C496F /* RGBDTracking.swift in Sources */,
+				AD4022419DD65D4A44F51BD2 /* ReferenceBufferCopy.swift in Sources */,
 				1467369DAC47EE3DD6C15527 /* ReferenceCaptureWriter.swift in Sources */,
 				4881869DC7CB6F66BC1F7C6A /* ResultsView.swift in Sources */,
 				586004D32B2F738468EDEBD0 /* ReverseCADApp.swift in Sources */,
 				EBF40BD464304750B9DCD574 /* ReverseCADJevConfiguration.swift in Sources */,
 				7D883459333498E79E6D4578 /* SensorCaptureProbe.swift in Sources */,
+				4FA6145CDA12351A83F97134 /* SmoothCameraPreview.swift in Sources */,
 				09F380E56EE14394DF694C6D /* SparseCapture.m in Sources */,
 				1A7122174FA79B19AC0F516E /* StandaloneScanView.swift in Sources */,
 				DFEE7E87B9C7287FD22FBC32 /* TrueDepthReconstruction.swift in Sources */,
@@ -688,6 +709,7 @@
 				9EEC6A4F6D3CB852935503C3 /* AdjustableObjectBox.swift in Sources */,
 				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
 				3AE9B7F990241253119CD6DF /* CalibratedRaster.swift in Sources */,
+				057662A241DAD7BAFAB488B7 /* CameraCaptureButton.swift in Sources */,
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
 				A73EBCD286785B145B937511 /* CaptureHardware.swift in Sources */,
@@ -717,11 +739,13 @@
 				02317E17349D47C2C3E5797B /* PhoneReferenceSetup.swift in Sources */,
 				5759E5634574A7D06472A2F4 /* PhoneSetupStore.swift in Sources */,
 				9AE2F36FE671042BE000A213 /* RGBDTracking.swift in Sources */,
+				6060C33CE3F44FC5A4F17070 /* ReferenceBufferCopy.swift in Sources */,
 				E24E87931F2FC8902C2CD62E /* ReferenceCaptureWriter.swift in Sources */,
 				3AFED07087B23DE167770979 /* ResultsView.swift in Sources */,
 				D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */,
 				5435E897954E43FB62790B41 /* ReverseCADJevConfiguration.swift in Sources */,
 				6D4607ED2236F4A5F2FA9BC8 /* SensorCaptureProbe.swift in Sources */,
+				5655B6740AAF7B02DB15B8DF /* SmoothCameraPreview.swift in Sources */,
 				BE5D296BD458A881500BA166 /* StandaloneScanView.swift in Sources */,
 				3689E7EE87CE0830623F3E04 /* TrueDepthReconstruction.swift in Sources */,
 				D4C6A3416C3D4A92FEA38BD7 /* TwoPassScan.swift in Sources */,
@@ -747,6 +771,7 @@
 				772619AA4D9786FC6CF047FE /* AdjustableObjectBox.swift in Sources */,
 				3CA0576EFCB60DBCA7530173 /* AppModel.swift in Sources */,
 				CE55C30D42CCCF83FCB103D6 /* CalibratedRaster.swift in Sources */,
+				E2FBBF39B75965D897EE062A /* CameraCaptureButton.swift in Sources */,
 				AAE97026C710166640E9B853 /* CaptureARKit.swift in Sources */,
 				B6C67CDB7168A8F0F22D0291 /* CaptureController.swift in Sources */,
 				464F080A7B6DA582DF12DE1D /* CaptureHardware.swift in Sources */,
@@ -776,11 +801,13 @@
 				DAF065F97A9BC078357F0BA7 /* PhoneReferenceSetup.swift in Sources */,
 				1F324A76955FAAAD08B257BC /* PhoneSetupStore.swift in Sources */,
 				D233667588FD95247B97EA7E /* RGBDTracking.swift in Sources */,
+				901F044C81BF356DCBE8C045 /* ReferenceBufferCopy.swift in Sources */,
 				7C9F2A01487A6CF082E399FE /* ReferenceCaptureWriter.swift in Sources */,
 				7A9BF4A24A1B5B0B465CFCC9 /* ResultsView.swift in Sources */,
 				69367CC62D52183B646CAF23 /* ReverseCADApp.swift in Sources */,
 				96F07F096D55D555091CF9FC /* ReverseCADJevConfiguration.swift in Sources */,
 				4B6C5513984627825826BF50 /* SensorCaptureProbe.swift in Sources */,
+				AB1C7765AD43AF7CE26586B3 /* SmoothCameraPreview.swift in Sources */,
 				03CC1D994339260B9E50709C /* StandaloneScanView.swift in Sources */,
 				EBC2EDE082AD95ED35740D42 /* TrueDepthReconstruction.swift in Sources */,
 				8EE6974731AA1B31245E512D /* TwoPassScan.swift in Sources */,
@@ -793,6 +820,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A214AEE7B8987C9A2F880B7 /* CameraPreviewTests.swift in Sources */,
 				74D865F5FF5F02BDFDC9C33A /* CaptureFirstWorkflowTests.swift in Sources */,
 				FF1585F9C2CAAE780196D0D7 /* CaptureHardwareTests.swift in Sources */,
 				A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */,
@@ -887,7 +915,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -910,7 +938,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;

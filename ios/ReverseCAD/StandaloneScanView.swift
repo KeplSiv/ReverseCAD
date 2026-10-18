@@ -294,6 +294,9 @@ struct StandaloneCameraView: View {
             if embedded { cameraContent }
             else { NavigationStack { cameraContent } }
         }.preferredColorScheme(.dark).tint(RepairStyle.accent)
+            .cameraCaptureButton(enabled:!referenceSetup && !pending && !identifier.running && capture.cameraReady && phoneSetup != nil) {
+                Task {if capture.isCapturing {await finish()} else {await begin()}}
+            }
             .interactiveDismissDisabled(capture.isCapturing || pending)
             .sheet(isPresented:$referenceSetup,onDismiss:{ Task { await refreshSetupAndPreview() } }) { PhoneReferenceSetup() }
             .onAppear {
@@ -308,7 +311,7 @@ struct StandaloneCameraView: View {
                 ZStack {
                     Group {
                     if let layer=capture.multiCameraPreview {
-                        MultiCameraPreview(layer:layer) { size,value in
+                        MultiCameraPreview(layer:layer,source:capture.latestPreviewFrame) { size,value in
                             if viewport != size {viewport=size}
                             if orientation != value {orientation=value}
                             capture.updateGuide(rect:CGRect(x:box.minX*size.width,y:box.minY*size.height,width:box.width*size.width,height:box.height*size.height),viewport:size,orientation:value)
