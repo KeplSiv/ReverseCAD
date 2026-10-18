@@ -14,6 +14,8 @@ struct SavedObjectIdentity: Codable {
     var confirmedIndices: [Int]
     var category: String
     var userSelected: Bool
+    var referenceBox: [Double]? = nil
+    var referenceImageSHA256: String? = nil
 }
 
 @MainActor final class CapturedObjectWorkflow: ObservableObject {
@@ -34,7 +36,7 @@ struct SavedObjectIdentity: Codable {
 
     func cancel() {
         generation = UUID(); task?.cancel(); task = nil
-        phase = identity == nil ? "idle" : "identified"
+        phase = identity?.confirmedIndices.isEmpty == false ? "identified" : "idle"
         message = "Cancelled. Your saved scan is preserved."
     }
     func load(project: URL, capture: URL) {
@@ -44,12 +46,26 @@ struct SavedObjectIdentity: Codable {
            saved.frameIDs.count == saved.detections.count, saved.frameIDs.count <= 10,
            saved.anchor.count == 2, saved.anchor.allSatisfy({ $0.isFinite && (0...1).contains($0) }),
            saved.confirmedIndices.allSatisfy({ saved.frameIDs.indices.contains($0) }),
-           saved.sourceFramesSHA256 == (try? CaptureIO.sha256(file: capture.appendingPathComponent("frames.jsonl"))) {
+           saved.sourceFramesSHA256 == (try? CaptureIO.sha256(file: capture.appendingPathComponent("frames.jsonl"))),
+           Self.matchesReference(saved,capture:capture) {
             identity = saved; phase = saved.confirmedIndices.isEmpty ? "ambiguous" : "identified"
         } else { phase = "idle" }
-        if let frames = try? CaptureIO.readFrames(directory: capture), let first = RepresentativeViews.select(frames).first {
+        if let selection = try? ObjectSelectionReference.load(project:project,capture:capture) {
+            referenceImage=UIImage(contentsOfFile:capture.appendingPathComponent(selection.imagePath).path)
+        } else if let frames = try? CaptureIO.readFrames(directory: capture), let first = RepresentativeViews.select(frames).first {
             referenceImage = UIImage(contentsOfFile: capture.appendingPathComponent(first.rgbPath).path)
         }
+    }
+    private nonisolated static func matchesReference(_ identity: SavedObjectIdentity,capture: URL) -> Bool {
+        guard let expected=identity.referenceImageSHA256 else{return true}
+        let path: String
+        if identity.referenceID.contains("/") {path=identity.referenceID}
+        else {
+            guard let frame=(try? CaptureIO.readFrames(directory:capture))?.first(where:{$0.frameID==identity.referenceID}) else{return false}
+            path=frame.rgbPath
+        }
+        guard let url=try? CaptureIO.safeURL(directory:capture,path:path) else{return false}
+        return (try? CaptureIO.sha256(file:url))==expected
     }
     func find(project: URL, capture: URL, description: String, point: CGPoint? = nil) {
         guard !working else { return }
@@ -64,31 +80,49 @@ struct SavedObjectIdentity: Codable {
                 guard views.count >= 3, let first = views.first else {
                     throw ServiceFailure(message: "Too few sharp, separated views. Keep this capture and add views from other sides before building.")
                 }
-                let anchor = point ?? CGPoint(x: first.captureRegion.map { $0[0] + $0[2]/2 } ?? 0.5,
+                let selection=try ObjectSelectionReference.load(project:project,capture:capture)
+                let anchor = point ?? selection.map { CGPoint(x:$0.box.midX,y:$0.box.midY) } ?? CGPoint(x: first.captureRegion.map { $0[0] + $0[2]/2 } ?? 0.5,
                                               y: first.captureRegion.map { $0[1] + $0[3]/2 } ?? 0.5)
-                let reference = try Self.requestImage(capture.appendingPathComponent(first.rgbPath))
-                referenceImage = UIImage(contentsOfFile: capture.appendingPathComponent(first.rgbPath).path)
+                let referencePath=selection?.imagePath ?? first.rgbPath
+                let reference = try Self.requestImage(capture.appendingPathComponent(referencePath))
+                referenceImage = UIImage(contentsOfFile: capture.appendingPathComponent(referencePath).path)
                 let key = try keyProvider()
                 let client = clientFactory()
+                var referenceCategory=selection?.detection.category
+                var selectedBox = point == nil ? selection?.box : nil
+                var referenceDetection=selection?.detection
+                if point != nil,selection != nil {
+                    let revised=try await client.identifySavedView(jpeg:reference,reference:reference,description:description,anchor:anchor,requestID:UUID(),apiKey:key)
+                    try Task.checkCancellation();guard epoch==generation else{return}
+                    guard let box=revised.box,anchor.x>=box.left,anchor.x<=box.right,anchor.y>=box.top,anchor.y<=box.bottom else {
+                        phase="ambiguous";message="Tap a clearly visible object in the saved image.";task=nil;return
+                    }
+                    referenceCategory=revised.category;referenceDetection=revised
+                    selectedBox=CGRect(x:box.left,y:box.top,width:box.right-box.left,height:box.bottom-box.top)
+                }
                 var detections = [JevDetection]()
                 for (index, view) in views.enumerated() {
                     try Task.checkCancellation()
                     message = "Finding your object… \(index + 1) of \(views.count) views"
-                    let jpeg = view.frameID == first.frameID ? reference : try Self.requestImage(capture.appendingPathComponent(view.rgbPath))
+                    let jpeg = view.rgbPath == referencePath ? reference : try Self.requestImage(capture.appendingPathComponent(view.rgbPath))
                     // Exactly one request per selected view. No automatic retry loop.
                     let result = try await client.identifySavedView(jpeg: jpeg, reference: reference, description: description,
-                                                                  anchor: anchor, requestID: UUID(), apiKey: key)
+                                                                  anchor: anchor, requestID: UUID(), apiKey: key, referenceBox: selectedBox)
                     try Task.checkCancellation(); guard epoch == generation else { return }
                     detections.append(result)
                 }
-                let confirmed = ObjectConsensus.confirmed(detections, anchor: anchor)
-                let record = SavedObjectIdentity(sourceFramesSHA256: try CaptureIO.sha256(file: capture.appendingPathComponent("frames.jsonl")), referenceID: first.frameID, anchor: [anchor.x, anchor.y], frameIDs: views.map(\.frameID),
-                    detections: detections, confirmedIndices: confirmed, category: detections.first?.category ?? "other", userSelected: point != nil)
+                let confirmed = ObjectConsensus.confirmed(detections, anchor: anchor, referenceCategory: referenceCategory)
+                let record = SavedObjectIdentity(sourceFramesSHA256: try CaptureIO.sha256(file: capture.appendingPathComponent("frames.jsonl")), referenceID: selection == nil ? first.frameID : referencePath, anchor: [anchor.x, anchor.y], frameIDs: views.map(\.frameID),
+                    detections: detections, confirmedIndices: confirmed, category: referenceCategory ?? detections.first?.category ?? "other", userSelected: point != nil, referenceBox:selectedBox.map{[$0.minX,$0.minY,$0.width,$0.height]}, referenceImageSHA256:try CaptureIO.sha256(file:capture.appendingPathComponent(referencePath)))
                 identity = record
                 try CaptureIO.atomicWrite(record, to: project.appendingPathComponent("object-identity.json"))
                 if confirmed.isEmpty {
                     phase = "ambiguous"; message = point == nil ? "Tap the object you meant in this saved image." : "The views still disagree. Tap the intended object to try again; your scan is saved."
                 } else {
+                    if let selection,let selectedBox,let referenceDetection,point != nil {
+                        var corrected=selection;corrected.rawBox=[selectedBox.minX,selectedBox.minY,selectedBox.width,selectedBox.height];corrected.detection=referenceDetection
+                        try CaptureIO.atomicWrite(corrected,to:project.appendingPathComponent("object-selection.json"))
+                    }
                     phase = "identified"; message = "Object identified across \(confirmed.count) views."
                 }
             } catch {
@@ -119,7 +153,10 @@ struct SavedObjectIdentity: Codable {
         }
     }
     nonisolated static func requestImage(_ url: URL) throws -> Data {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+        try requestImage(Data(contentsOf:url))
+    }
+    nonisolated static func requestImage(_ data: Data) throws -> Data {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true,
                   kCGImageSourceThumbnailMaxPixelSize: 1280, kCGImageSourceCreateThumbnailWithTransform: false] as CFDictionary),
               min(image.width, image.height) > 0 else {

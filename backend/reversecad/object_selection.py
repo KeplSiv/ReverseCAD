@@ -65,3 +65,55 @@ def consistent_views(frames):
                         for j, tree in enumerate(trees) if i != j)
         if supported: keep.append(i)
     return [f for i, f in enumerate(frames) if i in keep], [f for i, f in enumerate(frames) if i not in keep]
+
+
+def repair_selection_frames(root, frames, annotations):
+    """Give main's existing repair detector a bounded, verified object search region.
+
+    This is a transient view of the original frames. Missing areas inside the
+    object's padded extent stay visible so a repair can be inferred separately
+    from the observed mesh. Labels and Jev boxes never supply CAD dimensions.
+    """
+    target = annotations.get('object_target') or {}
+    if target.get('workflow') != 'capture_first_v1':
+        return frames
+    selected = []
+    for frame in frames:
+        if not frame.get('quality', {}).get('accepted', False) or not frame.get('depth_path'):
+            continue
+        shape = (frame['depth_height'], frame['depth_width'])
+        mask, _ = selection_mask(root, frame, shape, target)
+        y, x = np.nonzero(mask)
+        if len(x) < 30:
+            continue
+        h, w = shape
+        bounds = [x.min()/w, y.min()/h, (x.max()+1)/w, (y.max()+1)/h]
+        record = target['frames'][frame['frame_id']]
+        box = record.get('box')
+        if box is not None:
+            box = np.asarray(box, dtype=float)
+            if box.shape != (4,) or not np.isfinite(box).all() or (box[:2]<0).any() or (box[2:]<=0).any() or (box[:2]+box[2:]>1.000001).any():
+                raise ValueError('Invalid object selection bounds')
+            bounds = [min(bounds[0],box[0]),min(bounds[1],box[1]),max(bounds[2],box[0]+box[2]),max(bounds[3],box[1]+box[3])]
+        pad_x, pad_y = (bounds[2]-bounds[0])*.20, (bounds[3]-bounds[1])*.20
+        left, top, right, bottom = max(0,bounds[0]-pad_x),max(0,bounds[1]-pad_y),min(1,bounds[2]+pad_x),min(1,bounds[3]+pad_y)
+        selected.append({**frame, 'capture_region':[left,top,right-left,bottom-top],
+                         'mask_path': record['mask_path'], 'selection_source':'confirmed_same_instance'})
+    if len(selected) < 3:
+        raise ValueError('Damage analysis needs three confirmed object views. The original capture is preserved; add sharp overlapping views of the damage and intact features.')
+    return selected
+
+
+def supports_repair_region(root, frame, polygon, image_shape):
+    """Reject damage candidates on background inside the padded search box."""
+    if frame.get('selection_source') != 'confirmed_same_instance':
+        return True
+    import cv2
+    raw = np.frombuffer((root / frame['mask_path']).read_bytes(), dtype=np.uint8)
+    mask = raw.reshape(frame['depth_height'],frame['depth_width']) > 0
+    mask = cv2.resize(mask.astype(np.uint8), (image_shape[1],image_shape[0]), interpolation=cv2.INTER_NEAREST)
+    candidate = np.zeros(image_shape[:2],dtype=np.uint8)
+    cv2.fillPoly(candidate,[np.rint(polygon).astype(np.int32)],1)
+    count = np.count_nonzero(candidate)
+    # Missing cells may be empty; most of the proposed face must still be this object.
+    return count > 0 and np.count_nonzero(candidate & mask) / count >= .45

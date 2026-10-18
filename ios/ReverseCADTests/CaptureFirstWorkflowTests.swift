@@ -47,8 +47,9 @@ private final class SavedViewProtocol: URLProtocol {
             return JevClient(session: URLSession(configuration: c))
         }, keyProvider: { "test-only" })
     }
-    func capture() throws -> URL {
+    func capture(selection: BoxObjectIdentifier? = nil) throws -> URL {
         let directory = root.appendingPathComponent("capture")
+        try selection?.save(project:root,capture:directory)
         let writer = try ScanPackageWriter(directory: directory, manifest: CaptureManifest(scanID: "test", source: "synthetic", device: "test", segments: [CaptureSegment(segmentID: "s")]))
         let image = UIGraphicsImageRenderer(size: CGSize(width: 80,height: 60)).image { c in UIColor.white.setFill(); c.fill(CGRect(x:0,y:0,width:80,height:60)) }.jpegData(compressionQuality: 0.9)!
         for i in 0..<12 {
@@ -107,5 +108,40 @@ private final class SavedViewProtocol: URLProtocol {
         raw.storeBytes(of:Float.nan,toByteOffset:stride,as:Float.self); raw.storeBytes(of:Float(0.9),toByteOffset:stride+4,as:Float.self)
         CVPixelBufferUnlockBaseAddress(b,[])
         XCTAssertEqual(SavedObjectMasks.rasterize(b,width:2,height:2),Data([255,0,0,255]))
+    }
+}
+
+
+extension CaptureFirstWorkflowTests {
+    func testAdjustableBoxIdentificationIsSavedAndReusedAfterCapture() async throws {
+        let id=BoxObjectIdentifier(clientFactory:{
+            let c=URLSessionConfiguration.ephemeral;c.protocolClasses=[SavedViewProtocol.self]
+            return JevClient(session:URLSession(configuration:c))
+        },keyProvider:{"test-only"})
+        let jpeg=UIGraphicsImageRenderer(size:CGSize(width:600,height:450)).image { c in UIColor.white.setFill();c.fill(CGRect(x:0,y:0,width:600,height:450)) }.jpegData(compressionQuality:0.9)!
+        id.identify(jpeg:jpeg,rawBox:CGRect(x:0.1,y:0.1,width:0.8,height:0.8),description:"")
+        for _ in 0..<200 {if !id.running {break};try await Task.sleep(for:.milliseconds(10))}
+        XCTAssertNotNil(id.reference);XCTAssertEqual(SavedViewProtocol.count,1)
+        let first=try XCTUnwrap(SavedViewProtocol.bodies.first)
+        let state=try XCTUnwrap(first["state"] as? [String:Any])
+        let bounds=try XCTUnwrap(state["reference_selection_box"] as? [String:Double])
+        XCTAssertEqual(bounds["left"],0.1);XCTAssertEqual(bounds["right"],0.9)
+        let directory=try capture(selection:id)
+        _=try ScanPackageWriter.validate(directory:directory)
+        let saved=try XCTUnwrap(ObjectSelectionReference.load(project:root,capture:directory))
+        XCTAssertEqual(saved.imageSHA256,CaptureIO.sha256(jpeg))
+        let value=workflow();value.find(project:root,capture:directory,description:"");try await settle(value)
+        XCTAssertEqual(value.phase,"identified");XCTAssertEqual(SavedViewProtocol.count,11)
+        XCTAssertEqual(value.identity?.referenceID,"rgb/selection-reference.jpg")
+        XCTAssertEqual(value.identity?.referenceBox,[0.1,0.1,0.8,0.8])
+        let reload=workflow();reload.load(project:root,capture:directory)
+        XCTAssertEqual(reload.phase,"identified");XCTAssertEqual(SavedViewProtocol.count,11)
+    }
+    func testTwoFlowsKeepSavedProjectClassificationSeparate() {
+        var scan=RepairProject(name:"Object");scan.repairScope="standalone_scan";scan.scanPurpose="scan"
+        var repair=RepairProject(name:"Repair");repair.repairScope="standalone_scan";repair.scanPurpose="repair"
+        XCTAssertTrue(ObjectFlow.scan.includes(scan));XCTAssertFalse(ObjectFlow.repair.includes(scan))
+        XCTAssertTrue(ObjectFlow.repair.includes(repair));XCTAssertFalse(ObjectFlow.scan.includes(repair))
+        repair.repairScope="automatic";XCTAssertTrue(ObjectFlow.repair.includes(repair))
     }
 }

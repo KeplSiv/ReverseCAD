@@ -633,6 +633,9 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     # Independent finite serialization check before annotations affect geometry.
     json.dumps(annotations, allow_nan=False)
     manifest, capture_frames, segments = _load_package(scan_dir)
+    if annotations.get("repair_scope") != "standalone_scan" and (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1":
+        from .object_selection import repair_selection_frames
+        capture_frames = repair_selection_frames(scan_dir, capture_frames, annotations)
     if manifest.get("sparse_capture") is not None and stage == "rgb_assisted":
         from .sparse.pipeline import reconstruct_sparse
         return reconstruct_sparse(scan_dir, output_dir, manifest, capture_frames, annotations)

@@ -40,10 +40,42 @@ public enum RepresentativeViews {
 public enum ObjectConsensus {
     /// Every vote already compares the view against the same reference instance.
     /// Category agreement alone cannot establish instance identity.
-    public static func confirmed(_ detections: [JevDetection], anchor: CGPoint) -> [Int] {
+    public static func confirmed(_ detections: [JevDetection], anchor: CGPoint, referenceCategory: String? = nil) -> [Int] {
+        if let category = referenceCategory {
+            let matches = detections.indices.filter { detections[$0].box != nil && detections[$0].category == category }
+            return matches.count >= 3 && Double(matches.count)/Double(max(1,detections.count)) >= 0.6 ? matches : []
+        }
         guard let reference = detections.first, let box = reference.box,
               anchor.x >= box.left, anchor.x <= box.right, anchor.y >= box.top, anchor.y <= box.bottom else { return [] }
         let matches = detections.indices.filter { detections[$0].box != nil && detections[$0].category == reference.category }
         return matches.count >= 3 && Double(matches.count) / Double(detections.count) >= 0.6 ? matches : []
+    }
+}
+
+public enum SelectionBoxCorner: String {
+    case topLeft, topRight, bottomLeft, bottomRight, move
+    public static let corners: [Self] = [.topLeft,.topRight,.bottomLeft,.bottomRight]
+    public var isLeft: Bool { self == .topLeft || self == .bottomLeft }
+    public var isTop: Bool { self == .topLeft || self == .topRight }
+}
+public enum SelectionBox {
+    public static let initial = CGRect(x:1.0/3,y:1.0/3,width:1.0/3,height:1.0/3)
+    public static func adjust(_ box: CGRect, corner: SelectionBoxCorner, dx: Double, dy: Double) -> CGRect {
+        guard dx.isFinite,dy.isFinite else{return box}
+        let minimum = 0.08
+        if corner == .move {
+            return CGRect(x:min(1-box.width,max(0,box.minX+dx)),y:min(1-box.height,max(0,box.minY+dy)),width:box.width,height:box.height)
+        }
+        let left = corner.isLeft ? min(box.maxX-minimum,max(0,box.minX+dx)) : box.minX
+        let right = corner.isLeft ? box.maxX : max(box.minX+minimum,min(1,box.maxX+dx))
+        let top = corner.isTop ? min(box.maxY-minimum,max(0,box.minY+dy)) : box.minY
+        let bottom = corner.isTop ? box.maxY : max(box.minY+minimum,min(1,box.maxY+dy))
+        return CGRect(x:left,y:top,width:right-left,height:bottom-top)
+    }
+    public static func matches(_ detection: JevDetection, selected: CGRect) -> Bool {
+        guard let b=detection.box else{return false}
+        let found=CGRect(x:b.left,y:b.top,width:b.right-b.left,height:b.bottom-b.top)
+        let overlap=found.intersection(selected)
+        return selected.contains(CGPoint(x:found.midX,y:found.midY)) && !overlap.isNull && overlap.width*overlap.height >= found.width*found.height*0.4
     }
 }

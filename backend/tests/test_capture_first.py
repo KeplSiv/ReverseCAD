@@ -94,3 +94,82 @@ def test_capture_first_package_upload_reconstruction_and_exports(tmp_path):
             assert hashlib.sha256(raw).hexdigest()==a['sha256']
     assert (capture/'frames.jsonl').read_bytes()==original_frames
     assert all(hashlib.sha256((capture/p).read_bytes()).hexdigest()==v for p,v in original_hashes.items())
+
+
+def test_repair_handoff_uses_same_object_masks_and_preserves_input(tmp_path):
+    from copy import deepcopy
+    from reversecad.object_selection import repair_selection_frames
+    frame,target,mask=fixture(tmp_path)
+    frame.update(depth_path='depth/0.f32',depth_height=20,depth_width=30,quality={'accepted':True})
+    frames=[]
+    for i in range(3):
+        item={**frame,'frame_id':str(i)};frames.append(item)
+        target['frames'][str(i)]=target['frames']['0'].copy()
+    target['frames']['1']['box']=[.05,.05,.9,.9]
+    unconfirmed={**frame,'frame_id':'unconfirmed'};frames.append(unconfirmed)
+    original=deepcopy(frames)
+    result=repair_selection_frames(tmp_path,frames,{'object_target':target})
+    assert len(result)==3
+    assert frames==original
+    assert all(f['mask_path']=='masks/objects/0.u8' for f in result)
+    assert all(f['selection_source']=='confirmed_same_instance' for f in result)
+    assert result[1]['capture_region'][0] < .05
+    assert 'unconfirmed' not in [f['frame_id'] for f in result]
+
+
+def test_repair_handoff_refuses_missing_selection(tmp_path):
+    from reversecad.object_selection import repair_selection_frames
+    frame,target,_=fixture(tmp_path)
+    with pytest.raises(ValueError,match='three confirmed'):
+        repair_selection_frames(tmp_path,[frame],{'object_target':target})
+
+
+def test_repair_region_rejects_background_inside_box(tmp_path):
+    from reversecad.object_selection import supports_repair_region
+    frame,target,_=fixture(tmp_path)
+    frame.update(depth_height=20,depth_width=30,mask_path='masks/objects/0.u8',selection_source='confirmed_same_instance')
+    assert supports_repair_region(tmp_path,frame,[[5,5],[25,5],[25,15],[5,15]],(20,30))
+    assert not supports_repair_region(tmp_path,frame,[[0,0],[29,0],[29,1],[0,1]],(20,30))
+
+
+@pytest.mark.timeout(90)
+def test_selected_saved_session_reaches_main_damage_cad_without_recapture(tmp_path):
+    import cv2,json
+    from reversecad.reconstruction import reconstruct
+    from reversecad.storage import digest
+    for folder in ['rgb','depth','confidence','masks/objects/selected']:
+        (tmp_path/folder).mkdir(parents=True)
+    frames=[];records={}
+    polygon=np.array([[180,100],[420,100],[420,300],[240,300],[240,260],[180,220]])
+    for i in range(3):
+        image=np.zeros((400,600,3),np.uint8)
+        cv2.fillPoly(image,[polygon+np.array([i*2,0])],(240,240,240))
+        rgb=f'rgb/{i}.jpg';depth=f'depth/{i}.f32';confidence=f'confidence/{i}.u8';mask=f'masks/objects/selected/{i}.u8'
+        cv2.imwrite(str(tmp_path/rgb),image)
+        np.full((100,150),.6,dtype='<f4').tofile(tmp_path/depth)
+        np.full((100,150),2,dtype='u1').tofile(tmp_path/confidence)
+        raster=np.zeros((400,600),np.uint8);cv2.fillPoly(raster,[polygon+np.array([i*2,0])],255)
+        cv2.resize(raster,(150,100),interpolation=cv2.INTER_NEAREST).tofile(tmp_path/mask)
+        pose=np.eye(4);pose[0,3]=-.0015*i
+        frames.append({'schema_version':1,'scan_id':'repair-flow','segment_id':'s','frame_id':str(i),'timestamp_s':i,
+            'rgb_path':rgb,'rgb_width':600,'rgb_height':400,'orientation':'up','depth_path':depth,'depth_width':150,'depth_height':100,
+            'depth_row_bytes':600,'depth_byte_order':'little','confidence_path':confidence,'intrinsics':[800,0,0,0,800,0,300,200,1],
+            'intrinsics_width':600,'intrinsics_height':400,'T_world_camera':pose.flatten(order='F').tolist(),'tracking_state':'normal',
+            'quality':{'accepted':True,'blur_score':100},'capture_region':[1/3,1/3,1/3,1/3]})
+        records[str(i)]={'mask_path':mask,'mask_sha256':digest(tmp_path/mask),'rgb_sha256':digest(tmp_path/rgb)}
+    manifest={'schema_version':1,'scan_id':'repair-flow','source':'synthetic','complete':True,'frame_count':3,
+        'segments':[{'segment_id':'s','registered':True,'T_object_world':np.eye(4).flatten(order='F').tolist()}]}
+    (tmp_path/'manifest.json').write_text(json.dumps(manifest))
+    (tmp_path/'frames.jsonl').write_text('\n'.join(map(json.dumps,frames))+'\n')
+    originals={p.relative_to(tmp_path).as_posix():digest(p) for p in tmp_path.rglob('*') if p.is_file()}
+    (tmp_path/'checksums.json').write_text(json.dumps(originals))
+    out=tmp_path/'output'
+    result=reconstruct(tmp_path,out,{'repair_scope':'automatic','planar_thickness_mm':3,
+        'object_target':{'workflow':'capture_first_v1','confirmed':True,'category':'other','frames':records}})
+    assert result['automatic_route']['scope']=='rectangular_planar',result
+    assert result['planar_repair']['piece_count']==1
+    assert (out/'replacement.step').exists()
+    assert (out/'printable_edge.stl').exists()
+    assert (out/'printable_edge.3mf').exists()
+    assert result['counterpart']['watertight_replacement'] is True
+    assert all(digest(tmp_path/path)==value for path,value in originals.items())

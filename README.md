@@ -1,5 +1,8 @@
 # Reverse CAD
 
+The `main-consolidated` branch combines Prelude object scanning with the main damage/CAD workflow. Choose **Scan an object** or **Repair damage**. Both start with an adjustable box and explicit Jev identification, then reuse one local capture. See [the consolidated specification](docs/MAIN_CONSOLIDATED.md).
+
+
 The signed TestFlight release and Apple processing/tester status are recorded in [release status](reports/testflight/STATUS.md). Reproducible release commands are in [TestFlight setup](docs/TESTFLIGHT.md).
 
 Native iPhone RGB-D capture and a local Mac processing service for a two-mount bridge handle, curved saddle cup handle, and flat/L repair bracket. The app keeps observed geometry, design assumptions, manual measurements and physical test results distinct.

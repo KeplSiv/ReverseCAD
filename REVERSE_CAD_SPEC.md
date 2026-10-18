@@ -1,5 +1,8 @@
 # Reverse CAD iPhone application specification
 
+> Current consolidated revision: [Adjustable selection and two app flows](docs/MAIN_CONSOLIDATED.md) on `main-consolidated` supersedes the ordering below. Jev uses the edited rectangle before scanning; the same reference is checked across saved views afterward. Scan and repair are separate flows; repair continues into the existing main-branch CAD component.
+
+
 ## Prelude capture-first revision (2026-10-18)
 
 The standalone Prelude scanner on `pranav-dev` follows **Frame object → Scan around it → Identify object → Build 3D model → Preview and export**. Its normative workflow, direct-phone Jev contract, saved-session masks, backend requirement and verification boundaries are in [PRELUDE_SCANNER.md](docs/PRELUDE_SCANNER.md). This supersedes any earlier identify-before-capture or continuously polled Jev flow for Prelude. Descriptions are optional; the center rule-of-thirds cell is a framing hint, never a crop. Full calibrated capture happens locally before identification. Original geometry, supported scale and refined same-instance masks drive reconstruction; category-shaped completion is prohibited. Work and release stay on `pranav-dev`; private sensor experiments and `main` remain separate.

@@ -85,7 +85,7 @@ final class JevClientTests: XCTestCase {
         guard let keyPath = env["JEV_LIVE_TEST_KEY_FILE"], let imagePath = env["JEV_LIVE_TEST_IMAGE"] else { throw XCTSkip("Explicit live fixture configuration required") }
         let key = try String(contentsOfFile: keyPath).trimmingCharacters(in: .whitespacesAndNewlines)
         let jpeg = try Data(contentsOf: URL(fileURLWithPath: imagePath))
-        let result = try await JevClient().identifySavedView(jpeg: jpeg, reference: jpeg, description: "", anchor: CGPoint(x: 0.5,y: 0.5), requestID: UUID(), apiKey: key)
+        let result = try await JevClient().identifySavedView(jpeg: jpeg, reference: jpeg, description: "", anchor: CGPoint(x: 0.5,y: 0.5), requestID: UUID(), apiKey: key, referenceBox: CGRect(x:0.15,y:0.15,width:0.7,height:0.7))
         XCTAssertNotNil(result.box)
         print("SAVED_REFERENCE_JEV_OK model=\(result.model) category=\(result.category)")
     }

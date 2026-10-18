@@ -4,11 +4,11 @@ import ImageIO
 
 struct ContentView: View {
     var body: some View {
-        #if PRELUDE_SCANNER
-        StandaloneScanView()
+        #if SPARSE_RESEARCH
+        UnifiedRepairView()
         #else
         if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
-        else { UnifiedRepairView() }
+        else { ObjectFlowHome() }
         #endif
     }
 }
@@ -78,7 +78,7 @@ struct SettingsView:View {
         }
         Section("Data and reasoning") {
             Text("Scans stay in your project until processing is requested. The paired service reconstructs and generates CAD on your Mac. Live AI mode sends selected object images and the evidence table to the configured provider. Manual and fixture modes do not call a model.")
-            Text("Only this service pairing token is stored on iPhone, in Keychain. The model API key belongs on the Mac.").font(.footnote).foregroundStyle(.secondary)
+            Text("The connection token is stored in Keychain. This personal Prelude build uses its configured Jev key for object identification directly from the phone. Repair-provider keys stay on the Mac.").font(.footnote).foregroundStyle(.secondary)
         }
         Section("Validation status") {Text("Simulator uses synthetic RGB-D replay. Live sensing, dimensional accuracy, and printed fit need separate phone trials.")}
     }.navigationTitle("Connection")

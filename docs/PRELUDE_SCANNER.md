@@ -1,5 +1,8 @@
 # Prelude capture-first scanner
 
+> Current consolidated revision: [Adjustable selection and two app flows](MAIN_CONSOLIDATED.md) on `main-consolidated` supersedes the ordering below. Jev uses the edited rectangle before scanning; the same reference is checked across saved views afterward. Scan and repair are separate flows; repair continues into the existing main-branch CAD component.
+
+
 Scope: KeplSiv/ReverseCAD, `pranav-dev`, public-API `PreludeScanner` target (`com.pranavmuralitharan.prelude`). `main` is unchanged. Private sparse sensor interception stays in its separate Debug-only target and cannot be archived.
 
 ## Workflow

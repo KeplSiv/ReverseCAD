@@ -11,6 +11,7 @@
 		015E30D5BD574477EB05F6D8 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30484792CA155DC21C8792D /* ResultsView.swift */; };
 		0301A30DEB244DA88C3350E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
 		039D0C2BCE352CD02628E895 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36B0EA4A58C5E7D1FBFED931 /* ReverseCADCore */; };
+		05B034E2E5E60735CAF4B0BD /* AdjustableObjectBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */; };
 		09F380E56EE14394DF694C6D /* SparseCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = D14695A268513D7C8F33BDCA /* SparseCapture.m */; };
 		11045D078E4A54BA03ACD609 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
 		128D5F2945AF5655296DFC8B /* CapturedObjectWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */; };
@@ -20,6 +21,7 @@
 		181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		1A7122174FA79B19AC0F516E /* StandaloneScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */; };
 		1C9856CDBD9611662ABFE08D /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
+		1E62B70D4D25D6B335D0FB5D /* ObjectSelectionReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */; };
 		2109B72EC3299C94ED70361F /* PreludeJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */; };
 		23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
 		29B3FA71D058DAA7156A20F2 /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
@@ -58,6 +60,7 @@
 		8D40E2AB13C534BE078B2BFF /* CubeDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EA8B882887DA468C342D7 /* CubeDemoView.swift */; };
 		8DF1AE12FA9911FAAD2E0CF7 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
 		9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */; };
+		9149C0EACFAACBE60E5510D8 /* AdjustableObjectBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */; };
 		919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */; };
 		9501D20ECEC35513E51D8139 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 843C4BFDFE8C7BFEC1B6FF51 /* ReverseCADCore */; };
 		9559B67949EF730889CC5555 /* CapturedObjectWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */; };
@@ -65,23 +68,30 @@
 		9BB7E3A54DE762D9648B0DF4 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
 		9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
 		9CC91226134A2FFC4F2C1811 /* CubeDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EA8B882887DA468C342D7 /* CubeDemoView.swift */; };
+		9EEC6A4F6D3CB852935503C3 /* AdjustableObjectBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */; };
 		A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD495AA0DD470634824266B4 /* CaptureTests.swift */; };
 		AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC6703596E6A072522048B /* WorkflowTests.swift */; };
 		B835CD978CFFFD5F84F62DE8 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
 		BE5D296BD458A881500BA166 /* StandaloneScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */; };
 		C02933AF9EE4D5DF27C7183A /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
 		C146EE7DD6147552AC8A831C /* GeometryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */; };
+		C3B94DC24DF7D08BA14DF9A8 /* ObjectFlowHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */; };
 		C9A6AFECA509CE403658C7A0 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */; };
 		CE41C752E673FB0CA6A1D0CE /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
+		D286BE49799F40DF7E92DEC2 /* ObjectFlowHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */; };
 		D4006AFBE5D3E1CB14455709 /* LiveGhost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45E261024AC9CAA356A06F1 /* LiveGhost.swift */; };
 		D58FF7302F5449EE7163D89F /* PatternRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D820EE547C9D7F1B466D52 /* PatternRepairTests.swift */; };
 		D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
 		D8686CA6544E86E39B35E23C /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		DAA42DE363BAA5D45FFEAC36 /* VerifiedArtifactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BA17897C8378031230696EF /* VerifiedArtifactsTests.swift */; };
 		EE03577A4722013635D2D62E /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
+		F04F00BC5778DD6A5AEFC81B /* ObjectSelectionReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */; };
 		F13D158D46B2D6293C274574 /* SampleScan in Resources */ = {isa = PBXBuildFile; fileRef = E8925DB27A66F56068E98FE2 /* SampleScan */; };
 		F3553AC6C32ED9921AD7C712 /* LiveObjectIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4591C1D974295CB5DFA7EC /* LiveObjectIdentifier.swift */; };
+		F6CA2F2B4B59FD347F81CDD0 /* ObjectSelectionReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */; };
+		FC59189DCD6A84B18237A4F3 /* ConsolidatedFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71F0DB507FDC03403349663 /* ConsolidatedFlowTests.swift */; };
 		FD915CD58AE0B050929F602B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */; };
+		FE9FAD19A937048202C2898B /* ObjectFlowHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,8 +114,10 @@
 /* Begin PBXFileReference section */
 		10F0953B46DB70FC38DB1355 /* ReverseCAD.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCAD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedArtifacts.swift; sourceTree = "<group>"; };
+		28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSelectionReference.swift; sourceTree = "<group>"; };
 		44149E87E66872F41062845F /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
 		4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceView.swift; sourceTree = "<group>"; };
+		50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectFlowHome.swift; sourceTree = "<group>"; };
 		56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePatchNormalTests.swift; sourceTree = "<group>"; };
 		571081B7078295C20D3CE8C5 /* PreludeJevConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = PreludeJevConfig.plist; sourceTree = "<group>"; };
 		5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonResults.swift; sourceTree = "<group>"; };
@@ -130,11 +142,13 @@
 		B9D214CCC12922586EB05086 /* ReverseCADApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverseCADApp.swift; sourceTree = "<group>"; };
 		BBD20537A7E6A240FDEB1010 /* Bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Bridging.h; sourceTree = "<group>"; };
 		C3D820EE547C9D7F1B466D52 /* PatternRepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepairTests.swift; sourceTree = "<group>"; };
+		C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustableObjectBox.swift; sourceTree = "<group>"; };
 		CD495AA0DD470634824266B4 /* CaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureTests.swift; sourceTree = "<group>"; };
 		CD62E45CC23E859803453CF8 /* CaptureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureController.swift; sourceTree = "<group>"; };
 		CE93717EBC7FBAAD9179530D /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		D14695A268513D7C8F33BDCA /* SparseCapture.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SparseCapture.m; sourceTree = "<group>"; };
 		D2D0D54998690284CC538D50 /* ReverseCADSparseResearch.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCADSparseResearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D71F0DB507FDC03403349663 /* ConsolidatedFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsolidatedFlowTests.swift; sourceTree = "<group>"; };
 		DC11C96B99A9F65AA03B8DE5 /* SparseCapture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SparseCapture.h; sourceTree = "<group>"; };
 		E8925DB27A66F56068E98FE2 /* SampleScan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleScan; path = ReverseCAD/SampleScan; sourceTree = SOURCE_ROOT; };
 		EEDD5560918913EBC1D82587 /* CaptureFirstWorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFirstWorkflowTests.swift; sourceTree = "<group>"; };
@@ -173,6 +187,7 @@
 		08E425FF1497AFE2B1AFD6FD /* ReverseCADUITests */ = {
 			isa = PBXGroup;
 			children = (
+				D71F0DB507FDC03403349663 /* ConsolidatedFlowTests.swift */,
 				AACC6703596E6A072522048B /* WorkflowTests.swift */,
 			);
 			path = ReverseCADUITests;
@@ -213,6 +228,7 @@
 		C4915D5D7E645BD6A57EF676 /* ReverseCAD */ = {
 			isa = PBXGroup;
 			children = (
+				C9962A6934C122DCF76A2AB1 /* AdjustableObjectBox.swift */,
 				CE93717EBC7FBAAD9179530D /* AppModel.swift */,
 				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
@@ -226,6 +242,8 @@
 				82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */,
 				A45E261024AC9CAA356A06F1 /* LiveGhost.swift */,
 				7E4591C1D974295CB5DFA7EC /* LiveObjectIdentifier.swift */,
+				50406D0649FC8DA5D5E2FCE0 /* ObjectFlowHome.swift */,
+				28E5103DF266B462F7F56701 /* ObjectSelectionReference.swift */,
 				94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */,
 				66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */,
 				F30484792CA155DC21C8792D /* ResultsView.swift */,
@@ -491,6 +509,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9149C0EACFAACBE60E5510D8 /* AdjustableObjectBox.swift in Sources */,
 				6F5C096E703294B30ABA0B35 /* AppModel.swift in Sources */,
 				1C9856CDBD9611662ABFE08D /* CaptureARKit.swift in Sources */,
 				B835CD978CFFFD5F84F62DE8 /* CaptureController.swift in Sources */,
@@ -503,6 +522,8 @@
 				C146EE7DD6147552AC8A831C /* GeometryPreview.swift in Sources */,
 				D4006AFBE5D3E1CB14455709 /* LiveGhost.swift in Sources */,
 				7C562EBA315DCE79BBECBCF6 /* LiveObjectIdentifier.swift in Sources */,
+				D286BE49799F40DF7E92DEC2 /* ObjectFlowHome.swift in Sources */,
+				F04F00BC5778DD6A5AEFC81B /* ObjectSelectionReference.swift in Sources */,
 				6408C0A62CE509821A5D08EA /* PreludeJevConfiguration.swift in Sources */,
 				4881869DC7CB6F66BC1F7C6A /* ResultsView.swift in Sources */,
 				586004D32B2F738468EDEBD0 /* ReverseCADApp.swift in Sources */,
@@ -517,6 +538,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05B034E2E5E60735CAF4B0BD /* AdjustableObjectBox.swift in Sources */,
 				CE41C752E673FB0CA6A1D0CE /* AppModel.swift in Sources */,
 				75C2F2628FEFBB5D4D4A1BDE /* CaptureARKit.swift in Sources */,
 				EE03577A4722013635D2D62E /* CaptureController.swift in Sources */,
@@ -529,6 +551,8 @@
 				81CC3999103B60831E816678 /* GeometryPreview.swift in Sources */,
 				2C5B5B634403165CB52A51B5 /* LiveGhost.swift in Sources */,
 				F3553AC6C32ED9921AD7C712 /* LiveObjectIdentifier.swift in Sources */,
+				FE9FAD19A937048202C2898B /* ObjectFlowHome.swift in Sources */,
+				F6CA2F2B4B59FD347F81CDD0 /* ObjectSelectionReference.swift in Sources */,
 				312E012EFEA2D73D24AFA493 /* PreludeJevConfiguration.swift in Sources */,
 				015E30D5BD574477EB05F6D8 /* ResultsView.swift in Sources */,
 				8DF1AE12FA9911FAAD2E0CF7 /* ReverseCADApp.swift in Sources */,
@@ -542,6 +566,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9EEC6A4F6D3CB852935503C3 /* AdjustableObjectBox.swift in Sources */,
 				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
@@ -554,6 +579,8 @@
 				919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */,
 				4E53CF9A6FF11FC2E757370D /* LiveGhost.swift in Sources */,
 				76BCAC0242AADB8F68DFFA06 /* LiveObjectIdentifier.swift in Sources */,
+				C3B94DC24DF7D08BA14DF9A8 /* ObjectFlowHome.swift in Sources */,
+				1E62B70D4D25D6B335D0FB5D /* ObjectSelectionReference.swift in Sources */,
 				2109B72EC3299C94ED70361F /* PreludeJevConfiguration.swift in Sources */,
 				3AFED07087B23DE167770979 /* ResultsView.swift in Sources */,
 				D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */,
@@ -567,6 +594,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC59189DCD6A84B18237A4F3 /* ConsolidatedFlowTests.swift in Sources */,
 				AA013A062342D7C22F571CD2 /* WorkflowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -887,7 +915,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -910,7 +938,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;

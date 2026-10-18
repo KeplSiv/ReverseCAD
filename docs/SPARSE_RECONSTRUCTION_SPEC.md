@@ -1,5 +1,8 @@
 # ReverseCAD: standalone object scanning and measured 3D export
 
+> Current consolidated revision: [Adjustable selection and two app flows](MAIN_CONSOLIDATED.md) on `main-consolidated` supersedes the ordering below. Jev uses the edited rectangle before scanning; the same reference is checked across saved views afterward. Scan and repair are separate flows; repair continues into the existing main-branch CAD component.
+
+
 Scope revision: 2026-10-18. Branch: `pranav-dev`.
 
 ## 1. Product boundary

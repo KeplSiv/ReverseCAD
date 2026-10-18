@@ -43,3 +43,28 @@ final class CaptureFirstTests: XCTestCase {
         XCTAssertTrue(ObjectConsensus.confirmed([yes,yes,yes],anchor: CGPoint(x:0.9,y:0.5)).isEmpty)
     }
 }
+
+extension CaptureFirstTests {
+    func testEditableSelectionClampsMoveAndEveryCorner() {
+        let original=SelectionBox.initial
+        for corner in SelectionBoxCorner.corners {
+            for d in [-5.0,5.0] {
+                let moved=SelectionBox.adjust(original,corner:corner,dx:d,dy:d)
+                XCTAssertGreaterThanOrEqual(moved.minX,0);XCTAssertGreaterThanOrEqual(moved.minY,0)
+                XCTAssertLessThanOrEqual(moved.maxX,1);XCTAssertLessThanOrEqual(moved.maxY,1)
+                XCTAssertGreaterThanOrEqual(moved.width,0.0799);XCTAssertGreaterThanOrEqual(moved.height,0.0799)
+            }
+        }
+        let moved=SelectionBox.adjust(original,corner:.move,dx:3,dy:-3)
+        XCTAssertEqual(moved.width,original.width);XCTAssertEqual(moved.height,original.height)
+        XCTAssertEqual(moved.maxX,1);XCTAssertEqual(moved.minY,0)
+    }
+    func testAdjustedDisplayBoxRetainsRawCoordinates() {
+        let viewport=CGSize(width:390,height:720)
+        let transform=CGAffineTransform(a:0,b:1.5,c:-1.2,d:0,tx:1.1,ty:-0.25)
+        let selected=CGRect(x:0.25,y:0.3,width:0.45,height:0.35)
+        let raw=CaptureFraming.rawRegion(rect:CGRect(x:selected.minX*viewport.width,y:selected.minY*viewport.height,width:selected.width*viewport.width,height:selected.height*viewport.height),viewport:viewport,displayTransform:transform)
+        let roundtrip=raw.applying(transform)
+        XCTAssertEqual(roundtrip.minX,selected.minX,accuracy:1e-9);XCTAssertEqual(roundtrip.maxY,selected.maxY,accuracy:1e-9)
+    }
+}

@@ -25,6 +25,8 @@ struct RepairButtonStyle: ButtonStyle {
 }
 
 struct UnifiedRepairView: View {
+    var savedScanMode = false
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var model: AppModel
     @State private var result = false
     @State private var repairWorkflow = false
@@ -44,7 +46,7 @@ struct UnifiedRepairView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if result { resultScreen }
+                if result || savedScanMode { resultScreen }
                 else {
                     RepairCamera(onFinish: { url in
                         model.didCapture(url); reviewed = false; display = "Repair"; thickness = ""; result = true
@@ -87,6 +89,7 @@ struct UnifiedRepairView: View {
         } message: { Text(model.error ?? "") }
         .onChange(of: model.counterpartMesh) { _, _ in reviewed = false }
         .onAppear {
+            if savedScanMode { result = true }
             #if DEBUG
             if ProcessInfo.processInfo.environment["REVERSECAD_REPLAY_SCAN"] != nil { result = true }
             if ProcessInfo.processInfo.arguments.contains("-unifiedPreview") {
@@ -190,7 +193,7 @@ struct UnifiedRepairView: View {
                     } else {
                         Button("Analyze saved scan") { model.reconstructAutomatically() }.buttonStyle(RepairButtonStyle())
                     }
-                    Button("Take a new scan") { result = false }.buttonStyle(RepairButtonStyle(secondary: true))
+                    Button("Back to object scan") { if savedScanMode { dismiss() } else { result = false } }.buttonStyle(RepairButtonStyle(secondary: true))
                 }
             }.padding(20).foregroundStyle(RepairStyle.text)
         }
@@ -237,6 +240,7 @@ struct UnifiedRepairView: View {
 
     private var cameraHomeButton: some View {
         Button {
+            if savedScanMode { dismiss(); return }
             library = false; help = false; result = false
         } label: {
             Image(systemName: "camera").frame(width: 44, height: 44)

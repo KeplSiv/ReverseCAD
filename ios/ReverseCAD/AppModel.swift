@@ -51,6 +51,7 @@ struct RepairProject: Codable, Identifiable {
     var family = "bridge_handle"
     var source = "synthetic"
     var repairScope: String?
+    var scanPurpose: String?
     var scanTarget: Data?
     var planarThicknessMM: Double?
     var stage = "Ready to capture"
@@ -392,6 +393,21 @@ final class AppModel: ObservableObject {
         d["fragment_points_m"]=p.fragmentPoints ?? []
         return d
     }
+    func analyzeCapturedDamage() {
+        guard !busy, let p = project, p.scanTarget != nil, scanMesh != nil else {
+            error = "Build and review this object's 3D scan before finding damage."; return
+        }
+        // Keep the standalone result and its export index alongside the later repair revision.
+        if let directory = projectDirectory {
+            for name in ["reconstruction.json", "observed_artifacts.json", "scan_preview.json"] {
+                let source = directory.appendingPathComponent(name)
+                if let data = try? Data(contentsOf: source) { try? data.write(to: directory.appendingPathComponent("object-" + name), options: .atomic) }
+            }
+        }
+        update { $0.scanPurpose = "repair"; $0.repairScope = "automatic" }
+        uploadAndReconstruct()
+    }
+
     func reconstructAutomatically() {
         update { $0.repairScope = "automatic" }
         uploadAndReconstruct(compareMethods: false)
@@ -433,8 +449,11 @@ final class AppModel: ObservableObject {
         let scanID=manifest["scan_id"] as? String ?? p.id
         self.progress="Connecting to your Mac…"
         _ = try await self.object("v1/health")
-        if p.repairScope == "standalone_scan" {
+        if p.scanTarget != nil || p.repairScope == "standalone_scan" {
             let capabilities = try await self.object("v1/capabilities")
+            if p.repairScope != "standalone_scan", capabilities["consolidated_object_repair"] as? Bool != true {
+                throw ServiceFailure(message: "Update the Mac service to main-consolidated to analyze this selected object's damage. Your capture is saved.")
+            }
             guard capabilities["capture_first_masks"] as? Bool == true else {
                 throw ServiceFailure(message: "Update the Mac reconstruction service to the capture-first version on pranav-dev. This scan is saved; the older service cannot apply its object masks.")
             }
