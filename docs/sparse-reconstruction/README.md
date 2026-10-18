@@ -57,8 +57,10 @@ Release and archive/install build actions fail. No distribution build is produce
 The signing arrangement available on this Mac is the existing Prelude
 development profile. It signs the research executable with Prelude's bundle ID.
 **Installing it would replace/restart Prelude. Do not install while its experiment
-is active.** First coordinate with the phone owner and back up the existing app
-container to a fresh location. A separate matching development profile for
+is active.** First coordinate with the phone owner and preserve the existing app
+recordings. This implementation only writes to its separate Projects directory.
+An in-place update must retain the existing recording directories; verify their
+file paths, sizes and modification times before and after. Do not uninstall the app. A separate matching development profile for
 `com.pranav.reversecad.sparse` would avoid replacing Prelude, but is not currently
 configured by this task.
 
@@ -74,12 +76,14 @@ codesign --verify --deep --strict \
   build/sparse-signed/Build/Products/Debug-iphoneos/ReverseCADSparseResearch.app
 ```
 
-After coordination, a connected/unlocked device, and a verified backup, use Xcode
+After coordination, a connected/unlocked device, and a preservation plan, use Xcode
 Run for that device or `xcrun devicectl device install app --device DEVICE_ID APP_PATH`
 followed by `xcrun devicectl device process launch --device DEVICE_ID com.pranavmuralitharan.prelude`.
-The phone is now connected and the owner has released the stopped Prelude session.
-Installing/launching is pending preservation of the existing approximately 49 GB
-of phone recordings; no fresh device scan has yet been verified.
+The phone is connected and the owner released the stopped Prelude session. The
+research app is installed and its launched executable was verified. A full backup
+attempt timed out; its partial copy is not a verified backup. The in-place update
+retains the approximately 49 GB of recordings in their separate directories, with
+the post-install inventory check pending. No fresh device scan has yet been verified.
 
 Start the isolated companion service:
 

@@ -27,5 +27,5 @@ the capture callback thread.
 Private API presence, packet delivery, identity matching and sensor extrinsics
 still require a real phone acceptance run. Successful compilation does not prove
 that this OS build exposes those hooks. The current phone is connected and the owner has released the stopped Prelude
-session. Recording preservation and prototype installation are pending; no
-fresh scan has been verified.
+session. The prototype is installed and its launched executable verified. The
+post-install recording inventory check and fresh scan remain pending.

@@ -1,5 +1,11 @@
 # Measurement and initial 3D reconstruction: measured status
 
+> Scope revised by the owner: the current component is standalone object identification,
+> scanning, measurements and scanned-object export. Repair handoff is out of scope.
+> See the [current specification](../../docs/SPARSE_RECONSTRUCTION_SPEC.md), published
+> to `pranav-dev` as `e5552d1`. The results below describe the earlier core prototype.
+> The phone test was stopped before a fresh capture. No implementation was merged to main.
+
 Implementation branch: `codex/sparse-reconstruction`; base: `754c0661f97d4b4c1e74ca2cb60519113c1d6c54`.
 The original dirty checkout and Prelude sources/recordings remain untouched.
 The [full specification](../../docs/SPARSE_RECONSTRUCTION_SPEC.md) was separately
@@ -86,8 +92,10 @@ and CAD code, not automatic hidden-dimension recovery or physical fit.
 ## Device acceptance remaining
 
 The iPhone is connected and the owner confirmed Prelude is stopped and available.
-Preserving approximately 49 GB of existing app recordings precedes same-identity
-prototype installation. Fresh capture, live hook/identity/calibration availability,
+The research app is installed and its launched executable was verified. The full
+backup attempt timed out and is not claimed complete. An in-place update retains
+the 49 GB of existing recordings in separate directories; the after-inventory
+check is pending. Fresh capture, live hook/identity/calibration availability,
 object-dominated preview, real sparse metric support and real-capture continuation
 through repair are still pending. [Current device status](device-status.json).
 

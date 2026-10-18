@@ -26,5 +26,5 @@
       "normal_release": false
     }
   },
-  "device_installation": "pending_preservation_of_existing_app_recordings"
+  "device_installation": "installed_app_identity_and_launch_verified"
 }
