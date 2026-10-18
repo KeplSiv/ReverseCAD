@@ -22,4 +22,6 @@ Verify inverse coordinate mapping, sharp separated view selection, post-capture 
 
 ## Physical verification boundary
 
+The latest build 36 release, phone checks and known capture limitations are recorded in [on-device verification](ON_DEVICE_VERIFICATION.md).
+
 The connected-phone stationary run delivered 349 wide, 352 ultra-wide, 351 telephoto and 349 LiDAR frames. All 53 processed RGB-D views tracked; one view was saved because the phone did not move enough for another keyframe. The final pose moved about 7.5 mm over this stationary run, so drift remains a measurement limitation. The actual saved package passed backend schema, original-plane size and checksum validation. The user elected to continue without a moving-camera test. A full orbit, completed front-to-three-camera calibration, absolute measurement accuracy and printed fit remain unverified. Synthetic math, simulator UI and API checks are reported separately from these phone facts.
