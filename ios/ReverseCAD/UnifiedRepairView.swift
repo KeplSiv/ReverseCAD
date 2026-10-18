@@ -27,6 +27,7 @@ struct RepairButtonStyle: ButtonStyle {
 struct UnifiedRepairView: View {
     @EnvironmentObject private var model: AppModel
     @State private var result = false
+    @State private var repairWorkflow = false
     @State private var library = false
     @State private var cameraGeneration = 0
     @State private var help = false
@@ -71,6 +72,13 @@ struct UnifiedRepairView: View {
             }
         }
         .preferredColorScheme(.dark).tint(RepairStyle.accent)
+        .sheet(isPresented: $repairWorkflow) {
+            if let project = model.project {
+                NavigationStack { ProjectView(project: project).toolbar {
+                    ToolbarItem(placement: .confirmationAction) { Button("Done") { repairWorkflow = false } }
+                }}
+            }
+        }
         .sheet(isPresented: $library) { savedScans }
         .sheet(isPresented: $help) { scanHelp }
         .sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
@@ -99,6 +107,30 @@ struct UnifiedRepairView: View {
                         Text(model.progress).font(.subheadline).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
                         Button("Cancel") { model.cancel() }.buttonStyle(RepairButtonStyle(secondary: true))
                     }.frame(maxWidth: .infinity).padding(.vertical, 80)
+                } else if let report = model.sparseReport {
+                    Text("Review your scan").font(.title2.bold())
+                    if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
+                        GeometryPreview(scan: mesh, part: nil).frame(height: 340)
+                        Text("Rotate and zoom to check that the shape shows your object. Unseen surfaces remain unknown.")
+                            .font(.subheadline).foregroundStyle(RepairStyle.secondary)
+                    }
+                    Text(report["reason"] as? String ?? "The observed shape is ready for repair planning. Dimensions and physical fit still need checking.")
+                        .font(.subheadline)
+                    ForEach(Array(model.warnings.enumerated()), id: \.offset) { _, warning in
+                        Text(warning).font(.footnote).foregroundStyle(RepairStyle.secondary)
+                    }
+                    Toggle("The preview shows my object and relevant surfaces", isOn: $reviewed)
+                        .disabled(report["status"] as? String != "ready")
+                    Button("Continue to repair") { model.update { $0.repairScope = "general" }; repairWorkflow = true }
+                        .buttonStyle(RepairButtonStyle()).disabled(report["status"] as? String != "ready" || !reviewed)
+                    DisclosureGroup("Capture and measurement details") {
+                        if report["capture_is_synthetic"] as? Bool == true { Text("Synthetic test fixture; not a device scan.") }
+                        Text("Source: physical rear 1× images + sparse range observations. Camera motion is recovered from image correspondences.")
+                        Text("\(report["view_count"] as? Int ?? 0) registered views · \(report["scale_support"] as? Int ?? 0) scale observations")
+                        Text("Public processed depth and ARKit poses remain separately labeled diagnostics. Calibration accuracy is unverified.")
+                        Button("Export original scan") { model.exportScan() }
+                    }.font(.footnote)
+                    Button("Take another scan") { result = false }.buttonStyle(RepairButtonStyle(secondary: true))
                 } else if hasResult {
                     previewTabs
                     preview
@@ -246,10 +278,16 @@ struct UnifiedRepairView: View {
         NavigationStack {
             List {
                 Label("Keep the whole object inside the box, with space around its edges.", systemImage: "viewfinder")
+                #if SPARSE_RESEARCH
+                Label("Keep the object still. Move sideways slowly to show the front and another side, keeping nearby views overlapping.", systemImage: "move.3d")
+                Label("Use diffuse light and a matte, textured object. The scan saves after about 18 seconds.", systemImage: "camera")
+                Text("Review the observed shape before continuing to a repair. Unseen surfaces and hidden dimensions remain unknown.").font(.footnote)
+                #else
                 Label("Start with a sharp front view. For a flat part, point the camera straight down.", systemImage: "camera")
                 Label("Keep the object still. Move the phone slowly to show depth and matching intact features.", systemImage: "move.3d")
                 Label("Tap Finish when the damaged area and intact features are clear. Flat parts only need a short, steady capture.", systemImage: "checkmark.circle")
                 Text("Automatic selection currently supports flat rectangular parts and damaged 3×3 cubes. Always review the inferred shape and every proposed piece.").font(.footnote)
+                #endif
             }.navigationTitle("A better scan").toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Done") { help = false } }
                 ToolbarItem(placement: .topBarTrailing) { cameraHomeButton }
@@ -309,11 +347,13 @@ private struct RepairCamera: View {
             }.padding(.horizontal, 28).padding(.vertical, 20).background(RepairStyle.background)
         }.foregroundStyle(RepairStyle.text)
             .task {
+                #if !SPARSE_RESEARCH
                 camera.predictGhost = { snapshot in
                     let payload = try JSONSerialization.jsonObject(with: JSONEncoder().encode(snapshot)) as! [String: Any]
                     let data = try await model.request("v1/geometry/live", method: "POST", json: payload)
                     return try JSONDecoder().decode(LiveGhostResponse.self, from: data)
                 }
+                #endif
                 await preview()
             }
             .onChange(of: camera.savedRevision) { _, _ in deliver() }

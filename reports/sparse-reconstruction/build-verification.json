@@ -1,0 +1,30 @@
+{
+  "signed_debug_build": true,
+  "codesign_verified": true,
+  "normal_release_build": true,
+  "research_release_rejected": true,
+  "archive_guard": "configured; no archive attempted",
+  "debug_executable_hashes": {
+    "ReverseCADSparseResearch.debug.dylib": "e642931684766ecf3c287655bd4962699812892c9a80da4705d8b02e9db69b70",
+    "__preview.dylib": "e796c0233e4cd5335f876d18d126260097d85caf8719eba5a645f010b4a4d2e9",
+    "ReverseCADSparseResearch": "a7ed9fb7b3eb87be48052880e539ff7d591f2a7491533c1632fbef57f176d448"
+  },
+  "release_executable_hashes": {
+    "ReverseCAD": "177a37003d7f1bd9ec9adc222285fcbb3b8e708d412cf19d63d74ae11aa9a7dd"
+  },
+  "private_marker_presence": {
+    "AVCapturePointCloudDataOutput": {
+      "debug": true,
+      "normal_release": false
+    },
+    "_extrinsicsMap": {
+      "debug": true,
+      "normal_release": false
+    },
+    "SRStart": {
+      "debug": true,
+      "normal_release": false
+    }
+  },
+  "device_installation": "pending_preservation_of_existing_app_recordings"
+}

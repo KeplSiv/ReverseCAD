@@ -154,6 +154,7 @@ final class AppModel: ObservableObject {
     @Published var token: String
     @Published var connection = "Not checked"
     @Published var busy = false
+    @Published var sparseReport: [String: Any]?
     @Published var captureActive = false
     @Published var candidates: [[String: Any]] = []
     @Published var candidateQuestions: [String] = []
@@ -300,6 +301,7 @@ final class AppModel: ObservableObject {
     func saveSettings() {UserDefaults.standard.set(serverURL,forKey:"serverURL");TokenStore.save(token)}
     func loadDerived() {
         reconstructionNeedsUpdate = false
+        sparseReport = nil
         comparison=nil;selectedComparisonID=nil;comparisonScan=nil;comparisonPart=nil;comparisonReviewed=false
         patternRepairs=[];selectedPatternID=nil;patternMesh=nil;patternReviewed=false
         automaticRoute=nil;planarRepair=nil;faceRepair=nil;counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
@@ -310,6 +312,7 @@ final class AppModel: ObservableObject {
                 repairMessage = "This saved result belongs to another scan. Update this scan to create its own preview."
                 return
             }
+            sparseReport = info["sparse_reconstruction"] as? [String: Any]
             updatePhotoDetail(info)
             let hasFaceWorkflow = faceRepair != nil || (info["surface"] as? [String: Any])?["kind"] as? String == "tracked_face_outlines"
             let oldFaceGeometry = faceRepair != nil && (faceRepair?["geometry_version"] as? Int ?? 1) < 2
@@ -528,6 +531,7 @@ final class AppModel: ObservableObject {
         if kind=="reconstruction" {
             try JSONSerialization.data(withJSONObject: ["folder": "revisions/"+key, "artifacts": list, "scan_id": savedScanID ?? ""], options: .prettyPrinted).write(to: dir.appendingPathComponent("observed_artifacts.json"), options: .atomic)
             let reconstruction=result["reconstruction"] as? [String:Any] ?? result
+            sparseReport = reconstruction["sparse_reconstruction"] as? [String: Any]
             updatePhotoDetail(reconstruction)
             reconstructionNeedsUpdate = false
             measurements=reconstruction["measurements"] as? [[String:Any]] ?? []

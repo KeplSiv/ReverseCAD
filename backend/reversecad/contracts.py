@@ -23,7 +23,7 @@ def safe_asset_path(value: str) -> str:
         raise ValueError("Asset path must be a relative path without traversal")
     if any(part.startswith(".") for part in path.parts):
         raise ValueError("Hidden asset names are not permitted")
-    allowed_roots = {"rgb", "depth", "confidence", "masks", "video"}
+    allowed_roots = {"rgb", "depth", "confidence", "masks", "video", "sparse"}
     allowed_files = {"manifest.json", "frames.jsonl", "checksums.json", "annotations.json", "motion.jsonl", "capture_diagnostics.json"}
     if (len(path.parts) == 1 and value not in allowed_files) or (len(path.parts) > 1 and path.parts[0] not in allowed_roots):
         raise ValueError("Asset is not an allowed capture-package file")
@@ -62,6 +62,21 @@ class Segment(Contract):
         return identifier(value)
 
 
+class SparseCapture(Contract):
+    """Independent packet stream; never represented as a processed depth plane."""
+    schema_version: Literal[1]
+    mode: Literal["sparse_range_rgb"]
+    status: Literal["capturing", "available", "unavailable"]
+    packet_path: str
+    event_path: str
+    calibration_path: str
+
+    @field_validator("packet_path", "event_path", "calibration_path")
+    @classmethod
+    def valid_path(cls, value):
+        return safe_asset_path(value)
+
+
 class ScanManifest(Contract):
     schema_version: Literal[1]
     scan_id: str
@@ -71,6 +86,7 @@ class ScanManifest(Contract):
     complete: bool
     segments: list[Segment] = Field(min_length=1, max_length=32)
     frame_count: int = Field(ge=1, le=240)
+    sparse_capture: SparseCapture | None = None
 
     @field_validator("scan_id")
     @classmethod
@@ -109,6 +125,7 @@ class CaptureFrame(Contract):
     T_world_camera: list[float] = Field(min_length=16, max_length=16)
     tracking_state: Literal["normal", "limited", "unavailable"]
     quality: FrameQuality
+    sensor_observation: dict[str, Any] | None = None
 
     @field_validator("scan_id", "segment_id", "frame_id")
     @classmethod

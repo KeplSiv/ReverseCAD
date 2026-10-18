@@ -26,3 +26,7 @@ reports/**/runs/
 reports/testflight/release-*/
 reports/testflight/provisioning.json
 reports/testflight/app-record.json
+
+# Local research runs and Xcode products.
+/build/
+/work/

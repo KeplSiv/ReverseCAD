@@ -4,6 +4,11 @@ The signed TestFlight release and Apple processing/tester status are recorded in
 
 Native iPhone RGB-D capture and a local Mac processing service for a two-mount bridge handle, curved saddle cup handle, and flat/L repair bracket. The app keeps observed geometry, design assumptions, manual measurements and physical test results distinct.
 
+The Debug-only one-camera plus sparse-range reconstruction prototype is described
+in the [full implementation specification](docs/SPARSE_RECONSTRUCTION_SPEC.md),
+[runnable workflow](docs/sparse-reconstruction/README.md), and
+[measured validation report](reports/sparse-reconstruction/REPORT.md).
+
 ## Missing cubie exterior demo
 
 The camera saves calibrated RGB, native depth/confidence and camera poses. Keep the object stationary and fully inside the capture guide while moving the phone. The guide bounds apply to reconstruction and uploaded visual evidence.

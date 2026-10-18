@@ -71,12 +71,12 @@ def run(input_path: Path) -> int:
                 import numpy as np
                 point_file = Path(points_path)
                 if not point_file.is_file() or point_file.stat().st_size > 64*1024*1024 or digest(point_file) != request.get("measurement_points_sha256"):
-                    raise ValueError("Native measurement points are missing or corrupt; reconstruct again")
+                    raise ValueError("Observed measurement points are missing or corrupt; reconstruct again")
                 with np.load(point_file,allow_pickle=False) as archive:
                     native = archive["points_m"]
                     if native.ndim != 2 or native.shape[1] != 3 or len(native)>2_000_000 or not np.isfinite(native).all():
-                        raise ValueError("Native measurement point contract is invalid")
-                    # Bounded deterministic sampling retains native observations; TSDF/preview are not measurements.
+                        raise ValueError("Observed measurement point contract is invalid")
+                    # Retain measured observations (processed depth or sparse/RGB); preview triangles are not measurements.
                     points = (native[::max(1,(len(native)+99_999)//100_000)]*1000).tolist()
             context = {
                 "contacts":annotations.get("contacts",[]),

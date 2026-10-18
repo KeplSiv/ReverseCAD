@@ -116,6 +116,8 @@ def validate_capture(root: Path, scan: dict, max_bytes: int):
             raise ValueError("Capture diagnostics must be a JSON object")
     if "annotations.json" in actual:
         Annotations.model_validate_json(actual["annotations.json"].read_text())
+    from .sparse.capture import validate_extension
+    validate_extension(root, manifest.model_dump(), frames)
     return manifest.model_dump()
 
 
@@ -370,7 +372,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     @app.get("/v1/capabilities",dependencies=[Depends(authorize)])
     def capabilities():
         from .cad import template_catalog
-        return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+        return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"sparse_range_rgb":{"schema_version":1,"capture_requires":"Debug research target with observed BackSparseTimeOfFlight packets","reconstruction":"COLMAP fixed calibration plus timed sparse scale","fallback":"separately labelled raw_depth_pose diagnostic"},"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
 
     @app.post("/v1/geometry/live",dependencies=[Depends(authorize)])
     def live_geometry(body: LiveGeometryRequest):
