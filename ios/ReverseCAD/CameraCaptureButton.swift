@@ -46,14 +46,20 @@ extension View {
 
 enum FrontReferencePolicy {
     static let sampleCount = 8
-    static let sampleInterval = 0.12
-    static let maximumWindow = 1.25
+    static let minimumSharpness = 7.0
+    static let maximumWindow = 2.0
     static func shutterDuration(baseline: Double, minimum: Double) -> Double {
         max(minimum, baseline / 2)
     }
+    static func recent<Frame>(_ frames: [Frame], now: Double, timestamp: (Frame) -> Double) -> [Frame] {
+        Array(frames.filter { now - timestamp($0) <= maximumWindow }.suffix(sampleCount))
+    }
     static func ready(timestamps: [Double], now: Double) -> Bool {
-        timestamps.count == sampleCount && timestamps.allSatisfy(\.isFinite)
-            && now - timestamps[0] <= maximumWindow
+        guard timestamps.count == sampleCount, now.isFinite,
+              timestamps.allSatisfy(\.isFinite),
+              zip(timestamps,timestamps.dropFirst()).allSatisfy({ $0 < $1 }),
+              now >= timestamps[sampleCount - 1] else { return false }
+        return now - timestamps[0] <= maximumWindow
             && now - timestamps[sampleCount - 1] < 0.3
     }
 }

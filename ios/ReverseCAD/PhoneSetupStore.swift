@@ -76,6 +76,15 @@ enum PhoneSetupStore {
 
 enum FrontReferenceEvidence {
     static func prepare(root: URL,box: CGRect = SelectionBox.initial) throws -> (image: URL, metrics: [String:Any]) {
+        guard let session=try JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("session.json"))) as? [String:Any],
+              let frames=session["frames"] as? [[String:Any]],frames.count>=6 else {throw ServiceFailure(message:"The front reference is incomplete.")}
+        let hasBlurredFrame = frames.contains { frame in
+            guard let settings=frame["settings"] as? [String:Any], let sharpness=settings["sharpness"] as? NSNumber else { return false }
+            return !sharpness.doubleValue.isFinite || sharpness.doubleValue < FrontReferencePolicy.minimumSharpness
+        }
+        guard !hasBlurredFrame else {
+            throw ServiceFailure(message:"The reference is blurred. Add light, hold still, and retake it. Your original capture is saved.")
+        }
         let surface=try TrueDepthReconstruction.build(dataset:root)
         let selected=surface.indices(in:[box.minX,box.minY,box.maxX,box.maxY])
         let selectedFraction=Double(selected.count)/max(1,Double(surface.width*surface.height)*box.width*box.height)
@@ -86,8 +95,6 @@ enum FrontReferenceEvidence {
         }
         let color=try TrueDepthReconstruction.safeAsset(surface.colorPath,root:root)
         guard let image=UIImage(contentsOfFile:color.path)?.cgImage else {throw ServiceFailure(message:"The reference photo could not be read.")}
-        guard let session=try JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("session.json"))) as? [String:Any],
-              let frames=session["frames"] as? [[String:Any]],frames.count>=6 else {throw ServiceFailure(message:"The front reference is incomplete.")}
         var maximumShift=0.0
         for frame in frames {
             try Task.checkCancellation()
@@ -121,6 +128,7 @@ enum FrontReferenceEvidence {
                                   "assets":[surface.colorPath:try CaptureIO.sha256(file:color),pointPath:try CaptureIO.sha256(file:root.appendingPathComponent(pointPath))],
                                   "accuracy":"Measured TrueDepth reference; systematic error remains possible. No category or Jev-derived dimensions."]
         try cameraJSONWrite(evidence,root.appendingPathComponent("reference-evidence.json"))
+        try surface.export(to:root.appendingPathComponent("derived"))
         return (color,metrics)
     }
 }
@@ -134,10 +142,13 @@ enum FrontReferenceEvidence {
     private var generation=UUID()
     private var retryAfter=Date.distantPast
     func cancel() {generation=UUID();task?.cancel();task=nil;working=false}
-    func check(root:URL,box:CGRect) {
-        guard !working else {return}
-        guard Date()>=retryAfter else {message="Jev is rate limited. Retry in \(Int(ceil(retryAfter.timeIntervalSinceNow))) seconds.";return}
-        cancel();let epoch=generation;review=nil;working=true;message="Checking front depth and scene…"
+    func reset() { cancel(); review=nil; image=nil; message="" }
+    func load(root:URL) {
+        reset()
+        loadImage(root:root)
+        message = image == nil ? "The saved reference photo could not be read. Retake the reference." : "Reference saved. Select the object before checking it."
+    }
+    private func loadImage(root:URL) {
         // Let the user adjust the saved selection even when its original box
         // has insufficient depth; a failed check never requires a new scan.
         if let data=try? Data(contentsOf:root.appendingPathComponent("session.json")),
@@ -145,6 +156,12 @@ enum FrontReferenceEvidence {
            let frames=session["frames"] as? [[String:Any]], !frames.isEmpty,
            let path=frames[frames.count/2]["rgb"] as? String,
            let url=try? TrueDepthReconstruction.safeAsset(path,root:root) {image=UIImage(contentsOfFile:url.path)}
+    }
+    func check(root:URL,box:CGRect) {
+        guard !working else {return}
+        guard Date()>=retryAfter else {message="Jev is rate limited. Retry in \(Int(ceil(retryAfter.timeIntervalSinceNow))) seconds.";return}
+        cancel();let epoch=generation;review=nil;working=true;message="Checking front depth and scene…"
+        if image == nil { loadImage(root:root) }
         task=Task {
             do {
                 let worker=Task.detached {try FrontReferenceEvidence.prepare(root:root,box:box)}

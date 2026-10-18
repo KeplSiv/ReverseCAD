@@ -278,7 +278,11 @@ struct StandaloneCameraView: View {
     var detailPass = false
     @AppStorage("reversecad.referenceArchive.v1") private var referenceArchive = ""
     @State private var referenceSetup = false
+    @State private var referenceOpening = false
+    @State private var referenceOpeningID: UUID?
+    @State private var cameraVisible = false
     @State private var phoneSetup: PhoneSetupRecord?
+    @State private var setupLoaded = false
     var onLibrary: (() -> Void)? = nil
     var onComplete: (() -> Void)? = nil
     var onBusyChanged: ((Bool) -> Void)? = nil
@@ -294,7 +298,7 @@ struct StandaloneCameraView: View {
             if embedded { cameraContent }
             else { NavigationStack { cameraContent } }
         }.preferredColorScheme(.dark).tint(RepairStyle.accent)
-            .cameraCaptureButton(enabled:!referenceSetup && !pending && !identifier.running && capture.cameraReady && phoneSetup != nil) {
+            .cameraCaptureButton(enabled:!referenceSetup && !referenceOpening && !pending && !identifier.running && capture.cameraReady && phoneSetup != nil) {
                 Task {if capture.isCapturing {await finish()} else {await begin()}}
             }
             .interactiveDismissDisabled(capture.isCapturing || pending)
@@ -323,11 +327,20 @@ struct StandaloneCameraView: View {
                     AdjustableObjectBox(box:$box,editable:!capture.isCapturing && !identifier.running)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
                     .overlay(alignment: .top) {
-                        Text(capture.isCapturing ? "SCANNING" : (identifier.running ? "IDENTIFYING" : "FRAME YOUR OBJECT"))
-                            .font(.caption2.weight(.semibold)).tracking(2)
-                            .padding(.horizontal, 16).padding(.vertical, 10)
-                            .background(RepairStyle.background.opacity(0.9), in: Capsule())
-                            .padding(.top, 16).allowsHitTesting(false)
+                        VStack(spacing: 8) {
+                            Text(capture.isCapturing ? "SCANNING" : (identifier.running ? "IDENTIFYING" : "FRAME YOUR OBJECT"))
+                                .font(.caption2.weight(.semibold)).tracking(2)
+                                .padding(.horizontal, 16).padding(.vertical, 10)
+                                .background(RepairStyle.background.opacity(0.9), in: Capsule())
+                            if setupLoaded && phoneSetup == nil {
+                                Text("Set up the selfie camera before your first scan.")
+                                    .font(.subheadline.weight(.medium)).multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.horizontal, 14).padding(.vertical, 10)
+                                    .background(RepairStyle.background.opacity(0.95), in: RoundedRectangle(cornerRadius: 12))
+                                    .accessibilityIdentifier("selfieSetupHint")
+                            }
+                        }.padding(.horizontal, 16).padding(.top, 16).allowsHitTesting(false)
                     }
                     .overlay(alignment:.topTrailing) {
                         if detailPass {
@@ -355,13 +368,13 @@ struct StandaloneCameraView: View {
                         Text("\(capture.frameCount) accepted views · \(capture.coverageViews) observed directions")
                             .font(.caption).foregroundStyle(RepairStyle.secondary)
                     } else if phoneSetup == nil {
-                        cameraControls { cameraAction("Set up this phone",icon:"camera",accessibilityID:"setupPhone") { capture.pausePreview();referenceSetup=true } }
+                        cameraControls { cameraAction("Set up this phone",icon:"camera",accessibilityID:"setupPhone") { openReference() } }
                         Text("For your first object, capture its selfie-camera and infrared depth reference. Jev checks the scene before you turn the phone for the rear scan.").font(.caption).foregroundStyle(RepairStyle.secondary)
                     } else {
                         cameraControls { cameraAction(detailPass ? "Start second 360° pass" : "Start first 360° pass", icon:"viewfinder",accessibilityID:"startObjectScan") { Task { await begin() } }.disabled(!capture.cameraReady) }
                         Text(detailPass ? "Use the same object and starting view. Your phone builds the live preview and final model." : "Drag the box around one object. Jev identifies it automatically after this first pass.")
                             .font(.caption).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
-                        if !detailPass {Button("Update phone setup") {capture.pausePreview();referenceSetup=true}.font(.caption).disabled(pending)}
+                        if !detailPass {Button("Update phone setup") {openReference()}.font(.caption).disabled(pending)}
                     }
                 }.padding(.horizontal, 24).padding(.vertical, 20).background(RepairStyle.background)
             }.foregroundStyle(RepairStyle.text)
@@ -372,10 +385,17 @@ struct StandaloneCameraView: View {
                 .toolbar {
                     if !embedded { ToolbarItem(placement: .topBarLeading) { Button(capture.isCapturing ? "Save & close" : "Close") { Task { if capture.isCapturing { await finish() } else { identifier.cancel();dismiss() } } }.disabled(pending) } }
                 }
-                .task { await refreshSetupAndPreview() }
+                .task {
+                    guard !Task.isCancelled else { return }
+                    cameraVisible = true
+                    await refreshSetupAndPreview()
+                }
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
                 .onChange(of: identifier.running) { _, running in onBusyChanged?(running || pending) }
-                .onDisappear { identifier.cancel(); capture.pausePreview(); onBusyChanged?(false) }
+                .onDisappear {
+                    cameraVisible = false; referenceOpening = false; referenceOpeningID = nil
+                    identifier.cancel(); capture.pausePreview(); onBusyChanged?(false)
+                }
     }
     private func cameraControls<Primary: View>(@ViewBuilder primary: () -> Primary) -> some View {
         HStack {
@@ -396,13 +416,25 @@ struct StandaloneCameraView: View {
         identifier.cancel(clear: true); box = SelectionBox.initial; failure = nil
         await startCameraPreview()
     }
+    private func openReference() {
+        guard cameraVisible, !referenceOpening, !referenceSetup else { return }
+        let requestID = UUID()
+        referenceOpening = true; referenceOpeningID = requestID
+        capture.pausePreview {
+            guard cameraVisible, referenceOpeningID == requestID else { return }
+            referenceSetup = true
+            referenceOpening = false; referenceOpeningID = nil
+        }
+    }
     private func refreshSetupAndPreview() async {
         let device=PhoneSetupStore.deviceIdentity
         phoneSetup=await Task.detached {PhoneSetupStore.load(deviceIdentity:device)}.value
         guard !Task.isCancelled else{return}
+        setupLoaded=true
         await startCameraPreview()
     }
     private func startCameraPreview() async {
+        guard cameraVisible, !referenceOpening, !referenceSetup, !Task.isCancelled else { return }
         do {try await capture.startPreview();failure=nil}
         catch is CancellationError {}
         catch {failure=error.localizedDescription}

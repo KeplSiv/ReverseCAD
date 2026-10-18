@@ -29,6 +29,20 @@ final class CameraPreviewTests:XCTestCase {
             XCTAssertEqual(CVPixelBufferGetBaseAddressOfPlane(copy,plane)!.load(as:UInt8.self),UInt8(33+plane))
         }
     }
+    func testReferenceWindowAcceptsSlowerSynchronizedCadencesWithoutStarvation() {
+        for rate in [5.0, 7.0, 10.0, 15.0, 30.0] {
+            var window = [Double]()
+            for index in 0..<20 {
+                let now = 100 + Double(index) / rate
+                window = FrontReferencePolicy.recent(window + [now], now: now, timestamp: { $0 })
+                XCTAssertLessThanOrEqual(window.count, FrontReferencePolicy.sampleCount)
+                if index >= 7 { XCTAssertTrue(FrontReferencePolicy.ready(timestamps: window, now: now), "Cadence \(rate) Hz starved at sample \(index)") }
+            }
+            XCTAssertFalse(FrontReferencePolicy.ready(timestamps: window, now: window.last! + 0.31))
+        }
+        XCTAssertFalse(FrontReferencePolicy.ready(timestamps: Array(repeating: 100, count: 8), now: 100))
+        XCTAssertFalse(FrontReferencePolicy.ready(timestamps: (0..<8).map { 100 + Double($0) / 10 }, now: 99))
+    }
     func testReferenceUsesFreshSharpWindowAndHalfShutter() {
         let times=(0..<8).map{100+Double($0)*0.133}
         XCTAssertTrue(FrontReferencePolicy.ready(timestamps:times,now:101))

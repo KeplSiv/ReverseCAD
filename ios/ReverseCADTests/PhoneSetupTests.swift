@@ -1,9 +1,64 @@
 import XCTest
 import ReverseCADCore
 import UIKit
+import Combine
+import SwiftUI
 @testable import ReverseCAD
 
 final class PhoneSetupTests: XCTestCase {
+    @MainActor func testSavedPhotoIsReviewableBeforeDepthOrDefaultBoxValidation() async throws {
+        let writer = try ExperimentWriter(source: "synthetic front selection regression")
+        defer {
+            try? FileManager.default.removeItem(at: writer.url)
+            try? FileManager.default.removeItem(at: writer.url.appendingPathExtension("zip"))
+        }
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 48), format: format).image { context in
+            UIColor.red.setFill(); context.fill(CGRect(x: 0, y: 0, width: 64, height: 48))
+        }
+        let imageURL = writer.url.appendingPathComponent("frames/reference.png")
+        try XCTUnwrap(image.pngData()).write(to: imageURL)
+        writer.frames = (0..<8).map { ["id": "front-\($0)", "camera": "front", "rgb": "frames/reference.png", "width": 64, "height": 48, "settings": ["sharpness": 0.1]] }
+        // Missing depth makes suitability fail, but must not prevent saving
+        // the photo and displaying the adjustable selection first.
+        let archive = try PhoneReferenceCapture.archiveOriginals(writer: writer, deviceID: "fixture")
+        let originalHash = try CaptureIO.sha256(file: imageURL)
+        XCTAssertGreaterThan(try Data(contentsOf: archive).count, 0)
+        XCTAssertThrowsError(try TrueDepthReconstruction.build(dataset: writer.url))
+        XCTAssertThrowsError(try FrontReferenceEvidence.prepare(root: writer.url)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("blurred"))
+        }
+        let review = FrontReferenceReviewModel()
+        review.load(root: writer.url)
+        XCTAssertNotNil(review.image)
+        XCTAssertFalse(review.working)
+        XCTAssertNil(review.review)
+        let capture = PhoneReferenceCapture()
+        capture.originalDirectory = writer.url; capture.saved = archive
+        let host = UIHostingController(rootView: PhoneReferenceSetup(capture:capture))
+        let window = UIWindow(frame:CGRect(x:0,y:0,width:393,height:852))
+        window.rootViewController=host;window.makeKeyAndVisible()
+        defer { window.isHidden=true }
+        host.view.frame=window.bounds;host.view.layoutIfNeeded()
+        await Task.yield()
+        host.view.layoutIfNeeded()
+        let screenshot=UIGraphicsImageRenderer(bounds:host.view.bounds).image { _ in
+            host.view.drawHierarchy(in:host.view.bounds,afterScreenUpdates:true)
+        }
+        let attachment=XCTAttachment(image:screenshot)
+        attachment.name="selfie-saved-photo-object-box";attachment.lifetime = .keepAlways
+        add(attachment)
+        let failed = expectation(description: "Invalid depth review completes")
+        let observation = review.$working.drop(while: { !$0 }).filter { !$0 }.prefix(1).sink { _ in failed.fulfill() }
+        review.check(root: writer.url, box: SelectionBox.initial)
+        await fulfillment(of: [failed], timeout: 5)
+        withExtendedLifetime(observation) {}
+        XCTAssertNotNil(review.image)
+        XCTAssertNil(review.review)
+        XCTAssertTrue(review.message.contains("blurred"))
+        XCTAssertEqual(try CaptureIO.sha256(file: imageURL), originalHash)
+    }
+
     func testStationarySyntheticReferenceProducesPortableMap() throws {
         let root=try TrueDepthReconstructionTests.fixture()
         defer {try? FileManager.default.removeItem(at:root)}

@@ -16,6 +16,9 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["ReverseCAD"].exists)
         XCTAssertTrue(app.textFields["scanObjectDescription"].exists)
         XCTAssertTrue(app.buttons["setupPhone"].waitForExistence(timeout: 5))
+        let setupHint = app.staticTexts["selfieSetupHint"]
+        XCTAssertTrue(setupHint.waitForExistence(timeout: 5))
+        XCTAssertLessThan(setupHint.frame.maxY, app.buttons["setupPhone"].frame.minY)
         XCTAssertFalse(app.buttons["identifyObjectBox"].exists)
         XCTAssertFalse(app.buttons["startObjectScan"].exists)
         XCTAssertFalse(app.buttons["Export original capture"].exists)
@@ -66,11 +69,9 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertTrue(instructions.waitForExistence(timeout:5))
         XCTAssertEqual(app.scrollViews.count,0)
         let save=app.buttons["saveFrontReference"]
-        let open=app.buttons["Open selfie camera"]
-        XCTAssertTrue(save.exists || open.waitForExistence(timeout:5))
-        let button=save.exists ? save:open
-        XCTAssertLessThan(button.frame.maxY,instructions.frame.minY+2)
-        XCTAssertTrue(button.isHittable)
+        XCTAssertTrue(save.waitForExistence(timeout:5))
+        XCTAssertLessThan(save.frame.maxY,instructions.frame.minY+2)
+        XCTAssertTrue(save.isHittable)
         keepScreenshot("reversecad-front-no-scroll")
     }
 

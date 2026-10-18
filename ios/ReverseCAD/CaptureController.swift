@@ -60,9 +60,13 @@ enum CaptureFailure: LocalizedError {
     private var previewGeneration=UUID()
     private var captureRegion = CGRect(x:1.0/3,y:1.0/3,width:1.0/3,height:1.0/3)
     private var captureRotation = 90
-    func pausePreview() {
+    func pausePreview(completion: (() -> Void)? = nil) {
         previewGeneration=UUID();cameraReady=false
-        session.pause(); multiCamera?.stop();multiCamera=nil;multiCameraPreview=nil
+        session.pause()
+        let camera = multiCamera
+        multiCamera=nil;multiCameraPreview=nil
+        if let camera { camera.stop { DispatchQueue.main.async { completion?() } } }
+        else { completion?() }
     }
     func selectionImage(rect: CGRect, viewport: CGSize, orientation: UIInterfaceOrientation) throws -> (jpeg: Data, box: CGRect) {
         if useMultiCamera {

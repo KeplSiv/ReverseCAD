@@ -59,7 +59,13 @@ final class MultiCameraSession: NSObject, AVCaptureDataOutputSynchronizerDelegat
             }
         }
     }
-    func stop() { queue.async { self.onPacket = nil; self.session.stopRunning(); self.videos = [:]; self.depths = []; self.lock.lock();self.reference=nil;self.referenceDate = .distantPast;self.lock.unlock() } }
+    func stop(completion: (() -> Void)? = nil) {
+        queue.async {
+            self.onPacket = nil; self.session.stopRunning(); self.videos = [:]; self.depths = []
+            self.lock.lock(); self.reference = nil; self.referenceDate = .distantPast; self.lock.unlock()
+            completion?()
+        }
+    }
     func latest() -> Video? { lock.lock(); defer { lock.unlock() }; return Date().timeIntervalSince(referenceDate)<1.5 ? reference : nil }
 
     func videoRegion(fromMetadata rect:CGRect) throws -> CGRect {
