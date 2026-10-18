@@ -49,6 +49,10 @@ struct CubeDemoView: View {
     private var faceWidth: Double { Double(faceWidthText.replacingOccurrences(of: ",", with: ".")) ?? 0 }
     @State private var files: [URL] = []
     @State private var showShare = false
+    @State private var showCADConsent = false
+    @State private var reviewingCAD = false
+    @State private var cadReview: String?
+
 
     var body: some View {
         Group {
@@ -71,7 +75,18 @@ struct CubeDemoView: View {
                                 Button { showShare = true } label: {
                                     Label("Export model", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                                 }.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("exportCube")
-                                if finding != nil { Button("Adjust size") { files = [] } }
+                                if finding != nil { Button("Adjust size") { files = []; cadReview = nil } }
+                                Button(reviewingCAD ? "Reviewing CAD…" : "Review CAD with Grok") {
+                                    showCADConsent = true
+                                }.buttonStyle(.bordered).disabled(reviewingCAD || !files.contains(where: { $0.lastPathComponent == "repair_plan.json" }))
+                                if let cadReview {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Grok review · unverified").font(.headline)
+                                        Text(cadReview).font(.subheadline)
+                                        Text("AI observations may be wrong. Suggestions have not changed your model; dimensions and physical fit still need verification.")
+                                            .font(.caption).foregroundStyle(.secondary)
+                                    }.frame(maxWidth: .infinity, alignment: .leading).padding()
+                                }
                             } else if let photo {
                                 CubePhotoCanvas(photo: photo, corners: manualCorners ? corners : [], missing: finding?.polygon) { point in
                                     guard manualCorners, !busy, corners.count < 4 else { return }
@@ -141,13 +156,49 @@ struct CubeDemoView: View {
             }
         }
         .sheet(isPresented: $showSettings) { SettingsView().environmentObject(model) }
+        .confirmationDialog("Send this CAD for review?", isPresented: $showCADConsent, titleVisibility: .visible) {
+            Button("Send to Grok") { Task { await reviewCAD() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Sends the CAD recipe, geometry summary and current reference photo, when available, to xAI. The API key stays on your Mac. Review does not modify the part.")
+        }
         .sheet(isPresented: $showShare) { ShareSheet(urls: files) }
         .alert("Couldn’t create model", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
         } message: { Text(error ?? "") }
     }
 
+    private func reviewCAD() async {
+        guard !reviewingCAD, let planURL = files.first(where: { $0.lastPathComponent == "repair_plan.json" }) else { return }
+        reviewingCAD = true; cadReview = nil
+        defer { reviewingCAD = false }
+        do {
+            let program = try JSONSerialization.jsonObject(with: Data(contentsOf: planURL))
+            var request: [String: Any] = ["program": program, "consent_to_send": true]
+            if let photo, let data = normalized(photo).jpegData(compressionQuality: 0.85) {
+                request["reference_images_base64"] = [data.base64EncodedString()]
+            }
+            let response = try await model.object("v1/cad/review", method: "POST", json: request)
+            guard files.contains(planURL) else { return }
+            guard response["status"] as? String == "reviewed", let review = response["review"] as? [String: Any] else {
+                cadReview = "Review unavailable (\(response["error_code"] as? String ?? response["status"] as? String ?? "unknown")). Your CAD is unchanged."
+                return
+            }
+            var lines = [review["summary"] as? String ?? ""]
+            for observation in review["observations"] as? [[String: Any]] ?? [] {
+                if let claim = observation["claim"] as? String { lines.append("• " + claim) }
+            }
+            for concern in review["concerns"] as? [String] ?? [] { lines.append("Check: " + concern) }
+            for proposal in review["proposed_changes"] as? [[String: Any]] ?? [] {
+                if let reason = proposal["rationale"] as? String { lines.append("Suggested: " + reason) }
+            }
+            for view in review["next_views"] as? [String] ?? [] { lines.append("Next view: " + view) }
+            cadReview = lines.joined(separator: "\n\n")
+        } catch { guard files.contains(planURL) else { return }; cadReview = "Review could not finish. Your CAD is unchanged. " + error.localizedDescription }
+    }
+
     private func resetScan() {
+        cadReview = nil
         photo = nil; finding = nil; corners = []; files = []; status = ""; manualCorners = false; selectedPhoto = nil
     }
 

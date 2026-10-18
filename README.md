@@ -103,3 +103,47 @@ Every accepted CAD revision includes genuine STEP, watertight STL, tested millim
 - **Invalid geometry:** fix the reported bounded parameter/attachment conflict. No automatic resizing of a confirmed measurement is allowed.
 
 See [reconstruction options and VideoCAD assessment](docs/RECONSTRUCTION_OPTIONS.md) for the next pipeline stage.
+
+## Experimental CAD-to-code review with Grok
+
+CadQuery remains the code-CAD backend. Existing bounded cube recipes export Python;
+imported STEP files expose their B-rep faces, edges, adjacency, dimensions and a
+Python import wrapper. **STEP import does not recover the original feature history.**
+
+The paired `POST /v1/cad/review` endpoint accepts an existing cube recipe and optional
+reference images. It sends its code, geometry summary, three CAD renders and references
+to xAI only with explicit consent. The phone's model screen offers **Review CAD with Grok**.
+Configure `XAI_API_KEY` and `REVERSECAD_CAD_GROK_ENABLED=true` in the private Mac
+`.env`; keys never belong in the app or Git.
+
+For a local STEP evaluation:
+```sh
+PYDANTIC_DISABLE_PLUGINS=__all__ PYTHONPATH=backend python scripts/review_cad.py   --step part.step --reference reference.jpg --output work/cad-review --live
+```
+Omit `--live` to export context, source wrapper and renders without contacting xAI.
+Use a new output directory. Generic STEP review currently uses this CLI; the phone
+endpoint accepts only the supported bounded cube program.
+
+Reviews are unverified suggestions. Feature IDs are checked against the CAD snapshot,
+numerical edit proposals are withheld, and no LLM code or edits are executed.
+Live corner and edge trials produced both useful inspection suggestions and unsupported
+visual claims. This integration is not evidence of improved replacement fit.
+
+Evaluation: CadQuery avoids replacing the existing geometry kernel.
+[CAD-Recode](https://github.com/filaPro/cad-recode) and
+[CAD-Coder](https://arxiv.org/abs/2505.14646) are reconstruction experiments worth a
+separate benchmark; they are not installed by this integration.
+[KCL](https://zoo.dev/research/introducing-kcl) is another authoring language,
+not automatic recovery of a scan's construction history. G-code remains a later
+slicer/CAM output, not the representation used for geometry reasoning here.
+
+Jev handoff status: this checkout contains the TypeSafe Jev specification in
+`docs/SPARSE_RECONSTRUCTION_SPEC.md`, but no executable Jev adapter. The intended
+sequence is Jev category/selection → CAD and image evidence → Grok review →
+geometric validation. The current CAD review endpoint does not yet consume Jev
+detections. Classification is context, not measured shape or proof of fit.
+
+Validation for this initial integration: 27 focused backend tests passed; iPhone
+Debug build succeeded and was installed. Three live Grok calls reviewed an edge
+and corner, including a corner retry with CAD renders. Unsupported claims remained;
+no geometry changes were applied and no physical fit was validated.

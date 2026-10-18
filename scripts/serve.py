@@ -16,15 +16,9 @@ def main():
     parser.add_argument("--port",type=int,default=8767)
     parser.add_argument("--data-dir",help="Override the environment data directory (default: var/service)")
     args=parser.parse_args()
-    envfile=ROOT / ".env"
-    if envfile.exists():
-        for line in envfile.read_text().splitlines():
-            line=line.strip()
-            if not line or line.startswith("#"): continue
-            key,sep,value=line.partition("=")
-            if not sep or (not key.startswith("REVERSECAD_") and key!="OPENAI_API_KEY"):
-                raise SystemExit("Only REVERSECAD_* and OPENAI_API_KEY entries are supported in .env")
-            os.environ.setdefault(key,value.strip().strip('\"').strip("'"))
+    from reversecad.cad_review import env_values
+    for key,value in env_values(ROOT / '.env').items():
+        os.environ.setdefault(key,value)
     if args.data_dir:
         os.environ["REVERSECAD_DATA_DIR"] = str((ROOT / args.data_dir).resolve())
     else:

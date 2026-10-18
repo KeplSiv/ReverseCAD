@@ -17,6 +17,8 @@ import sys
 import threading
 import time
 import uuid
+from .cad_review import CADReviewRequest
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -359,6 +361,22 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
     def capabilities():
         from .cad import template_catalog
         return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+
+    @app.post("/v1/cad/review",dependencies=[Depends(authorize)])
+    def review_cad(body: CADReviewRequest):
+        from .cad_review import context_from_program, review_context, render_shape
+        from .cad_program import execute_cube_program
+        import base64
+        try:
+            if not body.consent_to_send:
+                raise ValueError("Approve sending this CAD and selected reference views to Grok first")
+            if any(len(data)>11_000_000 for data in body.reference_images_base64):
+                raise ValueError("Reference image exceeds request budget")
+            images=[base64.b64decode(data,validate=True) for data in body.reference_images_base64]
+            context=context_from_program(body.program)
+            return review_context(context,images,consent=True,model_views=render_shape(execute_cube_program(body.program)[0].val()))
+        except (ValueError,TypeError,KeyError) as exc:
+            error(422,"invalid_cad_review",str(exc)[:200])
 
     @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
     def analyze_cube(body: dict[str, Any]):
