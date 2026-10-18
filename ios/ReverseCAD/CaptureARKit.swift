@@ -85,6 +85,13 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var movieDropped = 0
     private var videoFailure: String?
     private var failure: String?
+    private var targetTracker: VNTrackObjectRequest?
+    private let targetSequence = VNSequenceRequestHandler()
+    func setConfirmedTarget(_ box: CGRect) {
+        // Jev coordinates are top-left; Vision uses a lower-left origin.
+        targetTracker = VNTrackObjectRequest(detectedObjectObservation: VNDetectedObjectObservation(boundingBox: CGRect(x: box.minX, y: 1-box.maxY, width: box.width, height: box.height)))
+        targetTracker?.trackingLevel = .accurate
+    }
     private var motionCount = 0
     private var motionDropped = 0
     private var pendingMotionDrops = 0 // guarded by lock, includes queue backpressure
@@ -131,6 +138,11 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         let status = SRStart(directory.appendingPathComponent("sparse").path)
         if let error = status["error"] as? String { throw CaptureFailure.unavailable(error) }
         try updateSparseManifest(status: "capturing")
+        #endif
+        #if PRELUDE_SCANNER
+        let publicFormats = ARWorldTrackingConfiguration.supportedVideoFormats.filter { $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }
+        guard let publicFormat = publicFormats.min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) else { throw CaptureFailure.unavailable("The rear 1× camera is unavailable.") }
+        configuration.videoFormat = publicFormat
         #endif
         // Mesh reconstruction is optional visualization. It is not used as a substitute for native depth.
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) { configuration.sceneReconstruction = .mesh }
@@ -261,10 +273,24 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         #endif
         lastKeyframeTimestamp = timestamp
         let width = CVPixelBufferGetWidth(rgb), height = CVPixelBufferGetHeight(rgb)
+        var region = region
+        var trackedPoint: CGPoint?
+        if let tracker = targetTracker {
+            try targetSequence.perform([tracker], on: rgb, orientation: .up)
+            guard let observation = tracker.results?.first as? VNDetectedObjectObservation, observation.confidence >= 0.5,
+                  observation.boundingBox.width > 0.01, observation.boundingBox.height > 0.01 else {
+                stats.rejected += 1; stats.guidance = "Object tracking was lost. Finish this scan and identify the object again."; onProgress?(stats)
+                stopForBudget(stats.guidance); return
+            }
+            tracker.inputObservation = observation
+            let b = observation.boundingBox
+            region = [Double(b.minX), Double(1-b.maxY), Double(b.width), Double(b.height)]
+            trackedPoint = CGPoint(x: b.midX, y: 1-b.midY)
+        }
         let blur = Self.blurScore(rgb, region: region)
-        var detailPoint = point
+        var detailPoint = trackedPoint ?? point
         var objectInFrame = true
-        if let target = guideTarget, point == guideSelection {
+        if trackedPoint == nil, let target = guideTarget, point == guideSelection {
             let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
             if local.z < -0.01 {
                 let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
@@ -321,6 +347,10 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
                 }
             }
             maskPath = "masks/\(id).u8"; assets[maskPath!] = mask
+        }
+        if targetTracker != nil && maskPath == nil {
+            accepted = false
+            reasons.append("The selected object could not be segmented; this view is excluded from measurement.")
         }
         var capture = CaptureFrame(scanID: scanID, segmentID: segment, frameID: id, timestampS: timestamp, rgbPath: rgbPath, rgbWidth: width, rgbHeight: height, depthPath: depthPath, depthWidth: depthWidth, depthHeight: depthHeight, depthRowBytes: depthWidth * 4, confidencePath: confidencePath, maskPath: maskPath, intrinsics: Self.columnMajor(intrinsics), intrinsicsWidth: Int(resolution.width), intrinsicsHeight: Int(resolution.height), worldCamera: Self.columnMajor(pose), trackingState: tracking, quality: CaptureQuality(blurScore: blur, accepted: accepted, reasons: reasons))
         #if SPARSE_RESEARCH

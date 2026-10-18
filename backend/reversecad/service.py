@@ -312,9 +312,10 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
         try:
             if request.method in {"POST","PUT","PATCH"} and "/assets/" not in request.url.path:
                 body = bytearray()
+                body_limit = 4_100_000 if request.url.path == "/v1/objects/identify" else 1024*1024
                 async for chunk in request.stream():
-                    if len(body) + len(chunk) > 1024*1024:
-                        response = JSONResponse({"error":{"code":"request_too_large","message":"JSON request exceeds the 1 MiB metadata budget"},"request_id":request.state.request_id},status_code=413)
+                    if len(body) + len(chunk) > body_limit:
+                        response = JSONResponse({"error":{"code":"request_too_large","message":"JSON request exceeds its bounded metadata budget"},"request_id":request.state.request_id},status_code=413)
                         response.headers["X-Request-ID"] = request.state.request_id
                         return response
                     body.extend(chunk)
@@ -396,6 +397,14 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
                     error(422,"live_geometry_unresolved","Live geometry could not be evaluated; capture more views")
                 return json.loads(target.read_text())
         finally: live_geometry_lock.release()
+
+    @app.post("/v1/objects/identify",dependencies=[Depends(authorize)])
+    def identify_object(body: dict[str, Any]):
+        from .jev import identify, JevError
+        try:
+            return identify(body)
+        except JevError as exc:
+            error(422, "object_identification_unavailable", str(exc))
 
     @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
     def analyze_cube(body: dict[str, Any]):

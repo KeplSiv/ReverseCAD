@@ -337,8 +337,10 @@ def main() -> int:
     parser.add_argument("--key-path", type=Path, required=True)
     parser.add_argument("--key-id", required=True)
     parser.add_argument("--issuer-id", required=True)
+    parser.add_argument("--prelude", action="store_true")
     parser.add_argument("--resume", action="store_true", help="Resume only the existing recorded API upload")
     args = parser.parse_args()
+    release_tools.select_app(args.prelude)
     try:
         require(re.fullmatch(r"\d+\.\d+(?:\.\d+)?", args.version) is not None, "Invalid marketing version.")
         require(re.fullmatch(r"[1-9]\d*", args.build) is not None, "Invalid build number.")

@@ -50,6 +50,8 @@ enum CaptureFailure: LocalizedError {
     let hasLiDAR = ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
     let session = ARSession()
     private var provider: CaptureProvider?
+    private var confirmedTarget: CGRect?
+    func setConfirmedTarget(_ box: CGRect) { confirmedTarget = box; selectedObjectPoint = CGPoint(x: box.midX, y: box.midY) }
     private var selectedObjectPoint = CGPoint(x: 0.5, y: 0.5)
     private var guideLayout: (CGRect, CGSize, UIInterfaceOrientation)?
     private var backgroundObserver: NSObjectProtocol?
@@ -76,6 +78,9 @@ enum CaptureFailure: LocalizedError {
         if let detailFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution {
             configuration.videoFormat = detailFormat
         }
+        #if PRELUDE_SCANNER
+        if let format = ARWorldTrackingConfiguration.supportedVideoFormats.filter({ $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }).min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) { configuration.videoFormat = format }
+        #endif
         configuration.frameSemantics.insert(.sceneDepth)
         session.run(configuration)
     }
@@ -92,6 +97,7 @@ enum CaptureFailure: LocalizedError {
             Task { @MainActor in self?.receiveLiveGeometry(snapshot) }
         }
         capture.selectObject(point: selectedObjectPoint)
+        if let confirmedTarget { capture.setConfirmedTarget(confirmedTarget) }
         connect(capture)
         provider = capture
         frameCount = 0; rejectedFrames = 0; droppedFrames = 0; bytesWritten = 0; coverageViews = 0

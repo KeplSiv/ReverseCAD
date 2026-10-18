@@ -51,6 +51,7 @@ struct RepairProject: Codable, Identifiable {
     var family = "bridge_handle"
     var source = "synthetic"
     var repairScope: String?
+    var scanTarget: Data?
     var planarThicknessMM: Double?
     var stage = "Ready to capture"
     var scanID: String?
@@ -383,6 +384,7 @@ final class AppModel: ObservableObject {
         guard let p=project else{return [:]}
         var d:[String:Any]=["contacts":p.contacts.map{["id":$0.id,"point_m":$0.point,"normal":$0.normal,"radius_mm":$0.radius,"normal_source":$0.normalSource ?? "scan_patch_estimate","normal_confirmed":$0.normalConfirmed ?? false]},"damage_points_m":p.damage,"measurements":p.dimensions.map{["id":$0.id,"name":$0.name,"value":$0.value,"unit":"mm","source":"manual","confirmed":$0.confirmed,"critical":$0.critical,"uncertainty_mm":$0.uncertainty,"observation_ids":[]] as [String:Any]},"attachment_method":p.attachment,"evidence_state":p.evidence]
         d["repair_scope"] = p.repairScope ?? "general"
+        if let target = p.scanTarget, let value = try? JSONSerialization.jsonObject(with: target) { d["object_target"] = value }
         if let thickness = p.planarThicknessMM { d["planar_thickness_mm"] = thickness }
         if p.cropEnabled {d["crop_min_m"]=p.cropMin.map{$0/1000};d["crop_max_m"]=p.cropMax.map{$0/1000}}
         if p.scaleMeasured>0 && p.scaleObserved>0 {d["scale_reference"]=["measured_mm":p.scaleMeasured,"observed_mm":p.scaleObserved,"uncertainty_mm":p.scaleUncertainty]}
@@ -701,6 +703,18 @@ final class AppModel: ObservableObject {
         let infos = try JSONDecoder().decode([ArtifactInfo].self, from: JSONSerialization.data(withJSONObject: list))
         return (dir.appendingPathComponent(folder), infos)
     }
+
+    func exportStandaloneScan() { perform {
+        let (directory, infos) = try self.observedArtifactLocation()
+        let report = try JSONSerialization.jsonObject(with: Data(contentsOf: directory.appendingPathComponent("scan_export.json"))) as? [String: Any]
+        guard report?["status"] as? String == "ready", let names = report?["files"] as? [String],
+              !names.isEmpty, names.allSatisfy({ name in infos.contains { $0.name == name } }) else {
+            throw ServiceFailure(message: "This scan needs more usable views before measured export. The original capture is still available.")
+        }
+        try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: directory) }.value
+        self.shareURLs = (names + ["scan_export.json", "input_provenance.json"]).filter { name in infos.contains { $0.name == name } }.map { directory.appendingPathComponent($0) }
+        self.showingShare = true
+    }}
 
     func exportPattern() { perform {
         guard !self.scanNeedsRescan, self.patternReviewed, let option = self.selectedPattern,

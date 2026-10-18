@@ -781,7 +781,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
         warnings.append("surface_mesh_unavailable: observed colored point cloud retained")
     _json(output_dir / "scan_preview.json", preview)
     counterpart = {"status": "blocked_inconsistent_scan", "reason": "The captured views do not agree in 3D. No replacement piece was generated. Keep the object stationary on a textured surface and move the phone slowly around it; start about 30 cm away."} if not geometry_consistent else {"status": "not_requested"}
-    if stage == "rgb_assisted" and geometry_consistent and annotations.get("repair_scope") != "cube_exterior":
+    if stage == "rgb_assisted" and geometry_consistent and annotations.get("repair_scope") not in {"cube_exterior", "standalone_scan"}:
         if mesh is not None and len(mesh.triangles) >= 100:
             from .pattern_completion import export_pattern_hypotheses
             base["pattern_hypotheses"] = export_pattern_hypotheses(mesh, output_dir, scale)
@@ -821,7 +821,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                             "segmentation_sources": sorted({f["mask_source"] for f in frames})})
     # Native fusion stays diagnostic when inconsistent. Independently align the
     # photographs and attempt a clearly labeled constrained exterior hypothesis.
-    if stage == "rgb_assisted" and (not geometry_consistent or annotations.get("repair_scope") == "cube_exterior") and manifest.get("source") == "arkit":
+    if stage == "rgb_assisted" and annotations.get("repair_scope") != "standalone_scan" and (not geometry_consistent or annotations.get("repair_scope") == "cube_exterior") and manifest.get("source") == "arkit":
         from .photo_alignment import align_photos
         photo_alignment = {"status": "unavailable"}
         try:

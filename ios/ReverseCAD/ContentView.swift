@@ -4,8 +4,12 @@ import ImageIO
 
 struct ContentView: View {
     var body: some View {
+        #if PRELUDE_SCANNER
+        StandaloneScanView()
+        #else
         if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
         else { UnifiedRepairView() }
+        #endif
     }
 }
 

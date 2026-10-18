@@ -44,6 +44,10 @@ def run(input_path: Path) -> int:
             result = reconstruct(scan_dir, output, annotations)
             if not isinstance(result, dict):
                 raise ValueError("Reconstruction returned an invalid result")
+            if annotations.get("repair_scope") == "standalone_scan":
+                from .scan_export import export_observed_scan
+                result["scan_export"] = export_observed_scan(output, result)
+                atomic_json(output / "reconstruction.json", result)
             if request.get("compare_methods"):
                 from .comparison import compare_reconstructions
                 result = compare_reconstructions(scan_dir, output, result, annotations, progress)

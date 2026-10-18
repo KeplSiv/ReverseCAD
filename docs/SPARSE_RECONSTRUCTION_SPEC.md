@@ -10,7 +10,7 @@ This component does not propose a repair, invent a missing part, generate a repl
 
 The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-**Status distinction:** the camera/sparse acquisition and reconstruction core described below is implemented in a local prototype. The describe-object screen, “Jev” object identification, standalone scan review, dedicated export package and scanned-object STEP export are required revisions, not features already verified. Only documentation has been published by this task to `pranav-dev`; the prototype code has not been merged into `main`.
+**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, Jev HTTP integration and confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Live Jev credentials and a fresh physical scan have not yet been verified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
 
 ## 2. User journey
 

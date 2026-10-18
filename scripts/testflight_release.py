@@ -23,6 +23,16 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "com.pranav.ReverseCAD"
 DEFAULT_TEAM = "5B3Y68ZB2Y"
+PRODUCT = "ReverseCAD"
+SCHEME = "ReverseCAD"
+
+
+def select_app(prelude: bool = False) -> None:
+    global BUNDLE, PRODUCT, SCHEME
+    BUNDLE = "com.pranavmuralitharan.prelude" if prelude else "com.pranav.ReverseCAD"
+    PRODUCT = "Prelude" if prelude else "ReverseCAD"
+    SCHEME = "PreludeScanner" if prelude else "ReverseCAD"
+
 
 
 class ReleaseError(Exception):
@@ -75,7 +85,7 @@ def tree_manifest(path: Path) -> dict[str, str]:
 
 
 def paths(args: argparse.Namespace) -> tuple[Path, Path]:
-    name = f"release-{args.version}-{args.build}"
+    name = f"{PRODUCT.lower()}-release-{args.version}-{args.build}" if PRODUCT != "ReverseCAD" else f"release-{args.version}-{args.build}"
     return ROOT / "var/testflight" / name, ROOT / "reports/testflight" / name
 
 
@@ -85,6 +95,7 @@ def load_release(args: argparse.Namespace) -> tuple[Path, Path, dict]:
     metadata = json.loads((release / "release.json").read_text())
     require(metadata["version"] == args.version and metadata["build"] == args.build,
             "Release metadata does not match the requested version/build.")
+    require(metadata["bundle_id"] == BUNDLE, "Release belongs to another app.")
     require(metadata["team"] == args.team, "Team does not match the archived release.")
     return release, reports, metadata
 
@@ -95,7 +106,7 @@ def check_archive(release: Path, reports: Path) -> None:
     receipt = json.loads(receipt_path.read_text())
     require(json.loads((release / "release.json").read_text()) == receipt["metadata"],
             "Release metadata changed after archive creation.")
-    require(tree_manifest(release / "ReverseCAD.xcarchive") == receipt["archive_files_sha256"],
+    require(tree_manifest(release / f"{PRODUCT}.xcarchive") == receipt["archive_files_sha256"],
             "Archive changed after creation; refusing to export/upload.")
 
 
@@ -131,20 +142,20 @@ def archive(args: argparse.Namespace) -> None:
     write_json(release / "release.json", metadata)
     run(["xcodegen", "generate", "--spec", "ios/project.yml"], reports / "xcodegen.log")
     command = [
-        "xcodebuild", "-project", "ios/ReverseCAD.xcodeproj", "-scheme", "ReverseCAD",
+        "xcodebuild", "-project", "ios/ReverseCAD.xcodeproj", "-scheme", SCHEME,
         "-configuration", "Release", "-destination", "generic/platform=iOS",
-        "-archivePath", str(release / "ReverseCAD.xcarchive"),
+        "-archivePath", str(release / f"{PRODUCT}.xcarchive"),
         "-derivedDataPath", str(release / "DerivedData"),
         "-resultBundlePath", str(reports / "archive.xcresult"),
         "-hideShellScriptEnvironment", "CODE_SIGN_STYLE=Manual",
         f"DEVELOPMENT_TEAM={args.team}", f"CODE_SIGN_IDENTITY={args.identity}",
-        f"REVERSECAD_PROFILE_ReverseCAD={args.profile_uuid}",
+        f"REVERSECAD_PROFILE_{SCHEME}={args.profile_uuid}",
         "PROVISIONING_PROFILE_SPECIFIER=$(REVERSECAD_PROFILE_$(TARGET_NAME))",
-        f"MARKETING_VERSION={args.version}", f"CURRENT_PROJECT_VERSION={args.build}",
+        f"PRODUCT_BUNDLE_IDENTIFIER={BUNDLE}", f"MARKETING_VERSION={args.version}", f"CURRENT_PROJECT_VERSION={args.build}",
         "CODE_SIGNING_ALLOWED=YES", "archive",
     ]
     run(command, reports / "archive.log")
-    app = release / "ReverseCAD.xcarchive/Products/Applications/ReverseCAD.app"
+    app = release / f"{PRODUCT}.xcarchive/Products/Applications/{PRODUCT}.app"
     require(app.is_dir(), "Xcode returned success without ReverseCAD.app in the archive.")
     info = plistlib.loads((app / "Info.plist").read_bytes())
     require(info.get("CFBundleIdentifier") == BUNDLE, "Wrong archived bundle identifier.")
@@ -152,7 +163,7 @@ def archive(args: argparse.Namespace) -> None:
             "Archived version/build mismatch.")
     write_json(reports / "archive.json", {
         "status": "passed", "completed_at": now(), "metadata": metadata,
-        "archive_files_sha256": tree_manifest(release / "ReverseCAD.xcarchive"),
+        "archive_files_sha256": tree_manifest(release / f"{PRODUCT}.xcarchive"),
     })
     print(f"Archived {args.version} ({args.build}). Next: export, then verify. Nothing uploaded.")
 
@@ -166,7 +177,7 @@ def export(args: argparse.Namespace) -> None:
     options = release / "ExportOptions.plist"
     with options.open("xb") as stream:
         plistlib.dump(export_options(metadata, "export"), stream)
-    run(["xcodebuild", "-exportArchive", "-archivePath", str(release / "ReverseCAD.xcarchive"),
+    run(["xcodebuild", "-exportArchive", "-archivePath", str(release / f"{PRODUCT}.xcarchive"),
          "-exportPath", str(destination), "-exportOptionsPlist", str(options)], reports / "export.log")
     ipas = list(destination.glob("*.ipa"))
     require(len(ipas) == 1, f"Expected one exported IPA, found {len(ipas)}.")
@@ -300,6 +311,9 @@ def verify_ipa(ipa: Path, metadata: dict) -> dict:
         run(["openssl", "x509", "-inform", "DER", "-in", str(certificate), "-checkend", "0", "-noout"])
         executable_name = info.get("CFBundleExecutable", "")
         require(executable_name and Path(executable_name).name == executable_name, "Invalid bundle executable name.")
+        if BUNDLE == "com.pranavmuralitharan.prelude":
+            binary = (app / executable_name).read_bytes()
+            require(not any(marker in binary for marker in [b"BackSparseTimeOfFlight", b"SRStart", b"SRStop", b"SRFrameMetadata"]), "Private research symbols found in distribution executable.")
         architectures = run(["lipo", "-archs", str(app / executable_name)]).decode().strip().split()
         require("arm64" in architectures and not {"x86_64", "i386"}.intersection(architectures),
                 "IPA executable lacks arm64 or contains simulator architectures.")
@@ -356,7 +370,7 @@ def upload(args: argparse.Namespace) -> None:
     write_json(reports / "pre-upload-verification.json", verification)
     # Xcode re-exports this unchanged archive for upload. The local verified IPA
     # is retained, but do not claim its hash identifies Apple's re-exported bytes.
-    run(["xcodebuild", "-exportArchive", "-archivePath", str(release / "ReverseCAD.xcarchive"),
+    run(["xcodebuild", "-exportArchive", "-archivePath", str(release / f"{PRODUCT}.xcarchive"),
          "-exportPath", str(release / "upload"), "-exportOptionsPlist", str(options),
          "-authenticationKeyPath", str(key), "-authenticationKeyID", args.key_id,
          "-authenticationKeyIssuerID", args.issuer_id], reports / "upload.log")
@@ -377,6 +391,7 @@ def main() -> int:
         sub.add_argument("--version", required=True, help="Marketing version, e.g. 1.0")
         sub.add_argument("--build", required=True, help="Unique positive integer build number")
         sub.add_argument("--team", default=DEFAULT_TEAM)
+        sub.add_argument("--prelude", action="store_true", help="Use the isolated public-API Prelude scanner target")
         if phase == "archive":
             sub.add_argument("--profile-uuid", required=True, help="Installed explicit App Store distribution profile UUID")
             sub.add_argument("--identity", required=True, help="Installed Apple Distribution identity name or SHA-1")
@@ -385,6 +400,7 @@ def main() -> int:
             sub.add_argument("--key-id", required=True)
             sub.add_argument("--issuer-id", required=True)
     args = parser.parse_args()
+    select_app(args.prelude)
     try:
         require(re.fullmatch(r"\d+\.\d+(?:\.\d+)?", args.version) is not None, "Version must be numeric major.minor[.patch].")
         require(re.fullmatch(r"[1-9]\d*", args.build) is not None, "Build must be a positive integer.")
