@@ -25,8 +25,11 @@ struct RepairButtonStyle: ButtonStyle {
 }
 
 struct UnifiedRepairView: View {
+    var savedScanMode = false
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var model: AppModel
     @State private var result = false
+    @State private var repairWorkflow = false
     @State private var library = false
     @State private var cameraGeneration = 0
     @State private var help = false
@@ -34,7 +37,20 @@ struct UnifiedRepairView: View {
     @State private var reviewed = false
     @State private var thickness = ""
     private var isFlat: Bool { model.planarRepair != nil }
-    private var report: [String: Any]? { model.planarRepair ?? model.faceRepair }
+    private var report: [String: Any]? {
+        #if SPARSE_RESEARCH
+        return model.planarRepair ?? model.faceRepair
+        #else
+        return model.planarRepair
+        #endif
+    }
+    private var researchMode: Bool {
+        #if SPARSE_RESEARCH
+        return true
+        #else
+        return false
+        #endif
+    }
     private var count: Int { report?["piece_count"] as? Int ?? (model.counterpartMesh == nil ? 0 : 1) }
     private var thicknessMM: Double? { Double(thickness.replacingOccurrences(of: ",", with: ".")) }
     private var hasResult: Bool { report != nil }
@@ -43,7 +59,7 @@ struct UnifiedRepairView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if result { resultScreen }
+                if result || savedScanMode { resultScreen }
                 else {
                     RepairCamera(onFinish: { url in
                         model.didCapture(url); reviewed = false; display = "Repair"; thickness = ""; result = true
@@ -52,7 +68,7 @@ struct UnifiedRepairView: View {
                 }
             }
             .background(RepairStyle.background.ignoresSafeArea())
-            .navigationTitle(result ? "Your repair" : "ReverseCAD")
+            .navigationTitle(result || savedScanMode ? "Your repair" : "ReverseCAD")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(RepairStyle.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -62,7 +78,7 @@ struct UnifiedRepairView: View {
                         .accessibilityLabel("Scanning tips")
                         .disabled(model.captureActive)
                 }
-                if result {
+                if result || savedScanMode {
                     ToolbarItem(placement: .topBarTrailing) { cameraHomeButton }
                 }
                 ToolbarItemGroup(placement: .keyboard) {
@@ -71,6 +87,13 @@ struct UnifiedRepairView: View {
             }
         }
         .preferredColorScheme(.dark).tint(RepairStyle.accent)
+        .sheet(isPresented: $repairWorkflow) {
+            if let project = model.project {
+                NavigationStack { ProjectView(project: project).toolbar {
+                    ToolbarItem(placement: .confirmationAction) { Button("Done") { repairWorkflow = false } }
+                }}
+            }
+        }
         .sheet(isPresented: $library) { savedScans }
         .sheet(isPresented: $help) { scanHelp }
         .sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
@@ -79,6 +102,8 @@ struct UnifiedRepairView: View {
         } message: { Text(model.error ?? "") }
         .onChange(of: model.counterpartMesh) { _, _ in reviewed = false }
         .onAppear {
+            if savedScanMode { result = true }
+            thickness = model.project?.planarThicknessMM.map { String($0) } ?? ""
             #if DEBUG
             if ProcessInfo.processInfo.environment["REVERSECAD_REPLAY_SCAN"] != nil { result = true }
             if ProcessInfo.processInfo.arguments.contains("-unifiedPreview") {
@@ -99,13 +124,37 @@ struct UnifiedRepairView: View {
                         Text(model.progress).font(.subheadline).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
                         Button("Cancel") { model.cancel() }.buttonStyle(RepairButtonStyle(secondary: true))
                     }.frame(maxWidth: .infinity).padding(.vertical, 80)
+                } else if researchMode, let report = model.sparseReport {
+                    Text("Review your scan").font(.title2.bold())
+                    if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
+                        GeometryPreview(scan: mesh, part: nil).frame(height: 340)
+                        Text("Rotate and zoom to check that the shape shows your object. Unseen surfaces remain unknown.")
+                            .font(.subheadline).foregroundStyle(RepairStyle.secondary)
+                    }
+                    Text(report["reason"] as? String ?? "The observed shape is ready for repair planning. Dimensions and physical fit still need checking.")
+                        .font(.subheadline)
+                    ForEach(Array(model.warnings.enumerated()), id: \.offset) { _, warning in
+                        Text(warning).font(.footnote).foregroundStyle(RepairStyle.secondary)
+                    }
+                    Toggle("The preview shows my object and relevant surfaces", isOn: $reviewed)
+                        .disabled(report["status"] as? String != "ready")
+                    Button("Continue to repair") { model.update { $0.repairScope = "general" }; repairWorkflow = true }
+                        .buttonStyle(RepairButtonStyle()).disabled(report["status"] as? String != "ready" || !reviewed)
+                    DisclosureGroup("Capture and measurement details") {
+                        if report["capture_is_synthetic"] as? Bool == true { Text("Synthetic test fixture; not a device scan.") }
+                        Text("Source: physical rear 1× images + sparse range observations. Camera motion is recovered from image correspondences.")
+                        Text("\(report["view_count"] as? Int ?? 0) registered views · \(report["scale_support"] as? Int ?? 0) scale observations")
+                        Text("Public processed depth and ARKit poses remain separately labeled diagnostics. Calibration accuracy is unverified.")
+                        Text("Original camera records remain stored inside the app.")
+                    }.font(.footnote)
+                    Button("Take another scan") { result = false }.buttonStyle(RepairButtonStyle(secondary: true))
                 } else if hasResult {
                     previewTabs
                     preview
                     VStack(alignment: .leading, spacing: 6) {
                         Text(count > 0 ? "\(count) proposed \(count == 1 ? "piece" : "pieces")" : "No missing region found")
                             .font(.title2.bold())
-                        Text(isFlat ? "Assuming a flat rectangular part" : "Assuming a repeating 3×3 cube")
+                        Text(isFlat ? "Proposed repair for a flat rectangular part" : "Research repair proposal")
                             .font(.subheadline).foregroundStyle(RepairStyle.secondary)
                     }
                     if count > 0 {
@@ -120,8 +169,8 @@ struct UnifiedRepairView: View {
                             }.buttonStyle(RepairButtonStyle())
                                 .disabled(!reviewed || thicknessMM == nil || (thicknessMM ?? 0) <= 0 || (thicknessMM ?? 0) > 100)
                         } else {
-                            Button { if isFlat { model.exportPlanar() } else { model.exportObservedSurface(printableOnly: true) } } label: {
-                                Label(count > 1 ? "Export \(count) pieces" : "Export piece", systemImage: "square.and.arrow.up")
+                            Button { model.exportPlanar() } label: {
+                                Label(count > 1 ? "Save or share \(count) pieces" : "Save or share piece", systemImage: "square.and.arrow.up")
                             }.buttonStyle(RepairButtonStyle()).disabled(!reviewed || !model.counterpartPrintable)
                         }
                     }
@@ -129,36 +178,29 @@ struct UnifiedRepairView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             if let route = model.automaticRoute, let reason = route["reason"] as? String { Text(reason) }
                             if !model.repairMessage.isEmpty { Text(model.repairMessage) }
-                            if !isFlat {
-                                Text(model.faceRepair?["reference_prototype"] != nil
-                                     ? "Connector and recess dimensions are estimated from reference photos. The ghost shows the front outline; the 3D piece includes inferred surfaces."
-                                     : "The ghost shows the front outline. Side depth and hidden surfaces are inferred; internal connectors are unresolved.")
-                            }
+                            Text("This phone compares the captured surface with a flat rectangular outline. Highlighted missing regions are proposals; hidden connectors and unsupported shapes are not invented.")
                             Text("Check dimensions and fit before using a printed replacement.")
                             ForEach(Array(model.warnings.enumerated()), id: \.offset) { _, text in Text(text) }
                             Button("Analyze again", systemImage: "arrow.clockwise") {
                                 reviewed = false; model.reconstructAutomatically()
                             }.buttonStyle(RepairButtonStyle(secondary: true))
-                            Menu("Correct detected shape") {
-                                Button("Flat rectangular part") { reviewed = false; model.reconstructRectangle(thickness: thicknessMM) }
-                                Button("3×3 cube") { reviewed = false; model.reconstructCubeExterior() }
-                            }.foregroundStyle(RepairStyle.accent)
 
                         }.font(.footnote).foregroundStyle(RepairStyle.secondary).padding(.top, 12)
                     }.tint(RepairStyle.text).padding(16).background(RepairStyle.surface, in: RoundedRectangle(cornerRadius: 18))
                 } else {
-                    Image(systemName: needsChoice ? "square.on.circle" : "viewfinder")
-                        .font(.system(size: 42, weight: .light)).foregroundStyle(RepairStyle.accent).padding(.top, 36)
-                    Text(needsChoice ? "Which shape are we repairing?" : "Let’s take another look").font(.title2.bold())
-                    Text(needsChoice ? "The scan is saved. Choose the closest shape so we can continue." : (model.repairMessage.isEmpty ? "Your scan is saved and ready to analyze." : model.repairMessage))
-                        .foregroundStyle(RepairStyle.secondary)
-                    if needsChoice {
-                        Button("Flat rectangular part") { model.reconstructRectangle() }.buttonStyle(RepairButtonStyle())
-                        Button("3×3 cube") { model.reconstructCubeExterior() }.buttonStyle(RepairButtonStyle(secondary: true))
-                    } else {
-                        Button("Analyze saved scan") { model.reconstructAutomatically() }.buttonStyle(RepairButtonStyle())
+                    if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
+                        GeometryPreview(scan: mesh, part: nil, showPart: false, backgroundColor: UIColor(RepairStyle.surface))
+                            .frame(height: 320).clipShape(RoundedRectangle(cornerRadius: 22))
                     }
-                    Button("Take a new scan") { result = false }.buttonStyle(RepairButtonStyle(secondary: true))
+                    Image(systemName: "viewfinder")
+                        .font(.system(size: 42, weight: .light)).foregroundStyle(RepairStyle.accent).padding(.top, 36)
+                    Text("Review the captured shape").font(.title2.bold())
+                    Text(model.repairMessage.isEmpty ? "On-phone repair supports flat rectangular parts with visible intact edges. Other shapes remain available as scanned geometry." : model.repairMessage)
+                        .foregroundStyle(RepairStyle.secondary)
+                    Text("The original capture stays saved. No replacement is generated when the observed geometry does not support one.")
+                        .font(.footnote).foregroundStyle(RepairStyle.secondary)
+                    Button("Analyze saved scan on this phone") { model.reconstructAutomatically() }.buttonStyle(RepairButtonStyle())
+                    Button("Back to object scan") { if savedScanMode { dismiss() } else { result = false } }.buttonStyle(RepairButtonStyle(secondary: true))
                 }
             }.padding(20).foregroundStyle(RepairStyle.text)
         }
@@ -186,6 +228,13 @@ struct UnifiedRepairView: View {
             Image(uiImage: image).resizable().scaledToFit().frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 22))
                 .accessibilityLabel(display == "Original" ? "Original capture" : "Proposed repair over the original capture")
+        } else if model.scanMesh != nil || model.counterpartMesh != nil {
+            GeometryPreview(scan: display == "Pieces" ? nil : model.scanMesh,
+                            part: display == "Original" ? nil : model.counterpartMesh,
+                            showPart: display != "Original", backgroundColor: UIColor(RepairStyle.surface), selectionMode: "none")
+                .frame(height: 360).clipShape(RoundedRectangle(cornerRadius: 22))
+                .accessibilityLabel(display == "Original" ? "Captured surface. Drag to rotate and pinch to zoom." : "Proposed repair with captured surface. Drag to rotate and pinch to zoom.")
+            Text("Drag to rotate · Pinch to zoom").font(.caption).foregroundStyle(RepairStyle.secondary)
         }
     }
 
@@ -205,11 +254,12 @@ struct UnifiedRepairView: View {
 
     private var cameraHomeButton: some View {
         Button {
+            if savedScanMode { dismiss(); return }
             library = false; help = false; result = false
         } label: {
-            Image(systemName: "camera").frame(width: 44, height: 44)
+            Image(systemName: savedScanMode ? "arrow.left" : "camera").frame(width: 44, height: 44)
         }
-        .accessibilityLabel("Back to camera")
+        .accessibilityLabel(savedScanMode ? "Back to object scan" : "Back to camera")
         .accessibilityIdentifier("backToCamera")
         .disabled(model.busy)
     }
@@ -246,10 +296,16 @@ struct UnifiedRepairView: View {
         NavigationStack {
             List {
                 Label("Keep the whole object inside the box, with space around its edges.", systemImage: "viewfinder")
+                #if SPARSE_RESEARCH
+                Label("Keep the object still. Move sideways slowly to show the front and another side, keeping nearby views overlapping.", systemImage: "move.3d")
+                Label("Use diffuse light and a matte, textured object. The scan saves after about 18 seconds.", systemImage: "camera")
+                Text("Review the observed shape before continuing to a repair. Unseen surfaces and hidden dimensions remain unknown.").font(.footnote)
+                #else
                 Label("Start with a sharp front view. For a flat part, point the camera straight down.", systemImage: "camera")
                 Label("Keep the object still. Move the phone slowly to show depth and matching intact features.", systemImage: "move.3d")
                 Label("Tap Finish when the damaged area and intact features are clear. Flat parts only need a short, steady capture.", systemImage: "checkmark.circle")
-                Text("Automatic selection currently supports flat rectangular parts and damaged 3×3 cubes. Always review the inferred shape and every proposed piece.").font(.footnote)
+                Text("On-phone repair supports flat rectangular parts. Enter the measured thickness and review every proposed piece before saving.").font(.footnote)
+                #endif
             }.navigationTitle("A better scan").toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Done") { help = false } }
                 ToolbarItem(placement: .topBarTrailing) { cameraHomeButton }
@@ -309,11 +365,13 @@ private struct RepairCamera: View {
             }.padding(.horizontal, 28).padding(.vertical, 20).background(RepairStyle.background)
         }.foregroundStyle(RepairStyle.text)
             .task {
+                #if !SPARSE_RESEARCH
                 camera.predictGhost = { snapshot in
                     let payload = try JSONSerialization.jsonObject(with: JSONEncoder().encode(snapshot)) as! [String: Any]
                     let data = try await model.request("v1/geometry/live", method: "POST", json: payload)
                     return try JSONDecoder().decode(LiveGhostResponse.self, from: data)
                 }
+                #endif
                 await preview()
             }
             .onChange(of: camera.savedRevision) { _, _ in deliver() }

@@ -31,7 +31,7 @@ def main():
         local_name=subprocess.check_output(["scutil","--get","LocalHostName"],text=True).strip()+".local"
     except (OSError,subprocess.CalledProcessError):
         local_name=socket.gethostname()
-    print(f"Reverse CAD: http://{'127.0.0.1' if not args.lan else local_name}:{args.port}",flush=True)
+    print(f"ReverseCAD: http://{'127.0.0.1' if not args.lan else local_name}:{args.port}",flush=True)
     if os.environ.get("REVERSECAD_PAIRING_TOKEN"):
         print("Pairing token: using the private server environment override (value not displayed)",flush=True)
     else:

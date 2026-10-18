@@ -1,0 +1,12 @@
+{
+  "same_saved_input": true,
+  "single_thread_runs": 2,
+  "point_count": 41388,
+  "exact_array_match": {
+    "points_m": true,
+    "colors": true,
+    "observation_ids": true,
+    "source_kind": true
+  },
+  "scope": "same machine and pinned libraries; not a cross-platform determinism claim"
+}

@@ -201,6 +201,8 @@ def tracked_faces(frames,scan_dir):
         if source['frame_id'] not in images:continue
         seed_image=images[source['frame_id']]
         for seed in lattice_candidates(seed_image,source.get('capture_region')):
+            from .object_selection import supports_repair_region
+            if not supports_repair_region(scan_dir,source,seed['corners'],seed_image.shape):continue
             q=calibrated_quad(seed_image,seed['corners'],source)
             if q is None:continue
             x0,y0,x1,y1=capture_bounds(source.get('capture_region'),seed_image.shape)
@@ -222,6 +224,7 @@ def tracked_faces(frames,scan_dir):
                     result=track_region(images[previous['frame_id']],images[f['frame_id']],q,excluded_polygons=gaps)
                     if result is None:continue
                     candidate,evidence=result
+                    if not supports_repair_region(scan_dir,f,candidate,images[f['frame_id']].shape):continue
                     x0,y0,x1,y1=capture_bounds(f.get('capture_region'),images[f['frame_id']].shape)
                     if np.any(candidate<[x0,y0]) or np.any(candidate>[x1-1,y1-1]):continue
                     q=candidate;previous=f

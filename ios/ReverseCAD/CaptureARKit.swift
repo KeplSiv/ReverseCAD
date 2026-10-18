@@ -8,9 +8,15 @@ import UIKit
 import ReverseCADCore
 
 struct CaptureLimits: Sendable {
+    #if SPARSE_RESEARCH
+    var durationSeconds: Double = 18
+    var acceptedFrames: Int = 48
+    var rejectedFrames: Int = 24
+    #else
     var durationSeconds: Double = 90
     var acceptedFrames: Int = 240
     var rejectedFrames: Int = 80
+    #endif
     var bytes: Int = 512 * 1024 * 1024
     var reviewFPS: Double = 15
     var minimumKeyframeSeconds: Double = 0.35
@@ -35,6 +41,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     var onFrame: ((CaptureFrame) -> Void)?
     var onProgress: ((CaptureProgress) -> Void)?
     var onLiveGeometry: ((LiveGeometrySnapshot?) -> Void)?
+    var onObservedSurface: ((ObservedSurface, String) -> Void)?
+    private var lastObservedSurfaceTime = -Double.infinity
     private var liveEpoch = UUID().uuidString
     private var liveTracking = false
     private var liveSequence = 0
@@ -68,6 +76,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var previousKeyframePose: simd_float4x4?
     private var stats = CaptureProgress()
     private var viewBins = Set<Int>()
+    private var acceptedCameraPositions = [SIMD3<Float>]()
     private var scanGuide = ScanGuidance()
     private var guideTarget: SIMD3<Float>?
     private var guideSelection = CGPoint(x: 0.5, y: 0.5)
@@ -79,8 +88,19 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var movieDropped = 0
     private var videoFailure: String?
     private var failure: String?
+    private var targetTracker: VNTrackObjectRequest?
+    private let targetSequence = VNSequenceRequestHandler()
+    func setConfirmedTarget(_ box: CGRect) {
+        // Jev coordinates are top-left; Vision uses a lower-left origin.
+        targetTracker = VNTrackObjectRequest(detectedObjectObservation: VNDetectedObjectObservation(boundingBox: CGRect(x: box.minX, y: 1-box.maxY, width: box.width, height: box.height)))
+        targetTracker?.trackingLevel = .accurate
+    }
     private var motionCount = 0
     private var motionDropped = 0
+    private var pendingMotionDrops = 0 // guarded by lock, includes queue backpressure
+    #if SPARSE_RESEARCH
+    private var rawMotionCount = 0
+    #endif
     private let motionSlots = DispatchSemaphore(value: 8)
     private var finishTask: Task<URL, Error>?
     private var events: [[String: Any]] = []
@@ -110,6 +130,23 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             guard ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) else { throw CaptureFailure.unavailable("Native scene depth is unavailable.") }
             configuration.frameSemantics = [.sceneDepth]
         }
+        #if SPARSE_RESEARCH
+        let formats = ARWorldTrackingConfiguration.supportedVideoFormats.filter {
+            $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30
+        }
+        guard let format = formats.min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) else {
+            throw CaptureFailure.unavailable("Physical rear 1× capture format is unavailable.")
+        }
+        configuration.videoFormat = format
+        let status = SRStart(directory.appendingPathComponent("sparse").path)
+        if let error = status["error"] as? String { throw CaptureFailure.unavailable(error) }
+        try updateSparseManifest(status: "capturing")
+        #endif
+        #if REVERSECAD_SCANNER
+        let publicFormats = ARWorldTrackingConfiguration.supportedVideoFormats.filter { $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }
+        guard let publicFormat = publicFormats.min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) else { throw CaptureFailure.unavailable("The rear 1× camera is unavailable.") }
+        configuration.videoFormat = publicFormat
+        #endif
         // Mesh reconstruction is optional visualization. It is not used as a substitute for native depth.
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) { configuration.sceneReconstruction = .mesh }
         configuration.worldAlignment = .gravity
@@ -118,7 +155,12 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         session.delegate = self
         lock.lock(); active = true; lock.unlock()
         session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+        #if SPARSE_RESEARCH
+        startRawMotionDiagnostics()
+        startMotionDiagnostics()
+        #else
         if motionDiagnostics { startMotionDiagnostics() }
+        #endif
     }
 
     func selectObject(point: CGPoint) {
@@ -148,11 +190,9 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         default: displayRotation = nil
         }
         let region: [Double]?
+        let imageToDisplay = layout.map { frame.displayTransform(for: $0.2, viewportSize: $0.1) }
         if let (rect, viewport, orientation) = layout {
-            let normalized = CGRect(x: rect.minX/viewport.width, y: rect.minY/viewport.height,
-                                    width: rect.width/viewport.width, height: rect.height/viewport.height)
-            let raw = normalized.applying(frame.displayTransform(for: orientation, viewportSize: viewport).inverted())
-                .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+            let raw = CaptureFraming.rawRegion(rect: rect, viewport: viewport, displayTransform: frame.displayTransform(for: orientation, viewportSize: viewport))
             region = [Double(raw.minX), Double(raw.minY), Double(raw.width), Double(raw.height)]
         } else { region = nil }
         if elapsed >= limits.durationSeconds {
@@ -173,6 +213,11 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         let pose = frame.camera.transform
         let intrinsics = frame.camera.intrinsics
         let timestamp = elapsed
+        var sensor: JSONValue? = nil
+        #if SPARSE_RESEARCH
+        let observation = SRImageEvidence(rgb, frame.timestamp, ProcessInfo.processInfo.systemUptime)
+        sensor = try? JSONDecoder().decode(JSONValue.self, from: JSONSerialization.data(withJSONObject: observation))
+        #endif
         let resolution = frame.camera.imageResolution
         let exposureDuration = frame.camera.exposureDuration
         let exposureOffset = frame.camera.exposureOffset
@@ -208,29 +253,45 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             defer { slots.signal() }
             autoreleasepool {
                 do {
-                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch, region: region, displayRotation: displayRotation)
+                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch, region: region, displayRotation: displayRotation, sensor: sensor, imageToDisplay: imageToDisplay)
                 } catch { stopForBudget(error.localizedDescription); failure = error.localizedDescription }
             }
         }
     }
 
-    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String, region: [Double]?, displayRotation: Int?) throws {
+    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String, region: [Double]?, displayRotation: Int?, sensor: JSONValue?, imageToDisplay: CGAffineTransform?) throws {
         guard !stats.finished else { return }
         lock.lock(); stats.dropped += pendingDrops; pendingDrops = 0; lock.unlock()
         try appendVideo(rgb, timestamp: timestamp)
         guard timestamp - lastKeyframeTimestamp >= limits.minimumKeyframeSeconds else { return }
+        #if !SPARSE_RESEARCH
         // Accept useful baseline/angle changes; force an overlap keyframe every 1.5 seconds.
         if let previous = previousKeyframePose, timestamp - lastKeyframeTimestamp < 1.5 {
             let distance = simd_distance(pose.columns.3, previous.columns.3)
             let angle = acos(min(1, max(-1, simd_dot(simd_normalize(pose.columns.2.xyz), simd_normalize(previous.columns.2.xyz)))))
             if distance < 0.012 && angle < 0.06 { return }
         }
+        #endif
         lastKeyframeTimestamp = timestamp
         let width = CVPixelBufferGetWidth(rgb), height = CVPixelBufferGetHeight(rgb)
+        var region = region
+        var trackedPoint: CGPoint?
+        if let tracker = targetTracker {
+            try targetSequence.perform([tracker], on: rgb, orientation: .up)
+            guard let observation = tracker.results?.first as? VNDetectedObjectObservation, observation.confidence >= 0.5,
+                  observation.boundingBox.width > 0.01, observation.boundingBox.height > 0.01 else {
+                stats.rejected += 1; stats.guidance = "Object tracking was lost. Finish this scan and identify the object again."; onProgress?(stats)
+                stopForBudget(stats.guidance); return
+            }
+            tracker.inputObservation = observation
+            let b = observation.boundingBox
+            region = [Double(b.minX), Double(1-b.maxY), Double(b.width), Double(b.height)]
+            trackedPoint = CGPoint(x: b.midX, y: 1-b.midY)
+        }
         let blur = Self.blurScore(rgb, region: region)
-        var detailPoint = point
+        var detailPoint = trackedPoint ?? point
         var objectInFrame = true
-        if let target = guideTarget, point == guideSelection {
+        if trackedPoint == nil, let target = guideTarget, point == guideSelection {
             let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
             if local.z < -0.01 {
                 let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
@@ -254,7 +315,11 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if useDepth && validDepthFraction < 0.1 { reasons.append("Too little finite positive native depth; change distance or avoid reflective/transparent surfaces") }
         let poorConfidence = qualityConfidence.map { $0.isEmpty || $0.filter({ $0 >= 1 }).count < $0.count / 8 } ?? false
         if poorConfidence { reasons.append("Too few reliable depth samples") }
-        let accepted = tracking == "normal" && blur >= 7 && !poorConfidence && (!useDepth || validDepthFraction >= 0.1)
+        var accepted = tracking == "normal" && blur >= 7 && !poorConfidence && (!useDepth || validDepthFraction >= 0.1)
+        #if SPARSE_RESEARCH
+        accepted = blur >= 7 && sensor?["physical_camera"]?["verified"] == .bool(true)
+        if sensor?["physical_camera"]?["verified"] != .bool(true) { reasons.append("Waiting for verified 1× camera samples") }
+        #endif
         if !accepted && stats.rejected >= limits.rejectedFrames {
             stats.dropped += 1
             stats.guidance = reasons.first ?? "Poor observation rejected"
@@ -270,7 +335,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
         var maskPath: String?
         // Masks are native depth-size labels and derived from the original raw image with .up orientation.
-        if accepted, objectInFrame, depthWidth > 0, var mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
+        if targetTracker != nil, accepted, objectInFrame, depthWidth > 0, var mask = Self.foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
             if let region {
                 mask.withUnsafeMutableBytes { raw in
                     let bytes = raw.bindMemory(to: UInt8.self)
@@ -284,7 +349,37 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             }
             maskPath = "masks/\(id).u8"; assets[maskPath!] = mask
         }
+        if targetTracker != nil && maskPath == nil {
+            accepted = false
+            reasons.append("The selected object could not be segmented; this view is excluded from measurement.")
+        }
         var capture = CaptureFrame(scanID: scanID, segmentID: segment, frameID: id, timestampS: timestamp, rgbPath: rgbPath, rgbWidth: width, rgbHeight: height, depthPath: depthPath, depthWidth: depthWidth, depthHeight: depthHeight, depthRowBytes: depthWidth * 4, confidencePath: confidencePath, maskPath: maskPath, intrinsics: Self.columnMajor(intrinsics), intrinsicsWidth: Int(resolution.width), intrinsicsHeight: Int(resolution.height), worldCamera: Self.columnMajor(pose), trackingState: tracking, quality: CaptureQuality(blurScore: blur, accepted: accepted, reasons: reasons))
+        if accepted, timestamp-lastObservedSurfaceTime >= 0.8, let depthData, let confidenceData, let maskPath, let mask=assets[maskPath] {
+            var previewFrame=capture;previewFrame.depthCalibrationMode="native_arkit"
+            if let surface=try? ObservedSurface.depth(frame:previewFrame,depth:depthData,confidence:confidenceData,mask:mask) {
+                lastObservedSurfaceTime=timestamp
+                lock.lock();let valid=liveEpoch==epoch && active;lock.unlock()
+                if valid { onObservedSurface?(surface,epoch) }
+            }
+        }
+        #if SPARSE_RESEARCH
+        // Preserve exact active NV12 rows as well as the full-resolution display JPEG.
+        // COLMAP's JPEG input is a declared color conversion; the sensor bytes remain inspectable.
+        if case .object(var observation) = sensor {
+            let planes = try Self.copyImagePlanes(rgb)
+            var paths = [JSONValue]()
+            for (index, data) in planes.enumerated() {
+                let path = "sparse/rgb/\(id)-plane\(index).bin"
+                assets[path] = data; paths.append(.string(path))
+            }
+            observation["original_plane_paths"] = .array(paths)
+            observation["original_plane_layout"] = .string("active NV12 rows; Y width*height; interleaved CbCr width*height/2; no padding")
+            observation["working_image_transform"] = .string("CoreImage YCbCr to RGB JPEG quality 0.97; original dimensions; no crop or rotation")
+            capture.sensorObservation = .object(observation)
+        } else { capture.sensorObservation = sensor }
+        #else
+        capture.sensorObservation = sensor
+        #endif
         capture.depthCalibrationMode = "native_arkit"
         capture.captureRegion = region
         capture.displayRotationCW = displayRotation
@@ -292,13 +387,14 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         exposureRecords.append(["frame_id": id, "exposure_duration_s": exposureDuration, "exposure_offset_ev": exposureOffset, "confidence_available": confidence != nil, "depth_source": useDepth ? "native_sceneDepth" : "absent_camera_manual", "valid_depth_fraction": validDepthFraction, "mask_available": maskPath != nil])
         if accepted {
             stats.accepted += 1; previousKeyframePose = pose
+            if acceptedCameraPositions.allSatisfy({ simd_distance($0, pose.columns.3.xyz) >= 0.025 }) { acceptedCameraPositions.append(pose.columns.3.xyz) }
             let azimuth = atan2(pose.columns.2.x, pose.columns.2.z)
             let elevation = asin(min(1, max(-1, pose.columns.2.y)))
             let bin = Int((azimuth + .pi) / (2 * .pi) * 12) + 12 * Int((elevation + .pi / 2) / .pi * 3)
             viewBins.insert(bin)
         } else { stats.rejected += 1 }
         stats.bytes = writer.bytesWritten
-        stats.coverageViews = viewBins.count
+        stats.coverageViews = acceptedCameraPositions.count
         if point != guideSelection { guideTarget = nil; scanGuide = ScanGuidance(); guideSelection = point }
         if guideTarget == nil, accepted, let depthData, let confidenceData {
             let cx = min(depthWidth - 1, max(0, Int(point.x * Double(depthWidth))))
@@ -321,13 +417,22 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
             let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
             // Camera screen is portrait: raw sensor y becomes horizontal, x vertical.
-            let screen = SIMD2<Float>(1 - pixel.y / pixel.z / Float(resolution.height), pixel.x / pixel.z / Float(resolution.width))
+            let rawPoint = CGPoint(x: Double(pixel.x / pixel.z) / resolution.width, y: Double(pixel.y / pixel.z) / resolution.height)
+            let displayPoint = rawPoint.applying(imageToDisplay ?? .identity)
+            let screen = SIMD2<Float>(Float(displayPoint.x), Float(displayPoint.y))
             stats.guidance = scanGuide.update(camera: pose.columns.3.xyz, target: target, screenPoint: screen,
                 sharp: objectBlur >= 7, tracking: tracking == "normal", reliableDepth: !poorConfidence && validDepthFraction >= 0.1, accepted: accepted && objectBlur >= 7)
             stats.coverageViews = scanGuide.covered.count
         } else {
-            stats.guidance = reasons.first ?? "Tap the object. Hold still while depth finds its position."
+            stats.guidance = reasons.first ?? "Keep the object still. Walk slowly around it, keeping it inside the box."
         }
+        #if SPARSE_RESEARCH
+        let sparseStatus = SRStatus()
+        if (sparseStatus["packets"] as? Int ?? 0) == 0 && timestamp > 2 {
+            stats.guidance = "Range capture is unavailable. Save this scan for diagnostics and reconnect the supported phone."
+        } else if blur < 7 { stats.guidance = "Slow down and improve the lighting." }
+        else if tracking != "normal" { stats.guidance = "Move slowly sideways and keep the object still." }
+        #endif
         if !objectInFrame { onLiveGeometry?(nil) }
         if cameraEpoch != epoch { liveCameras = []; cameraEpoch = epoch; lastLiveTimestamp = -Double.infinity }
         if accepted {
@@ -353,7 +458,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let capacity = try? directory.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage, capacity < 256 * 1024 * 1024 { stopForBudget("Low device storage: capture stopped with committed data preserved.") }
     }
 
-    private func foregroundMask(rgb: CVPixelBuffer, point: CGPoint, width: Int, height: Int) -> Data? {
+    static func foregroundMask(rgb: CVPixelBuffer, point: CGPoint, width: Int, height: Int) -> Data? {
         let request = VNGenerateForegroundInstanceMaskRequest()
         let handler = VNImageRequestHandler(cvPixelBuffer: rgb, orientation: .up)
         do {
@@ -421,18 +526,55 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         } else { videoFailure = video?.error?.localizedDescription ?? "Review video encoding stopped" }
     }
 
+    #if SPARSE_RESEARCH
+    private func startRawMotionDiagnostics() {
+        motion.accelerometerUpdateInterval = 1 / 60
+        motion.gyroUpdateInterval = 1 / 60
+        if motion.isAccelerometerAvailable {
+            motion.startAccelerometerUpdates(to: motionQueue) { [weak self] sample, _ in
+                guard let self, let sample else { return }
+                self.queueRawMotion(["source": "CoreMotion_accelerometer", "timestamp_s": sample.timestamp,
+                    "arrival_timestamp_s": ProcessInfo.processInfo.systemUptime, "clock": "host_monotonic_seconds",
+                    "acceleration_g": [sample.acceleration.x, sample.acceleration.y, sample.acceleration.z],
+                    "axes": "CoreMotion_device_axes", "resampled": false])
+            }
+        }
+        if motion.isGyroAvailable {
+            motion.startGyroUpdates(to: motionQueue) { [weak self] sample, _ in
+                guard let self, let sample else { return }
+                self.queueRawMotion(["source": "CoreMotion_gyroscope", "timestamp_s": sample.timestamp,
+                    "arrival_timestamp_s": ProcessInfo.processInfo.systemUptime, "clock": "host_monotonic_seconds",
+                    "rotation_rate_rad_s": [sample.rotationRate.x, sample.rotationRate.y, sample.rotationRate.z],
+                    "axes": "CoreMotion_device_axes", "resampled": false])
+            }
+        }
+    }
+    private func queueRawMotion(_ row: [String: Any]) {
+        guard motionSlots.wait(timeout: .now()) == .success else {
+            lock.withLock { pendingMotionDrops += 1 }; return
+        }
+        workQueue.async { [self] in
+            defer { motionSlots.signal() }
+            guard !stats.finished, rawMotionCount < 12000 else { motionDropped += 1; return }
+            do { try appendJSONLine(row, to: directory.appendingPathComponent("sparse/raw-motion.jsonl")); rawMotionCount += 1 }
+            catch { motionDropped += 1 }
+        }
+    }
+    #endif
     private func startMotionDiagnostics() {
         guard motion.isDeviceMotionAvailable else { return }
         motion.deviceMotionUpdateInterval = 1 / 30.0
         motion.startDeviceMotionUpdates(using: .xArbitraryZVertical, to: motionQueue) { [weak self] sample, error in
             guard let self, let sample, error == nil else { return }
-            guard self.motionSlots.wait(timeout: .now()) == .success else { return }
+            guard self.motionSlots.wait(timeout: .now()) == .success else {
+                self.lock.withLock { self.pendingMotionDrops += 1 }; return
+            }
             let times = self.lock.withLock {
                 (self.timeline.relativeTimestamp(sample.timestamp), self.timeline.relativeTimestamp(ProcessInfo.processInfo.systemUptime))
             }
             // Samples preceding the first ARFrame have no capture-relative origin yet.
             guard let timestamp = times.0, let callback = times.1 else { self.motionSlots.signal(); return }
-            let record: [String: Any] = ["timestamp_s": timestamp, "clock": "seconds_since_first_ARFrame", "user_acceleration_g": [sample.userAcceleration.x, sample.userAcceleration.y, sample.userAcceleration.z], "gravity_g": [sample.gravity.x, sample.gravity.y, sample.gravity.z], "rotation_rate_rad_s": [sample.rotationRate.x, sample.rotationRate.y, sample.rotationRate.z], "attitude_quaternion_xyzw": [sample.attitude.quaternion.x, sample.attitude.quaternion.y, sample.attitude.quaternion.z, sample.attitude.quaternion.w], "reference_frame": "xArbitraryZVertical", "usage": "diagnostic_only_not_pose_estimation", "callback_capture_timestamp_s": callback]
+            let record: [String: Any] = ["source": "CoreMotion_fused_device_motion", "timestamp_s": timestamp, "clock": "seconds_since_first_ARFrame", "user_acceleration_g": [sample.userAcceleration.x, sample.userAcceleration.y, sample.userAcceleration.z], "gravity_g": [sample.gravity.x, sample.gravity.y, sample.gravity.z], "rotation_rate_rad_s": [sample.rotationRate.x, sample.rotationRate.y, sample.rotationRate.z], "attitude_quaternion_xyzw": [sample.attitude.quaternion.x, sample.attitude.quaternion.y, sample.attitude.quaternion.z, sample.attitude.quaternion.w], "reference_frame": "xArbitraryZVertical", "usage": "diagnostic_only_not_pose_estimation", "callback_capture_timestamp_s": callback]
             self.workQueue.async {
                 defer { self.motionSlots.signal() }
                 guard !self.stats.finished, self.motionCount < 3000 else { self.motionDropped += 1; return }
@@ -486,7 +628,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private func stopForBudget(_ message: String) {
         lock.withLock { active = false }
         stats.finished = true; stats.guidance = message
-        motion.stopDeviceMotionUpdates()
+        motion.stopAccelerometerUpdates(); motion.stopGyroUpdates(); motion.stopDeviceMotionUpdates()
         session.pause()
         onProgress?(stats)
     }
@@ -495,7 +637,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         // UI serializes finish calls; a single Task prevents repeated asset-writer finalization.
         if let finishTask { return try await finishTask.value }
         lock.withLock { active = false }
-        session.pause(); motion.stopDeviceMotionUpdates()
+        session.pause(); motion.stopAccelerometerUpdates(); motion.stopGyroUpdates(); motion.stopDeviceMotionUpdates()
+        motionQueue.waitUntilAllOperationsAreFinished()
         let task = Task { [self] () throws -> URL in
             try await withCheckedThrowingContinuation { continuation in
                 workQueue.async { [self] in
@@ -506,9 +649,19 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
                             do {
                                 let diagnostics: [String: Any] = ["schema_version": 2, "scan_id": self.scanID, "accepted_frames": self.stats.accepted, "rejected_frames": self.stats.rejected, "backpressure_dropped_frames": self.stats.dropped, "review_frames": self.movieFrames, "review_dropped_frames": self.movieDropped, "video_complete": self.video?.status == .completed, "video_failure": self.videoFailure ?? "", "failure": self.failure ?? "", "motion_samples": self.motionCount, "motion_dropped": self.motionDropped, "pose_source": "ARKit visual-inertial world tracking; no accelerometer integration", "depth_units": "m", "depth_kind": "native_sceneDepth", "confidence_labels": ["0": "low", "1": "medium", "2": "high"], "depth_file_layout": "tightly_packed_little_endian_float32; NaN/zero/negative invalid", "raw_image_orientation": "up", "video_orientation": "raw_sensor_landscape", "direction_bins_observed": self.viewBins.count, "coverage_note": "Observed camera directions only; not a complete-surface guarantee", "events": self.events, "exposures": self.exposureRecords, "capture_limits": ["duration_s": self.limits.durationSeconds, "accepted_frames": self.limits.acceptedFrames, "bytes": self.limits.bytes], "timestamp_alignment": ["clock": "seconds_since_first_ARFrame", "arkit_first_timestamp_s": 0, "capture_elapsed_at_finish_s": self.lock.withLock { self.timeline.relativeTimestamp(ProcessInfo.processInfo.systemUptime) } ?? 0, "video_origin_capture_timestamp_s": self.videoStart ?? 0, "origin_persisted": false], "thermal_state_at_finish": ProcessInfo.processInfo.thermalState.rawValue]
                                 var finalDiagnostics = diagnostics
+                                finalDiagnostics["motion_dropped"] = self.motionDropped + self.lock.withLock { self.pendingMotionDrops }
+                                #if SPARSE_RESEARCH
+                                finalDiagnostics["raw_motion_samples"] = self.rawMotionCount
+                                finalDiagnostics["motion_capabilities"] = ["accelerometer": self.motion.isAccelerometerAvailable,
+                                    "gyroscope": self.motion.isGyroAvailable, "fused_device_motion": self.motion.isDeviceMotionAvailable]
+                                #endif
                                 finalDiagnostics["capture_complete"] = self.stats.accepted > 0
                                 finalDiagnostics["max_persisted_frames_including_rejected"] = self.limits.acceptedFrames
-                                try JSONSerialization.data(withJSONObject: finalDiagnostics, options: [.prettyPrinted, .sortedKeys]).write(to: self.directory.appendingPathComponent("capture_diagnostics.json"), options: .atomic)
+                                try JSONSerialization.data(withJSONObject: Self.finiteJSON(finalDiagnostics), options: [.prettyPrinted, .sortedKeys]).write(to: self.directory.appendingPathComponent("capture_diagnostics.json"), options: .atomic)
+                                #if SPARSE_RESEARCH
+                                let sparseStatus = SRFinish()
+                                try self.updateSparseManifest(status: (sparseStatus["available"] as? Bool) == true ? "available" : "unavailable")
+                                #endif
                                 let result = try self.writer.finish(complete: self.stats.accepted > 0)
                                 self.stats.bytes = self.writer.bytesWritten
                                 self.onProgress?(self.stats)
@@ -524,16 +677,59 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         return try await task.value
     }
 
+    #if SPARSE_RESEARCH
+    private func updateSparseManifest(status: String) throws {
+        try writer.updateSparseCapture(.object([
+            "schema_version": .number(1), "mode": .string("sparse_range_rgb"), "status": .string(status),
+            "packet_path": .string("sparse/origin-packets.bin"), "event_path": .string("sparse/origin-events.jsonl"),
+            "calibration_path": .string("sparse/calibration.json"), "clock": .string("host_monotonic_seconds"),
+            "RGB_control": .string("unaltered"), "processed_depth": .string("separate diagnostic baseline only")
+        ]))
+    }
+
+    private static func copyImagePlanes(_ buffer: CVPixelBuffer) throws -> [Data] {
+        let format = CVPixelBufferGetPixelFormatType(buffer)
+        guard [kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange].contains(format),
+              CVPixelBufferGetPlaneCount(buffer) == 2,
+              CVPixelBufferLockBaseAddress(buffer, .readOnly) == kCVReturnSuccess else {
+            throw CaptureFailure.write("The original camera image is not a readable NV12 buffer.")
+        }
+        defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
+        return try (0..<2).map { plane in
+            let width = CVPixelBufferGetWidthOfPlane(buffer, plane) * (plane == 0 ? 1 : 2)
+            let height = CVPixelBufferGetHeightOfPlane(buffer, plane)
+            let stride = CVPixelBufferGetBytesPerRowOfPlane(buffer, plane)
+            guard let base = CVPixelBufferGetBaseAddressOfPlane(buffer, plane), stride >= width else {
+                throw CaptureFailure.write("Invalid camera image plane.")
+            }
+            var data = Data(count: width * height)
+            data.withUnsafeMutableBytes { destination in
+                for row in 0..<height { destination.baseAddress!.advanced(by: row * width).copyMemory(from: base.advanced(by: row * stride), byteCount: width) }
+            }
+            return data
+        }
+    }
+    #endif
+
     private func movieBytes() -> Int {
         ((try? FileManager.default.attributesOfItem(atPath: directory.appendingPathComponent("video/review.mov").path)[.size]) as? NSNumber)?.intValue ?? 0
     }
 
     private func appendJSONLine(_ object: [String: Any], to url: URL) throws {
-        var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]); data.append(10)
+        let clean = Self.finiteJSON(object)
+        guard JSONSerialization.isValidJSONObject(clean) else { throw CaptureFailure.write("Invalid capture metadata") }
+        var data = try JSONSerialization.data(withJSONObject: clean, options: [.sortedKeys]); data.append(10)
         if !FileManager.default.fileExists(atPath: url.path) { try Data().write(to: url, options: .atomic) }
         let handle = try FileHandle(forWritingTo: url)
         defer { try? handle.close() }
         try handle.seekToEnd(); try handle.write(contentsOf: data)
+    }
+
+    private static func finiteJSON(_ value: Any) -> Any {
+        if let number = value as? NSNumber, !number.doubleValue.isFinite { return NSNull() }
+        if let array = value as? [Any] { return array.map(finiteJSON) }
+        if let object = value as? [String: Any] { return object.mapValues(finiteJSON) }
+        return value
     }
 
     static func copyRows(_ buffer: CVPixelBuffer, bytesPerPixel: Int, expectedFormat: OSType) throws -> Data {

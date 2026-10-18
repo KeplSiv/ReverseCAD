@@ -1,0 +1,8 @@
+{
+  "http_status": 200,
+  "status": "confirm_target",
+  "model": "jev-1.14.0",
+  "has_box": true,
+  "latency_ms": 253.6,
+  "key_returned": false
+}

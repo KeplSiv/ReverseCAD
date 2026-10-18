@@ -1,0 +1,62 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "E1FAB3B4-36A1-4E2A-B45A-43B146070B12.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-connection_0_4471F64A-AC2F-4F5C-9762-C5C256D825D7.png",
+        "timestamp" : 1792325513.89
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "C859CB7C-5FC7-4AD9-8497-9C6E6CE070B7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-repair-camera_0_14ED0575-44EB-47DB-94C0-56C75426EC1E.png",
+        "timestamp" : 1792325508.15
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "49D1D641-83A3-4929-AC34-2ABC1C16B285.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-saved-scans_0_CCB1B235-2527-4E6C-9D01-6CD01A890C31.png",
+        "timestamp" : 1792325505.553
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "5F8927CE-E8B0-449E-8EB4-80611AFAC889.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-adjustable-selection_0_6EFA3797-FE72-4D4F-A34F-FEC70EE5A8B9.png",
+        "timestamp" : 1792325503.36
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "D0E20630-4E82-48D1-87E5-F12145175B92.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-reference-setup_0_370C69D1-F335-40BB-9B0F-20A8F9CCD270.png",
+        "timestamp" : 1792325500.331
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0576C00C-3357-433C-843C-622AD6AB2169",
+        "deviceName" : "ReverseCAD Trial",
+        "exportedFileName" : "AD15CBBD-F3FE-4502-B56F-79043717BC53.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reversecad-camera-home_0_30020ACC-1A55-4A71-B3A7-0CBE9D2DB833.png",
+        "timestamp" : 1792325498.236
+      }
+    ],
+    "testIdentifier" : "ConsolidatedFlowTests/testSeparateFlowsAndResizableBoxWithoutCompanion()",
+    "testIdentifierURL" : "test://com.apple.xcode/ReverseCAD/ReverseCADUITests/ConsolidatedFlowTests/testSeparateFlowsAndResizableBoxWithoutCompanion"
+  }
+]

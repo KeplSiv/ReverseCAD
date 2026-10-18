@@ -3,6 +3,7 @@ import ARKit
 import RealityKit
 import AVFoundation
 import ReverseCADCore
+import CoreImage
 
 /// Both providers commit the same portable CaptureFrame records. Replay never constructs an ARFrame.
 protocol CaptureProvider: AnyObject {
@@ -42,6 +43,9 @@ enum CaptureFailure: LocalizedError {
     @Published private(set) var previewImage: UIImage?
     @Published private(set) var guidance = "Keep the object stationary. Use a textured surface and diffuse light."
     @Published private(set) var ghost = GhostLifecycle()
+    @Published private(set) var liveSurfaceMesh: MeshPreview?
+    private var surfaceAccumulator = ObservedSurfaceAccumulator()
+    private var surfaceEpoch = ""
     @Published private(set) var ghostMessage = "Ghost appears when repeated or symmetric geometry supports a proposal."
     var predictGhost: ((LiveGeometrySnapshot) async throws -> LiveGhostResponse)?
     private var ghostTask: Task<Void,Never>?
@@ -49,12 +53,39 @@ enum CaptureFailure: LocalizedError {
     let hasAR = ARWorldTrackingConfiguration.isSupported
     let hasLiDAR = ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
     let session = ARSession()
+    @Published private(set) var cameraReady=false
+    @Published private(set) var multiCameraPreview: AVCaptureVideoPreviewLayer?
+    private var multiCamera: MultiCameraSession?
+    private let useMultiCamera: Bool
+    private var previewGeneration=UUID()
+    private var captureRegion = CGRect(x:1.0/3,y:1.0/3,width:1.0/3,height:1.0/3)
+    private var captureRotation = 90
+    func pausePreview() {
+        previewGeneration=UUID();cameraReady=false
+        session.pause(); multiCamera?.stop();multiCamera=nil;multiCameraPreview=nil
+    }
+    func selectionImage(rect: CGRect, viewport: CGSize, orientation: UIInterfaceOrientation) throws -> (jpeg: Data, box: CGRect) {
+        if useMultiCamera {
+            guard let camera=multiCamera,let image=camera.latest(),let layer=multiCameraPreview else {throw CaptureFailure.unavailable("Wait for all cameras to be ready.")}
+            let raw=try camera.videoRegion(fromMetadata:layer.metadataOutputRectConverted(fromLayerRect:rect)).intersection(CGRect(x:0,y:0,width:1,height:1))
+            guard !raw.isNull,raw.width>0,raw.height>0 else {throw CaptureFailure.unavailable("Place the box inside the camera preview.")}
+            guard let jpeg=CIContext().jpegRepresentation(of:CIImage(cvPixelBuffer:image.pixel),colorSpace:CGColorSpaceCreateDeviceRGB(),options:[kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption:0.97]) else {throw CaptureFailure.write("Could not save the selected view.")}
+            captureRegion=raw
+            captureRotation=orientation == .landscapeLeft ? 0 : orientation == .landscapeRight ? 180 : orientation == .portraitUpsideDown ? 270 : 90
+            return (jpeg,raw)
+        }
+        guard let frame=session.currentFrame else {throw CaptureFailure.unavailable("Wait for a clear camera image.")}
+        return (try BoxObjectIdentifier.fullImage(frame),CaptureFraming.rawRegion(rect:rect,viewport:viewport,displayTransform:frame.displayTransform(for:orientation,viewportSize:viewport)))
+    }
     private var provider: CaptureProvider?
+    private var confirmedTarget: CGRect?
+    func setConfirmedTarget(_ box: CGRect) { confirmedTarget = box; selectedObjectPoint = CGPoint(x: box.midX, y: box.midY) }
     private var selectedObjectPoint = CGPoint(x: 0.5, y: 0.5)
     private var guideLayout: (CGRect, CGSize, UIInterfaceOrientation)?
     private var backgroundObserver: NSObjectProtocol?
 
-    init() {
+    init(useMultiCamera: Bool = false) {
+        self.useMultiCamera=useMultiCamera
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.isCapturing else { return }
@@ -67,38 +98,87 @@ enum CaptureFailure: LocalizedError {
     deinit { if let backgroundObserver { NotificationCenter.default.removeObserver(backgroundObserver) } }
 
     func startPreview() async throws {
-        guard hasLiDAR else { throw CaptureFailure.unavailable("3D scanning needs a LiDAR iPhone or iPad. You can still import a photo for a simple cube prototype.") }
+        let epoch=UUID();previewGeneration=epoch;cameraReady=false
+        guard hasAR else { throw CaptureFailure.unavailable("This device does not support camera world tracking.") }
         guard await AVCaptureDevice.requestAccess(for: .video) else {
             throw CaptureFailure.unavailable("Allow camera access in Settings to scan.")
         }
         guard !isCapturing else { return }
+        if useMultiCamera {
+            session.pause()
+            guard epoch==previewGeneration else {throw CancellationError()}
+            let camera=multiCamera ?? MultiCameraSession()
+            multiCamera=camera
+            do {try await camera.start { [weak self] layer in
+                Task { @MainActor in
+                    guard let self,epoch==self.previewGeneration else{return}
+                    self.multiCameraPreview=layer
+                }
+            }}
+            catch {if epoch==previewGeneration {multiCamera=nil;multiCameraPreview=nil};camera.stop();throw error}
+            guard epoch==previewGeneration else {camera.stop();throw CancellationError()}
+            multiCameraPreview=camera.preview;cameraReady=true
+            return
+        }
         let configuration = ARWorldTrackingConfiguration()
         if let detailFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution {
             configuration.videoFormat = detailFormat
         }
-        configuration.frameSemantics.insert(.sceneDepth)
+        #if REVERSECAD_SCANNER
+        if let format = ARWorldTrackingConfiguration.supportedVideoFormats.filter({ $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }).min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) { configuration.videoFormat = format }
+        #endif
+        if hasLiDAR { configuration.frameSemantics.insert(.sceneDepth) }
         session.run(configuration)
     }
 
     func start(directory: URL, scanID: String, motionDiagnostics: Bool = false) async throws {
         guard hasAR else { throw CaptureFailure.unavailable("This device has no AR world tracking. Use Synthetic sample or import a recorded package; no live LiDAR is simulated.") }
         let allowed = await AVCaptureDevice.requestAccess(for: .video)
-        guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable Reverse CAD in Settings → Privacy & Security → Camera.") }
+        guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable ReverseCAD in Settings → Privacy & Security → Camera.") }
         guard !isCapturing else { return }
         guard let (rect, size, orientation) = guideLayout else { throw CaptureFailure.unavailable("Wait for the camera guide to appear, then capture.") }
+        if useMultiCamera {
+            guard let camera=multiCamera else {throw CaptureFailure.unavailable("Wait for the rear cameras to start.")}
+            let capture=try MultiCameraCaptureProvider(camera:camera,directory:directory,scanID:scanID,region:captureRegion,confirmed:confirmedTarget != nil,displayRotation:captureRotation)
+            capture.onObservedSurface = { [weak self] surface,epoch in
+                Task { @MainActor in self?.addObservedSurface(surface,epoch:epoch) }
+            }
+            connect(capture);provider=capture
+            frameCount=0;rejectedFrames=0;droppedFrames=0;bytesWritten=0;coverageViews=0
+            liveSurfaceMesh=nil;surfaceAccumulator=ObservedSurfaceAccumulator();surfaceEpoch=""
+            packageURL=directory;isCapturing=true;status="Three rear cameras + LiDAR"
+            capture.start();return
+        }
         let capture = try ARKitCaptureProvider(session: session, directory: directory, scanID: scanID, useDepth: hasLiDAR, motionDiagnostics: motionDiagnostics)
         capture.setGuide(rect: rect, viewport: size, orientation: orientation)
         capture.onLiveGeometry = { [weak self] snapshot in
             Task { @MainActor in self?.receiveLiveGeometry(snapshot) }
         }
+        capture.onObservedSurface = { [weak self] surface, epoch in
+            Task { @MainActor in
+                guard let self,self.isCapturing else{return}
+                if self.surfaceEpoch != epoch {self.surfaceEpoch=epoch;self.surfaceAccumulator=ObservedSurfaceAccumulator()}
+                self.surfaceAccumulator.add(surface)
+                self.liveSurfaceMesh=MeshPreview(vertices:self.surfaceAccumulator.vertices.map{$0.map{$0*1000}},triangles:self.surfaceAccumulator.triangles)
+            }
+        }
         capture.selectObject(point: selectedObjectPoint)
+        if let confirmedTarget { capture.setConfirmedTarget(confirmedTarget) }
         connect(capture)
         provider = capture
         frameCount = 0; rejectedFrames = 0; droppedFrames = 0; bytesWritten = 0; coverageViews = 0
+        liveSurfaceMesh=nil;surfaceAccumulator=ObservedSurfaceAccumulator();surfaceEpoch=""
         packageURL = directory
         isCapturing = true
         status = hasLiDAR ? "Live LiDAR + RGB + visual-inertial pose" : "Limited camera/manual capture — no metric depth"
         try capture.start()
+    }
+
+    private func addObservedSurface(_ surface:ObservedSurface,epoch:String) {
+        guard isCapturing else{return}
+        if surfaceEpoch != epoch {surfaceEpoch=epoch;surfaceAccumulator=ObservedSurfaceAccumulator()}
+        surfaceAccumulator.add(surface)
+        liveSurfaceMesh=MeshPreview(vertices:surfaceAccumulator.vertices.map{$0.map{$0*1000}},triangles:surfaceAccumulator.triangles)
     }
 
     func selectObject(normalizedRawImagePoint: CGPoint) {
@@ -114,9 +194,9 @@ enum CaptureFailure: LocalizedError {
 
     func stop() async throws -> URL {
         guard let provider else { throw CaptureFailure.unavailable("No capture is active.") }
-        isCapturing = false
         clearGhost()
         let url = try await provider.finish()
+        isCapturing = false;cameraReady=false
         packageURL = url
         status = "Saved locally — \(frameCount) accepted frames"
         savedRevision += 1
@@ -203,12 +283,14 @@ enum CaptureFailure: LocalizedError {
 /// Live display uses the same ARSession as acquisition; no competing camera session.
 struct CapturePreview: UIViewRepresentable {
     let session: ARSession
+    var showsGuide = true
     var onSelect: ((CGPoint) -> Void)? = nil
     var ghost: LiveGhostResponse.Candidate? = nil
     var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)? = nil
     func makeCoordinator() -> Coordinator { Coordinator(session: session, onSelect: onSelect) }
     func makeUIView(context: Context) -> ARView {
         let view = GuidedARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        view.showsGuide = showsGuide
         view.onGuide = onGuide
         view.session = session
         view.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:))))
@@ -216,6 +298,7 @@ struct CapturePreview: UIViewRepresentable {
         return view
     }
     func updateUIView(_ view: ARView, context: Context) {
+        (view as? GuidedARView)?.showsGuide = showsGuide
         (view as? GuidedARView)?.onGuide = onGuide
         view.setNeedsLayout()
         context.coordinator.onSelect = onSelect
@@ -258,17 +341,18 @@ struct CapturePreview: UIViewRepresentable {
 
 /// Draw and measure the guide in the same view that displays the AR image.
 final class GuidedARView: ARView {
+    var showsGuide = true
     var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)?
     private let guide = CAShapeLayer()
     static func guideRect(in bounds: CGRect) -> CGRect {
-        let size = CGSize(width: min(270, bounds.width * 0.8), height: min(300, bounds.height * 0.85))
-        return CGRect(x: bounds.midX-size.width/2, y: bounds.midY-size.height/2, width: size.width, height: size.height)
+        CaptureFraming.centerCell(in: bounds)
     }
     override func layoutSubviews() {
         super.layoutSubviews()
         guard let onGuide, bounds.width > 0, bounds.height > 0 else { guide.removeFromSuperlayer(); return }
         let rect = Self.guideRect(in: bounds)
-        if guide.superlayer == nil { layer.addSublayer(guide) }
+        if showsGuide && guide.superlayer == nil { layer.addSublayer(guide) }
+        if !showsGuide { guide.removeFromSuperlayer() }
         guide.path = UIBezierPath(rect: rect).cgPath
         guide.fillColor = UIColor.clear.cgColor; guide.strokeColor = UIColor.white.withAlphaComponent(0.85).cgColor
         guide.lineWidth = 2; guide.lineDashPattern = [18, 8]

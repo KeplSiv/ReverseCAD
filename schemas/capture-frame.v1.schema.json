@@ -202,6 +202,19 @@
     },
     "quality": {
       "$ref": "#/$defs/FrameQuality"
+    },
+    "sensor_observation": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sensor Observation"
     }
   },
   "required": [

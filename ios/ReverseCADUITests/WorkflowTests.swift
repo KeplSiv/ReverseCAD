@@ -10,7 +10,7 @@ final class WorkflowTests:XCTestCase {
         if token.isEmpty {throw NSError(domain:"ReverseCADIntegration",code:1,userInfo:[NSLocalizedDescriptionKey:"Start scripts/start_service.sh; a real paired service token is required for this non-mocked integration test."])}
         app.launchEnvironment["REVERSECAD_TEST_TOKEN"]=token
         app.launchEnvironment["REVERSECAD_TEST_URL"]="http://127.0.0.1:8767"
-        app.launchArguments.append("-legacyWorkflow")
+        app.launchArguments += ["-legacyWorkflow","-cameraAccessGranted"]
         app.launch()
     }
     func scrollTo(_ element:XCUIElement,up:Bool=true) {

@@ -1,0 +1,65 @@
+Building for debugging...
+[0/4] Write sources
+[2/4] Write swift-version--58304C5D6DBC2206.txt
+[4/6] Emitting module ReverseCADCore
+[5/6] Compiling ReverseCADCore Persistence.swift
+[6/9] Emitting module ReverseCADCoreTests
+[7/9] Compiling ReverseCADCoreTests PersistenceTests.swift
+[7/9] Write Objects.LinkFileList
+[8/9] Linking ReverseCADCorePackageTests
+Build complete! (0.99s)
+Test Suite 'All tests' started at 2026-10-18 06:59:42.942.
+Test Suite 'ReverseCADCorePackageTests.xctest' started at 2026-10-18 06:59:42.942.
+Test Suite 'GeometryTests' started at 2026-10-18 06:59:42.942.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentNativeARKitRayWithNoncentralPixelAndTwoTransforms]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentNativeARKitRayWithNoncentralPixelAndTwoTransforms]' passed (0.001 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentResizedSyntheticPixelCenterRay]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testIndependentResizedSyntheticPixelCenterRay]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testInvalidDepthAndCalibrationRejected]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testInvalidDepthAndCalibrationRejected]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testNativeAndResizedCalibrationMustNotConflatePrincipalPoints]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testNativeAndResizedCalibrationMustNotConflatePrincipalPoints]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testPaddedStridePreservesOnlyRealBytes]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testPaddedStridePreservesOnlyRealBytes]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testPreviewUnitsConvertExactlyOnce]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testPreviewUnitsConvertExactlyOnce]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.GeometryTests testReflectionsScaleAndNonfiniteTransformsRejected]' started.
+Test Case '-[ReverseCADCoreTests.GeometryTests testReflectionsScaleAndNonfiniteTransformsRejected]' passed (0.000 seconds).
+Test Suite 'GeometryTests' passed at 2026-10-18 06:59:42.944.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PersistenceTests' started at 2026-10-18 06:59:42.944.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testDuplicateTimestampAndWrongSegmentDoNotDestroyCommittedFrame]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testDuplicateTimestampAndWrongSegmentDoNotDestroyCommittedFrame]' passed (0.014 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFixtureCrossLanguageContractAndMatrixSerialization]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFixtureCrossLanguageContractAndMatrixSerialization]' passed (0.007 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFrameCommitAndChecksumCorruption]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testFrameCommitAndChecksumCorruption]' passed (0.009 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testImportedPackageAndDurableJobCheckpoint]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testImportedPackageAndDurableJobCheckpoint]' passed (0.013 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testIncompleteRecoveryPreservesCommittedFramesAndOptionalVideo]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testIncompleteRecoveryPreservesCommittedFramesAndOptionalVideo]' passed (0.013 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testLegacyFrameDecodingDefaultsCalibrationAndNativeEncodingPreservesMatrixKey]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testLegacyFrameDecodingDefaultsCalibrationAndNativeEncodingPreservesMatrixKey]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testMissingDepthAndConfidenceAreExplicit]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testMissingDepthAndConfidenceAreExplicit]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testPathTraversalSymlinksAndMissingAssetRejected]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testPathTraversalSymlinksAndMissingAssetRejected]' passed (0.002 seconds).
+Test Case '-[ReverseCADCoreTests.PersistenceTests testSparseOriginalsSurviveCommitRecoveryAndImport]' started.
+Test Case '-[ReverseCADCoreTests.PersistenceTests testSparseOriginalsSurviveCommitRecoveryAndImport]' passed (0.026 seconds).
+Test Suite 'PersistenceTests' passed at 2026-10-18 06:59:43.030.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.086 (0.086) seconds
+Test Suite 'ScanGuidanceTests' started at 2026-10-18 06:59:43.030.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testQualityAndFramingTakePriorityOverOrbit]' started.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testQualityAndFramingTakePriorityOverOrbit]' passed (0.000 seconds).
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testRotationInPlaceDoesNotCreateCoverageAndNewRingIsRequested]' started.
+Test Case '-[ReverseCADCoreTests.ScanGuidanceTests testRotationInPlaceDoesNotCreateCoverageAndNewRingIsRequested]' passed (0.000 seconds).
+Test Suite 'ScanGuidanceTests' passed at 2026-10-18 06:59:43.030.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'ReverseCADCorePackageTests.xctest' passed at 2026-10-18 06:59:43.030.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.087 (0.088) seconds
+Test Suite 'All tests' passed at 2026-10-18 06:59:43.030.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.087 (0.089) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

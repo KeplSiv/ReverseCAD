@@ -24,5 +24,14 @@ xcuserdata/
 # Reproducible benchmark intermediates and local Apple release/account data.
 reports/**/runs/
 reports/testflight/release-*/
+reports/testflight/prelude-release-*/
+reports/testflight/reversecad-scanner-release-*/
 reports/testflight/provisioning.json
 reports/testflight/app-record.json
+
+# Local research runs and Xcode products.
+/build/
+/work/
+
+# Personal TestFlight credential resource; never commit or copy into other app targets.
+/ios/PrivateResources/

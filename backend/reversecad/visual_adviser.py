@@ -57,8 +57,8 @@ def env_values(path=ROOT/'.env'):
         line=line.strip()
         if not line or line.startswith('#'):continue
         key,sep,value=line.partition('=');key=key.strip()
-        if not sep or not (key.startswith('REVERSECAD_') or key in ('OPENAI_API_KEY','XAI_API_KEY')):
-            raise ValueError('Only REVERSECAD_*, OPENAI_API_KEY and XAI_API_KEY settings are supported in .env')
+        if not sep or not (key.startswith('REVERSECAD_') or key in ('OPENAI_API_KEY','XAI_API_KEY','TYPESAFE_API_KEY','JEV_API_KEY','TYPESAFE_API_KEY_FILE')):
+            raise ValueError('Only REVERSECAD_*, OPENAI_API_KEY, XAI_API_KEY and named Jev key settings are supported in .env')
         values[key]=value.strip().strip('"').strip("'")
     return values
 

@@ -15,10 +15,10 @@ public struct ScanGuidance {
         guard reliableDepth else { return "Depth is weak. Change your angle slightly and avoid glare." }
         let offset = camera - target, distance = simd_length(offset)
         guard distance.isFinite && distance > 0 else { return "Tap the object to set the scan center." }
-        if screenPoint.x < 0.25 { return "Aim left to bring the object back into the box." }
-        if screenPoint.x > 0.75 { return "Aim right to bring the object back into the box." }
-        if screenPoint.y < 0.23 { return "Aim up to bring the object back into the box." }
-        if screenPoint.y > 0.77 { return "Aim down to bring the object back into the box." }
+        if screenPoint.x < 1.0/3 { return "Aim left to bring the object back into the box." }
+        if screenPoint.x > 2.0/3 { return "Aim right to bring the object back into the box." }
+        if screenPoint.y < 1.0/3 { return "Aim up to bring the object back into the box." }
+        if screenPoint.y > 2.0/3 { return "Aim down to bring the object back into the box." }
         if distance < 0.18 { return "Move back slightly. Keep the small details in focus." }
         if distance > 0.60 { return "Move closer slowly, keeping the whole object in view." }
         let direction = offset / distance
@@ -34,11 +34,11 @@ public struct ScanGuidance {
         if accepted { covered.insert(ring * 12 + sector) }
         let ringCount = covered.filter { $0 / 12 == ring }.count
         if ringCount >= 9 {
-            if ring != 2 && covered.filter({ $0 / 12 == 2 }).count < 9 {
-                return "Raise the phone and tilt down. Circle again to see upper edges and openings."
+            if ring != 2 && covered.filter({ $0 / 12 == 2 }).isEmpty {
+                return "If upper surfaces are hidden, add a short higher pass and tilt down. Finish when the visible surfaces are covered."
             }
-            if ring != 0 && covered.filter({ $0 / 12 == 0 }).count < 9 {
-                return "Lower the phone and aim into visible openings. Keep the object still."
+            if ring != 0 && covered.filter({ $0 / 12 == 0 }).isEmpty {
+                return "If lower edges are hidden, add a short lower pass. Keep the object still; no second full circle is needed."
             }
             return "Review small ridges and recesses from several nearby angles. Unseen surfaces remain unknown."
         }

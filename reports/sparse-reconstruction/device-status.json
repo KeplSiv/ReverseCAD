@@ -1,0 +1,24 @@
+{
+  "model": "iPhone 15 Pro",
+  "product_type": "iPhone16,1",
+  "os_version": "27.0",
+  "os_build": "24A5380h",
+  "paired": "paired",
+  "tunnel_state": "connected",
+  "developer_services_available": true,
+  "last_connection_utc": "2026-10-18T10:17:00.000Z",
+  "probe_outcome": "success",
+  "interpretation": "Research app installed and launched, then explicitly stopped for standalone-scan scope revision. No fresh object capture.",
+  "coordination": "Owner confirmed Prelude recording stopped and authorized device use.",
+  "app_installation": "verified_installed",
+  "app_launch": "launched_then_stopped_at_owner_scope_change",
+  "running_executable": "ReverseCADSparseResearch.app/ReverseCADSparseResearch",
+  "recording_preservation": {
+    "before_files": 224779,
+    "before_bytes": 48985466765,
+    "backup": "120 s transfer timed out; partial only, not verified full backup",
+    "method": "in-place app update; existing recording directories are not app write targets",
+    "after_inventory": "pending"
+  },
+  "fresh_scan": "not_performed"
+}
