@@ -62,7 +62,7 @@ struct IdentifiedObject {
 
     func start(session: ARSession, description: String) {
         stop(); running = true; message = "Jev is looking for your object…"
-        do { apiKey = try PreludeJevConfiguration.apiKey() }
+        do { apiKey = try ReverseCADJevConfiguration.apiKey() }
         catch { running = false; message = error.localizedDescription; return }
         // Wait for a new frame after resuming; currentFrame can still be from before a pause.
         lastFrameTimestamp = session.currentFrame?.timestamp ?? -1

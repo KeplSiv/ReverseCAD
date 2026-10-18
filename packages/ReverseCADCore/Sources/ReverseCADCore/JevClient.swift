@@ -7,7 +7,7 @@ public enum JevClientError: Error, LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case .missingKey: return "This build is missing its Jev API key. Install the latest Prelude update."
+        case .missingKey: return "This build is missing its Jev API key. Install the latest ReverseCAD update."
         case .invalidInput: return "The saved image or selection is invalid. Use a complete camera image and an optional description of at most 240 characters."
         case .invalidResponse: return "Jev returned an unreadable detection. Retry identification using this saved scan."
         case .authentication: return "TypeSafe rejected the Jev API key (401). The key needs updating."

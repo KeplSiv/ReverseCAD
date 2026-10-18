@@ -42,6 +42,9 @@ enum CaptureFailure: LocalizedError {
     @Published private(set) var previewImage: UIImage?
     @Published private(set) var guidance = "Keep the object stationary. Use a textured surface and diffuse light."
     @Published private(set) var ghost = GhostLifecycle()
+    @Published private(set) var liveSurfaceMesh: MeshPreview?
+    private var surfaceAccumulator = ObservedSurfaceAccumulator()
+    private var surfaceEpoch = ""
     @Published private(set) var ghostMessage = "Ghost appears when repeated or symmetric geometry supports a proposal."
     var predictGhost: ((LiveGeometrySnapshot) async throws -> LiveGhostResponse)?
     private var ghostTask: Task<Void,Never>?
@@ -78,7 +81,7 @@ enum CaptureFailure: LocalizedError {
         if let detailFormat = ARWorldTrackingConfiguration.recommendedVideoFormatFor4KResolution {
             configuration.videoFormat = detailFormat
         }
-        #if PRELUDE_SCANNER
+        #if REVERSECAD_SCANNER
         if let format = ARWorldTrackingConfiguration.supportedVideoFormats.filter({ $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }).min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) { configuration.videoFormat = format }
         #endif
         if hasLiDAR { configuration.frameSemantics.insert(.sceneDepth) }
@@ -88,7 +91,7 @@ enum CaptureFailure: LocalizedError {
     func start(directory: URL, scanID: String, motionDiagnostics: Bool = false) async throws {
         guard hasAR else { throw CaptureFailure.unavailable("This device has no AR world tracking. Use Synthetic sample or import a recorded package; no live LiDAR is simulated.") }
         let allowed = await AVCaptureDevice.requestAccess(for: .video)
-        guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable Reverse CAD in Settings → Privacy & Security → Camera.") }
+        guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable ReverseCAD in Settings → Privacy & Security → Camera.") }
         guard !isCapturing else { return }
         guard let (rect, size, orientation) = guideLayout else { throw CaptureFailure.unavailable("Wait for the camera guide to appear, then capture.") }
         let capture = try ARKitCaptureProvider(session: session, directory: directory, scanID: scanID, useDepth: hasLiDAR, motionDiagnostics: motionDiagnostics)
@@ -96,11 +99,20 @@ enum CaptureFailure: LocalizedError {
         capture.onLiveGeometry = { [weak self] snapshot in
             Task { @MainActor in self?.receiveLiveGeometry(snapshot) }
         }
+        capture.onObservedSurface = { [weak self] surface, epoch in
+            Task { @MainActor in
+                guard let self,self.isCapturing else{return}
+                if self.surfaceEpoch != epoch {self.surfaceEpoch=epoch;self.surfaceAccumulator=ObservedSurfaceAccumulator()}
+                self.surfaceAccumulator.add(surface)
+                self.liveSurfaceMesh=MeshPreview(vertices:self.surfaceAccumulator.vertices.map{$0.map{$0*1000}},triangles:self.surfaceAccumulator.triangles)
+            }
+        }
         capture.selectObject(point: selectedObjectPoint)
         if let confirmedTarget { capture.setConfirmedTarget(confirmedTarget) }
         connect(capture)
         provider = capture
         frameCount = 0; rejectedFrames = 0; droppedFrames = 0; bytesWritten = 0; coverageViews = 0
+        liveSurfaceMesh=nil;surfaceAccumulator=ObservedSurfaceAccumulator();surfaceEpoch=""
         packageURL = directory
         isCapturing = true
         status = hasLiDAR ? "Live LiDAR + RGB + visual-inertial pose" : "Limited camera/manual capture — no metric depth"

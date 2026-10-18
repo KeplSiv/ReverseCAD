@@ -1,9 +1,9 @@
-# Reverse CAD
+# ReverseCAD
 
-The `main-consolidated` branch combines Prelude object scanning with the main damage/CAD workflow. Choose **Scan an object** or **Repair damage**. Both start with an adjustable box and explicit Jev identification, then reuse one local capture. See [the consolidated specification](docs/MAIN_CONSOLIDATED.md).
+`main` combines object scanning with the damage/CAD workflow in the original camera-first UI. **Scan object** and **Repair damage** use a phone reference setup, first 360° capture, automatic saved-view Jev identification, and a second detail pass with an observed-depth preview. The app is named **ReverseCAD**. Simultaneous three-camera fusion and fitted calibration remain unverified and disabled. See [the consolidated specification](docs/MAIN_CONSOLIDATED.md).
 
 
-The signed TestFlight release and Apple processing/tester status are recorded in [release status](reports/testflight/STATUS.md). Reproducible release commands are in [TestFlight setup](docs/TESTFLIGHT.md).
+The signed TestFlight release and Apple processing/tester status are recorded in [release status](reports/reversecad-branding/VERIFICATION.md). Reproducible release commands are in [TestFlight setup](docs/TESTFLIGHT.md).
 
 Native iPhone RGB-D capture and a local Mac processing service for a two-mount bridge handle, curved saddle cup handle, and flat/L repair bracket. The app keeps observed geometry, design assumptions, manual measurements and physical test results distinct.
 
@@ -104,7 +104,7 @@ A valid BREP is allowed to remain **Needs measurements** for fit. Acknowledged p
 
 1. Run `./scripts/start_service.sh --lan` on the Mac. This explicitly binds local network interfaces. Use the `.local` address printed by the script, not `localhost`. At build time this Mac advertised `48.local`; verify the current name with `scutil --get LocalHostName`. The current LAN IP can be checked with `ipconfig getifaddr en0` and may change.
 2. Put the Mac and iPhone on the same reachable network. Campus/guest Wi-Fi may isolate devices even when both have internet access. Use a trusted network that permits peer access. Keep this development HTTP service off public networks; use an HTTPS reverse proxy if remote access is needed. The app enables local networking, not a global ATS security bypass.
-3. Install Apple's **TestFlight** on your iPhone, accept the Reverse CAD invitation for your tester account, and install the version/build confirmed in [release status](reports/testflight/STATUS.md). TestFlight does not require a cable or Developer Mode. For a separate development installation, open `ios/ReverseCAD.xcodeproj`, select your iPhone and development team, enable Developer Mode when requested, and press **Run**. An available TestFlight build does not itself verify installation on your phone.
+3. Install Apple's **TestFlight** on your iPhone, accept the Reverse CAD invitation for your tester account, and install the version/build confirmed in [release status](reports/reversecad-branding/VERIFICATION.md). TestFlight does not require a cable or Developer Mode. For a separate development installation, open `ios/ReverseCAD.xcodeproj`, select your iPhone and development team, enable Developer Mode when requested, and press **Run**. An available TestFlight build does not itself verify installation on your phone.
 4. Open Service settings, enter the Mac's reachable `.local` URL and pairing token, then check connection. Allow local-network access. Grant camera access when starting capture. Optional motion diagnostics have their own permission; no microphone is recorded.
 5. Create a live project. The capability screen must say live LiDAR on supported hardware. Keep a matte calibration object stationary while moving the phone around it at overlapping angles/heights. Use the selection region to isolate the object; watch tracking, blur, depth, accepted frames and storage feedback.
 6. Stop, reopen and process the saved scan. Confirm live RGB, native depth/confidence, timestamps and changing poses in its exported package. Do not count a preview or submitted job as a completed scan.

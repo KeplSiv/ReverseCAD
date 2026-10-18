@@ -144,4 +144,36 @@ extension CaptureFirstWorkflowTests {
         XCTAssertTrue(ObjectFlow.repair.includes(repair));XCTAssertFalse(ObjectFlow.scan.includes(repair))
         repair.repairScope="automatic";XCTAssertTrue(ObjectFlow.repair.includes(repair))
     }
+
+    func testTwoPassIdentificationRunsAfterCaptureAndPreservesFirstPass() async throws {
+        let directory=try capture()
+        let jpeg=try Data(contentsOf:directory.appendingPathComponent("rgb/0.jpg"))
+        let reference=ObjectSelectionReference(imageSHA256:CaptureIO.sha256(jpeg),rawBox:[0.1,0.1,0.8,0.8],detection:nil)
+        try jpeg.write(to:directory.appendingPathComponent(reference.imagePath))
+        try CaptureIO.atomicWrite(reference,to:root.appendingPathComponent("object-selection.json"))
+        _=try ScanPackageWriter.recover(directory:directory).finish()
+        try TwoPassScan(stage:"identification_captured",firstScanID:"test").save(root)
+        XCTAssertEqual(SavedViewProtocol.count,0)
+        let value=workflow();value.find(project:root,capture:directory,description:"");try await settle(value)
+        XCTAssertEqual(value.phase,"identified");XCTAssertEqual(SavedViewProtocol.count,11)
+        let originalHash=try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl"))
+        try TwoPassScan.prepareDetail(project:root,capture:directory)
+        XCTAssertEqual(TwoPassScan.load(root)?.stage,"detail_capturing")
+        let original=root.appendingPathComponent("identification-pass")
+        _=try ScanPackageWriter.validate(directory:original)
+        XCTAssertEqual(try CaptureIO.sha256(file:original.appendingPathComponent("frames.jsonl")),originalHash)
+        XCTAssertEqual(try CaptureIO.sha256(file:directory.appendingPathComponent("identification-pass/frames.jsonl")),originalHash)
+        let reused=try XCTUnwrap(ObjectSelectionReference.load(project:root,capture:directory))
+        XCTAssertEqual(reused.imageSHA256,reference.imageSHA256);XCTAssertNotNil(reused.detection)
+        XCTAssertTrue(reused.imagePath.hasPrefix("identification-pass/"))
+        let writer=try ScanPackageWriter(directory:directory,manifest:CaptureManifest(scanID:"detail",source:"synthetic",device:"test",segments:[CaptureSegment(segmentID:"s")]))
+        for var frame in try CaptureIO.readFrames(directory:original) {
+            frame.scanID="detail"
+            try writer.append(frame:frame,assets:[frame.rgbPath:try Data(contentsOf:original.appendingPathComponent(frame.rgbPath))])
+        }
+        _=try writer.finish();_=try ScanPackageWriter.validate(directory:directory)
+        XCTAssertEqual(try CaptureIO.sha256(file:original.appendingPathComponent("frames.jsonl")),originalHash)
+        let second=workflow();second.find(project:root,capture:directory,description:"");try await settle(second)
+        XCTAssertEqual(second.phase,"identified");XCTAssertEqual(SavedViewProtocol.count,21)
+    }
 }

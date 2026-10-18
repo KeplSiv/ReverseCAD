@@ -1,34 +1,31 @@
-# Consolidated Prelude: scanning and damage repair
+# ReverseCAD: two-pass object scanning and repair
 
-Branch: `main-consolidated`. Base: `pranav-dev` including current `main` (`754c0661f97d4b4c1e74ca2cb60519113c1d6c54`). The user subsequently requested an immediate merge into `main`; the consolidated changes are published to both `main-consolidated` and `main`. `pranav-dev` is preserved. The separate experimental sensor/reference work is not merged.
+The current implementation is developed from `main-consolidated` and published to `main`. The user's latest requested scan ordering supersedes the earlier identify-before-capture and single-pass revisions.
 
-## Two app flows
+## Original main UI
 
-- **Scan an object:** adjust the rectangle → identify the selected object → scan around it → build the observed model → preview and export.
-- **Repair damage:** the same selection, identification and capture → build the observed model → main's existing damage analysis → review the proposed CAD and export supported repair pieces.
+The baseline is `754c0661f97d4b4c1e74ca2cb60519113c1d6c54` (October 18, 2026, 04:06 EDT), which remained on remote main until the 07:58 EDT consolidation. Use its camera-first entry, plum background, copper controls, stage pill, circular capture button, saved-scan/reset controls and Original/Repair/Pieces review. A compact selector switches between Scan object and Repair damage. There is no card-based landing page. All visible branding is **ReverseCAD**. The installed bundle identity remains unchanged so updates retain scans and tester access.
 
-Both flows reuse the public-API scanner, saved sessions, refined masks, reconstruction, preview and export code. Saved projects retain their flow, so a repair remains in the repair list even while its initial object model is being built.
+## Current supported sequence
 
-Both flows use the original main-branch visual system: plum backgrounds, copper accents, rounded surfaces and the same primary/secondary controls. Home, selection, capture, saved scans, preview and repair review share this styling.
+1. **Phone reference setup.** Explicitly capture synchronized front TrueDepth and RGB on a still, textured scene. Preserve original buffers, calibration, timestamps and the reference archive. This is a prerequisite reference capture, not completed rear-camera calibration: the profile remains `provisional_reference_only`, with no fitted rear corrections or front-to-rear registration.
+2. **First 360° pass.** Adjust or move the rectangle, initially the central rule-of-thirds cell. Save its raw-image coordinates through the inverse display transform. Start capture without a Jev request. Save full original images, native depth/confidence, intrinsics and poses locally. Show guidance from accepted viewpoints and camera movement.
+3. **Automatic identification.** After finishing the first pass, Jev uses the original selection image/box and about 8–10 sharp, separated saved views. One reference request plus at most ten view requests. Cancellation, specific key/network/rate-limit errors and retry preserve the capture. Ambiguity permits a tap on the saved reference.
+4. **Second 360° detail pass.** Use the confirmed first-pass identity and original reference. Track/refine the selected object locally while preserving full camera frames. A translucent top-right preview accumulates actual masked, confidence-filtered native depth samples. It rejects depth discontinuities, leaves unobserved surfaces open, caps memory and resets on tracking-epoch changes. It is an observed surface preview, not generated category geometry or completed CAD.
+5. **Reconstruction and export.** The original first capture remains unchanged and is copied into the second package under `identification-pass/`. The second pass is confirmed against the same reference after capture. Its geometry is processed through the existing mask-aware Mac backend; the two unregistered camera coordinate frames are not silently fused. Export the observed model and supported measurements/formats. Repair damage continues into main's existing supported planar/3×3 damage workflow and review-gated CAD export.
 
-## Adjustable selection
+The first pass therefore supplies identity/reference evidence, and the second supplies the final reconstruction geometry. Cross-pass geometric fusion requires separately verified registration and is not claimed by this implementation.
 
-The initial guide is the center rule-of-thirds cell. Drag any corner to resize, or drag inside to move it. Keep bounds within the preview and a minimum usable size. Map the user's edited rectangle through the inverse camera display transform. Jev receives that raw-image rectangle explicitly with the full reference image, not a destructive crop. Identification runs only when the user taps **Identify object in box**. Moving or resizing the box invalidates the previous identity. **Start scan** becomes available when one object is identified.
+## Hardware boundary
 
-Store the original selection image in the capture as `rgb/selection-reference.jpg`, with its hash, raw bounds and Jev result in the project selection record. Capture still saves full images, available depth/confidence, poses, intrinsics and timestamps locally. No continuous Jev loop or Mac connection is used for capture. Original images and frame records remain unchanged.
+The TestFlight target uses public APIs: one ARKit rear camera, available native `sceneDepth`/confidence, poses and intrinsics, plus a separate front TrueDepth reference capture. A hardware manifest records discovered cameras, supported multi-camera sets, and actual active sources separately.
 
-After capture, use the earlier selection image and rectangle as the identity reference for roughly 8–10 sharp separated saved views. Verify the same physical instance and category across views. A correction can select a point in that same saved reference; it does not require recapture. One initial request, up to ten post-capture requests, and at most one additional reference request for a correction are bounded and cancellable. Network/key/rate-limit failures keep the saved session.
+The requested simultaneous wide/ultrawide/telephoto plus LiDAR fusion is not implemented or physically verified. Earlier TrueDepth work contains only a provisional reference, not completed rear-camera calibration. Earlier private-sensor work did not obtain a genuine pre-processing LiDAR buffer. These modes must not be marked active or calibrated. Private interception remains in the separate Debug-only research target and is excluded from distribution.
 
-## Geometry and repair handoff
+The user has been asked whether to publish the supported public two-pass build while unverified hardware mode stays disabled, or hold TestFlight for full hardware validation.
 
-Local segmentation refines boxes into masks. Exclude unconfirmed views and hand overlaps; gate geometry by native depth/confidence and cross-view consistency. The framing rectangle and semantic category do not provide shape or measurements. Full-image tracking evidence is retained. Holes and unseen surfaces remain missing in the observed scan.
+## Data and verification
 
-The scan-only flow stops at the existing measured preview and STL/PLY/measurements/conditional faceted STEP exports. The repair flow continues only when the object reconstruction is ready. Keep its original reconstruction/export index alongside the later repair revision, then invoke the existing `automatic` main-branch router on the same capture. Confirmed masks define per-view padded search regions, and background-only repair candidates are rejected. No second capture is required.
+`ReverseCADJevConfig.plist` remains ignored and is included only in the internal scanner build. No key enters Git, logs or capture exports. Original first-pass files and TrueDepth reference archives are preserved; second-pass metadata and derived masks never overwrite them. The capture package records factory/provisional calibration provenance.
 
-Main's existing repair component currently supports planar rectangular parts and repeated 3×3 cube faces. Unsupported or ambiguous damage asks for a supported shape or more evidence; it does not invent a general repair. Proposed geometry, inferred thickness/connectors and physical-fit uncertainty remain explicitly separate from measured scan geometry. The existing review toggle and measured-thickness controls gate repair export.
-
-The Mac service must advertise `capture_first_masks` and `consolidated_object_repair`. The app explains that reconstruction and CAD run on the connected Mac and refuses incompatible services. The personal Jev credential stays in the existing ignored resource, outside Git, logs and capture exports. Private sensor interception stays in its separate research target.
-
-## Verification boundaries
-
-Verify rectangle movement/resizing and rotated/cropped coordinate mapping; request binding to the edited box; selection-image preservation and post-capture reuse; no live request loop; ambiguity/cancellation/retry; flow separation; same-session damage handoff; object-mask filtering; existing damage/CAD checks and exports. Simulator, synthetic and API checks do not establish actual phone sensing, segmentation quality, dimensional accuracy or physical fit.
+Verify inverse coordinate mapping, sharp separated view selection, post-capture identity calls, ambiguity/cancellation/retry, first-pass preservation, second-pass reference reuse, discontinuity/mask-safe live preview, public sensor provenance, existing reconstruction/CAD exports, and the restored UI. Simulator/API/synthetic checks are distinct from actual phone capture, completed calibration, metric accuracy and printed fit.

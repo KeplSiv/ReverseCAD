@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Upload one verified Reverse CAD IPA using Apple's official Build Upload API.
+"""Upload one verified ReverseCAD IPA using Apple's official Build Upload API.
 
 Uses Apple HTTPS Date for JWT time without changing the Mac clock. API tokens,
 private keys, upload URLs and upload headers are never written to reports.
@@ -337,10 +337,12 @@ def main() -> int:
     parser.add_argument("--key-path", type=Path, required=True)
     parser.add_argument("--key-id", required=True)
     parser.add_argument("--issuer-id", required=True)
-    parser.add_argument("--prelude", action="store_true")
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument("--scanner", action="store_true", help="Use the public-API ReverseCAD scanner target")
+    target.add_argument("--prelude", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--resume", action="store_true", help="Resume only the existing recorded API upload")
     args = parser.parse_args()
-    release_tools.select_app(args.prelude)
+    release_tools.select_app(args.prelude, args.scanner)
     try:
         require(re.fullmatch(r"\d+\.\d+(?:\.\d+)?", args.version) is not None, "Invalid marketing version.")
         require(re.fullmatch(r"[1-9]\d*", args.build) is not None, "Invalid build number.")

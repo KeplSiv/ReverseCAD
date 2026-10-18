@@ -303,7 +303,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
         if workers_enabled:
             runner.shutdown()
 
-    app = FastAPI(title="Reverse CAD companion",version="1.0.0",lifespan=lifespan)
+    app = FastAPI(title="ReverseCAD companion",version="1.0.0",lifespan=lifespan)
     app.state.store,app.state.runner = store,runner
 
     @app.middleware("http")
@@ -368,7 +368,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
 
     @app.get("/v1/health")
     def health():
-        return {"status":"ok","api_version":1,"service":"Reverse CAD","physical_fit_validated":False}
+        return {"status":"ok","api_version":1,"service":"ReverseCAD","physical_fit_validated":False}
 
     @app.get("/v1/capabilities",dependencies=[Depends(authorize)])
     def capabilities():

@@ -8,7 +8,7 @@ struct ObjectSelectionReference: Codable {
     var imagePath = "rgb/selection-reference.jpg"
     var imageSHA256: String
     var rawBox: [Double]
-    var detection: JevDetection
+    var detection: JevDetection?
     var box: CGRect { CGRect(x:rawBox[0],y:rawBox[1],width:rawBox[2],height:rawBox[3]) }
     static func load(project: URL, capture: URL) throws -> Self? {
         let url=project.appendingPathComponent("object-selection.json")
@@ -16,7 +16,7 @@ struct ObjectSelectionReference: Codable {
         let value=try JSONDecoder().decode(Self.self,from:Data(contentsOf:url))
         guard value.rawBox.count == 4, value.rawBox.allSatisfy(\.isFinite), value.box.minX>=0, value.box.minY>=0,
               value.box.maxX<=1.000001,value.box.maxY<=1.000001,value.box.width>0,value.box.height>0,
-              SelectionBox.matches(value.detection,selected:value.box),
+              value.detection.map({ SelectionBox.matches($0,selected:value.box) }) ?? true,
               try CaptureIO.sha256(file:CaptureIO.safeURL(directory:capture,path:value.imagePath)) == value.imageSHA256 else {
             throw ServiceFailure(message:"The saved selection no longer matches its reference image. Choose the object again.")
         }
@@ -35,7 +35,7 @@ struct ObjectSelectionReference: Codable {
     private var retryDate=Date.distantPast
     private let clientFactory: () -> JevClient
     private let keyProvider: () throws -> String
-    init(clientFactory: @escaping () -> JevClient = { JevClient() },keyProvider: @escaping () throws -> String = { try PreludeJevConfiguration.apiKey() }) {
+    init(clientFactory: @escaping () -> JevClient = { JevClient() },keyProvider: @escaping () throws -> String = { try ReverseCADJevConfiguration.apiKey() }) {
         self.clientFactory=clientFactory;self.keyProvider=keyProvider
     }
     func cancel(clear: Bool = false) {

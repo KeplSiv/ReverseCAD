@@ -26,7 +26,7 @@ struct SavedObjectIdentity: Codable {
     @Published var identity: SavedObjectIdentity?
     private let clientFactory: () -> JevClient
     private let keyProvider: () throws -> String
-    init(clientFactory: @escaping () -> JevClient = { JevClient() }, keyProvider: @escaping () throws -> String = { try PreludeJevConfiguration.apiKey() }) {
+    init(clientFactory: @escaping () -> JevClient = { JevClient() }, keyProvider: @escaping () throws -> String = { try ReverseCADJevConfiguration.apiKey() }) {
         self.clientFactory = clientFactory; self.keyProvider = keyProvider
     }
     private var task: Task<Void, Never>?
@@ -88,11 +88,11 @@ struct SavedObjectIdentity: Codable {
                 referenceImage = UIImage(contentsOfFile: capture.appendingPathComponent(referencePath).path)
                 let key = try keyProvider()
                 let client = clientFactory()
-                var referenceCategory=selection?.detection.category
+                var referenceCategory=selection?.detection?.category
                 var selectedBox = point == nil ? selection?.box : nil
                 var referenceDetection=selection?.detection
-                if point != nil,selection != nil {
-                    let revised=try await client.identifySavedView(jpeg:reference,reference:reference,description:description,anchor:anchor,requestID:UUID(),apiKey:key)
+                if selection != nil && (point != nil || referenceDetection == nil) {
+                    let revised=try await client.identifySavedView(jpeg:reference,reference:reference,description:description,anchor:anchor,requestID:UUID(),apiKey:key,referenceBox:selectedBox)
                     try Task.checkCancellation();guard epoch==generation else{return}
                     guard let box=revised.box,anchor.x>=box.left,anchor.x<=box.right,anchor.y>=box.top,anchor.y<=box.bottom else {
                         phase="ambiguous";message="Tap a clearly visible object in the saved image.";task=nil;return
@@ -119,7 +119,7 @@ struct SavedObjectIdentity: Codable {
                 if confirmed.isEmpty {
                     phase = "ambiguous"; message = point == nil ? "Tap the object you meant in this saved image." : "The views still disagree. Tap the intended object to try again; your scan is saved."
                 } else {
-                    if let selection,let selectedBox,let referenceDetection,point != nil {
+                    if let selection,let selectedBox,let referenceDetection {
                         var corrected=selection;corrected.rawBox=[selectedBox.minX,selectedBox.minY,selectedBox.width,selectedBox.height];corrected.detection=referenceDetection
                         try CaptureIO.atomicWrite(corrected,to:project.appendingPathComponent("object-selection.json"))
                     }

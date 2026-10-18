@@ -7,7 +7,7 @@ import plistlib
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-DESTINATION = ROOT / "ios/PrivateResources/PreludeJevConfig.plist"
+DESTINATION = ROOT / "ios/PrivateResources/ReverseCADJevConfig.plist"
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     with os.fdopen(os.open(DESTINATION, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb") as stream:
         plistlib.dump({"apiKey": key}, stream, fmt=plistlib.FMT_BINARY)
     DESTINATION.chmod(0o600)
-    print("Personal Prelude direct-Jev resource prepared; key content is not logged.")
+    print("Personal ReverseCAD direct-Jev resource prepared; key content is not logged.")
 
 
 if __name__ == "__main__":

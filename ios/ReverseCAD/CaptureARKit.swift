@@ -41,6 +41,8 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     var onFrame: ((CaptureFrame) -> Void)?
     var onProgress: ((CaptureProgress) -> Void)?
     var onLiveGeometry: ((LiveGeometrySnapshot?) -> Void)?
+    var onObservedSurface: ((ObservedSurface, String) -> Void)?
+    private var lastObservedSurfaceTime = -Double.infinity
     private var liveEpoch = UUID().uuidString
     private var liveTracking = false
     private var liveSequence = 0
@@ -140,7 +142,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let error = status["error"] as? String { throw CaptureFailure.unavailable(error) }
         try updateSparseManifest(status: "capturing")
         #endif
-        #if PRELUDE_SCANNER
+        #if REVERSECAD_SCANNER
         let publicFormats = ARWorldTrackingConfiguration.supportedVideoFormats.filter { $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }
         guard let publicFormat = publicFormats.min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) else { throw CaptureFailure.unavailable("The rear 1× camera is unavailable.") }
         configuration.videoFormat = publicFormat
@@ -352,6 +354,14 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             reasons.append("The selected object could not be segmented; this view is excluded from measurement.")
         }
         var capture = CaptureFrame(scanID: scanID, segmentID: segment, frameID: id, timestampS: timestamp, rgbPath: rgbPath, rgbWidth: width, rgbHeight: height, depthPath: depthPath, depthWidth: depthWidth, depthHeight: depthHeight, depthRowBytes: depthWidth * 4, confidencePath: confidencePath, maskPath: maskPath, intrinsics: Self.columnMajor(intrinsics), intrinsicsWidth: Int(resolution.width), intrinsicsHeight: Int(resolution.height), worldCamera: Self.columnMajor(pose), trackingState: tracking, quality: CaptureQuality(blurScore: blur, accepted: accepted, reasons: reasons))
+        if accepted, timestamp-lastObservedSurfaceTime >= 0.8, let depthData, let confidenceData, let maskPath, let mask=assets[maskPath] {
+            var previewFrame=capture;previewFrame.depthCalibrationMode="native_arkit"
+            if let surface=try? ObservedSurface.depth(frame:previewFrame,depth:depthData,confidence:confidenceData,mask:mask) {
+                lastObservedSurfaceTime=timestamp
+                lock.lock();let valid=liveEpoch==epoch && active;lock.unlock()
+                if valid { onObservedSurface?(surface,epoch) }
+            }
+        }
         #if SPARSE_RESEARCH
         // Preserve exact active NV12 rows as well as the full-resolution display JPEG.
         // COLMAP's JPEG input is a declared color conversion; the sensor bytes remain inspectable.

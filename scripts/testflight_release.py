@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Explicit archive, export, verify and upload phases for Reverse CAD TestFlight.
+"""Explicit archive, export, verify and upload phases for ReverseCAD TestFlight.
 
 Uses only the Python standard library and installed Xcode tools. No credentials
 are discovered, copied, embedded, or read by this script. See docs/TESTFLIGHT.md.
@@ -27,11 +27,12 @@ PRODUCT = "ReverseCAD"
 SCHEME = "ReverseCAD"
 
 
-def select_app(prelude: bool = False) -> None:
+def select_app(prelude: bool = False, scanner: bool = False) -> None:
     global BUNDLE, PRODUCT, SCHEME
-    BUNDLE = "com.pranavmuralitharan.prelude" if prelude else "com.pranav.ReverseCAD"
+    # Keep the installed app identity so existing TestFlight users receive updates.
+    BUNDLE = "com.pranavmuralitharan.prelude" if prelude or scanner else "com.pranav.ReverseCAD"
     PRODUCT = "Prelude" if prelude else "ReverseCAD"
-    SCHEME = "PreludeScanner" if prelude else "ReverseCAD"
+    SCHEME = "ReverseCADScanner" if scanner else ("PreludeScanner" if prelude else "ReverseCAD")
 
 
 
@@ -85,7 +86,8 @@ def tree_manifest(path: Path) -> dict[str, str]:
 
 
 def paths(args: argparse.Namespace) -> tuple[Path, Path]:
-    name = f"{PRODUCT.lower()}-release-{args.version}-{args.build}" if PRODUCT != "ReverseCAD" else f"release-{args.version}-{args.build}"
+    prefix = "reversecad-scanner-release" if SCHEME == "ReverseCADScanner" else (f"{PRODUCT.lower()}-release" if PRODUCT != "ReverseCAD" else "release")
+    name = f"{prefix}-{args.version}-{args.build}"
     return ROOT / "var/testflight" / name, ROOT / "reports/testflight" / name
 
 
@@ -139,12 +141,16 @@ def archive(args: argparse.Namespace) -> None:
         "distribution": "app-store-connect", "testflight_internal_only": True,
         "xcode_version": run(["xcodebuild", "-version"]).decode().strip(),
     }
-    if PRODUCT == "Prelude":
-        config = ROOT / "ios/PrivateResources/PreludeJevConfig.plist"
-        require(config.is_file(), "Prepare the personal direct-Jev resource with configure_prelude_jev.py first.")
+    if BUNDLE == "com.pranavmuralitharan.prelude":
+        resource = "ReverseCADJevConfig" if SCHEME == "ReverseCADScanner" else "PreludeJevConfig"
+        config = ROOT / f"ios/PrivateResources/{resource}.plist"
+        require(config.is_file(), "Prepare the personal direct-Jev resource with configure_reversecad_jev.py first.")
         key = plistlib.loads(config.read_bytes()).get("apiKey")
         require(isinstance(key, str) and bool(key.strip()), "Personal Jev key is empty.")
         metadata["direct_jev_config_sha256"] = digest(config)
+        metadata["direct_jev_config_name"] = resource
+    if SCHEME == "ReverseCADScanner":
+        metadata["display_name"] = "ReverseCAD"
     write_json(release / "release.json", metadata)
     run(["xcodegen", "generate", "--spec", "ios/project.yml"], reports / "xcodegen.log")
     command = [
@@ -227,13 +233,16 @@ def verify_ipa(ipa: Path, metadata: dict) -> dict:
         info = plistlib.loads((app / "Info.plist").read_bytes())
         require(info.get("CFBundleIdentifier") == BUNDLE, "IPA bundle identifier mismatch.")
         if metadata.get("direct_jev_config_sha256"):
-            config = app / "PreludeJevConfig.plist"
+            config = app / (metadata.get("direct_jev_config_name", "PreludeJevConfig") + ".plist")
             require(BUNDLE == "com.pranavmuralitharan.prelude" and metadata.get("testflight_internal_only") is True,
-                    "Personal Jev configuration is restricted to the internal Prelude build.")
+                    "Personal Jev configuration is restricted to the internal scanner build.")
             require(config.is_file() and digest(config) == metadata["direct_jev_config_sha256"],
                     "IPA is missing the configured personal Jev resource or its bytes differ.")
         require(info.get("CFBundleShortVersionString") == metadata["version"], "IPA marketing version mismatch.")
         require(info.get("CFBundleVersion") == metadata["build"], "IPA build number mismatch.")
+        if metadata.get("display_name"):
+            require(info.get("CFBundleDisplayName") == metadata["display_name"] and info.get("CFBundleName") == metadata["display_name"],
+                    "IPA display/product name mismatch.")
         require(info.get("CFBundlePackageType") == "APPL", "IPA is not an application bundle.")
         require(info.get("CFBundleSupportedPlatforms") == ["iPhoneOS"], "IPA is not an iPhone device build.")
         require(info.get("DTPlatformName") == "iphoneos", "IPA platform metadata is not iphoneos.")
@@ -403,7 +412,9 @@ def main() -> int:
         sub.add_argument("--version", required=True, help="Marketing version, e.g. 1.0")
         sub.add_argument("--build", required=True, help="Unique positive integer build number")
         sub.add_argument("--team", default=DEFAULT_TEAM)
-        sub.add_argument("--prelude", action="store_true", help="Use the isolated public-API Prelude scanner target")
+        target = sub.add_mutually_exclusive_group()
+        target.add_argument("--scanner", action="store_true", help="Use the public-API ReverseCAD scanner target")
+        target.add_argument("--prelude", action="store_true", help=argparse.SUPPRESS)
         if phase == "archive":
             sub.add_argument("--profile-uuid", required=True, help="Installed explicit App Store distribution profile UUID")
             sub.add_argument("--identity", required=True, help="Installed Apple Distribution identity name or SHA-1")
@@ -412,7 +423,7 @@ def main() -> int:
             sub.add_argument("--key-id", required=True)
             sub.add_argument("--issuer-id", required=True)
     args = parser.parse_args()
-    select_app(args.prelude)
+    select_app(args.prelude, args.scanner)
     try:
         require(re.fullmatch(r"\d+\.\d+(?:\.\d+)?", args.version) is not None, "Version must be numeric major.minor[.patch].")
         require(re.fullmatch(r"[1-9]\d*", args.build) is not None, "Build must be a positive integer.")

@@ -13,7 +13,7 @@ This component does not propose a repair, invent a missing part, generate a repl
 
 The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-**Capture-first revision (2026-10-18):** The public TestFlight workflow is specified in [PRELUDE_SCANNER.md](PRELUDE_SCANNER.md). It supersedes the previous live-Jev flow. Capture and identification require no Mac. Reconstruction still requires the existing backend; the app states this before processing. Private intercepted sparse capture remains separate and Debug-only.
+**Capture-first revision (2026-10-18):** The public TestFlight workflow is specified in [OBJECT_SCANNER.md](OBJECT_SCANNER.md). It supersedes the previous live-Jev flow. Capture and identification require no Mac. Reconstruction still requires the existing backend; the app states this before processing. Private intercepted sparse capture remains separate and Debug-only.
 
 ## 2. Capture and identify
 

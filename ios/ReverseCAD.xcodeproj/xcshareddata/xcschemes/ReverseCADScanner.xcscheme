@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EF59BAC4C8915338CD14AA07"
-               BuildableName = "PreludeScanner.app"
-               BlueprintName = "PreludeScanner"
+               BlueprintIdentifier = "36C44B639921FF01C56100C3"
+               BuildableName = "ReverseCADScanner.app"
+               BlueprintName = "ReverseCADScanner"
                ReferencedContainer = "container:ReverseCAD.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "EF59BAC4C8915338CD14AA07"
-            BuildableName = "PreludeScanner.app"
-            BlueprintName = "PreludeScanner"
+            BlueprintIdentifier = "36C44B639921FF01C56100C3"
+            BuildableName = "ReverseCADScanner.app"
+            BlueprintName = "ReverseCADScanner"
             ReferencedContainer = "container:ReverseCAD.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -55,9 +55,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "EF59BAC4C8915338CD14AA07"
-            BuildableName = "PreludeScanner.app"
-            BlueprintName = "PreludeScanner"
+            BlueprintIdentifier = "36C44B639921FF01C56100C3"
+            BuildableName = "ReverseCADScanner.app"
+            BlueprintName = "ReverseCADScanner"
             ReferencedContainer = "container:ReverseCAD.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -74,9 +74,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "EF59BAC4C8915338CD14AA07"
-            BuildableName = "PreludeScanner.app"
-            BlueprintName = "PreludeScanner"
+            BlueprintIdentifier = "36C44B639921FF01C56100C3"
+            BuildableName = "ReverseCADScanner.app"
+            BlueprintName = "ReverseCADScanner"
             ReferencedContainer = "container:ReverseCAD.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

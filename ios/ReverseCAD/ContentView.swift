@@ -50,7 +50,7 @@ struct LegacyContentView: View {
                     }.background(Color(.systemGroupedBackground))
                 }
             }
-            .navigationTitle(model.project?.name ?? "Reverse CAD").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(model.project?.name ?? "ReverseCAD").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement:.topBarLeading) {if model.project != nil {Button {model.selectedID=nil} label:{Label("Projects",systemImage:"chevron.left")}.accessibilityIdentifier("backProjects").disabled(model.busy || model.captureActive)}}
                 ToolbarItem(placement:.topBarTrailing) {Button {settings=true} label:{Image(systemName:"network")}.accessibilityLabel("Service settings").accessibilityIdentifier("serviceSettings").disabled(model.busy || model.captureActive)}
@@ -75,15 +75,18 @@ struct SettingsView:View {
             Text("Use the Mac’s reachable LAN address on iPhone. Simulator can use 127.0.0.1. Read the private pairing-token file shown by the Mac startup script and enter its contents here.").font(.footnote).foregroundStyle(.secondary)
             Button("Check connection"){model.checkConnection()}.disabled(model.busy).accessibilityIdentifier("checkConnection")
             Label(model.connection,systemImage:model.connection.hasPrefix("Connected") ? "checkmark.circle":"network")
-        }
+        }.listRowBackground(RepairStyle.surface)
         Section("Data and reasoning") {
             Text("Scans stay in your project until processing is requested. The paired service reconstructs and generates CAD on your Mac. Live AI mode sends selected object images and the evidence table to the configured provider. Manual and fixture modes do not call a model.")
-            Text("The connection token is stored in Keychain. This personal Prelude build uses its configured Jev key for object identification directly from the phone. Repair-provider keys stay on the Mac.").font(.footnote).foregroundStyle(.secondary)
-        }
-        Section("Validation status") {Text("Simulator uses synthetic RGB-D replay. Live sensing, dimensional accuracy, and printed fit need separate phone trials.")}
-    }.navigationTitle("Connection")
+            Text("The connection token is stored in Keychain. ReverseCAD identifies objects directly from this phone using its configured Jev key. Repair-provider keys stay on the Mac.").font(.footnote).foregroundStyle(RepairStyle.secondary)
+        }.listRowBackground(RepairStyle.surface)
+        Section("Validation status") {Text("Simulator uses synthetic RGB-D replay. Live sensing, dimensional accuracy, and printed fit need separate phone trials.")}.listRowBackground(RepairStyle.surface)
+    }.scrollContentBackground(.hidden).background(RepairStyle.background).foregroundStyle(RepairStyle.text)
+    .navigationTitle("Connection")
+    .toolbarBackground(RepairStyle.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
     .alert("Action needs attention",isPresented:Binding(get:{model.error != nil},set:{if !$0 {model.error=nil}})){Button("OK",role:.cancel){model.error=nil}} message:{Text(model.error ?? "")}
-    .toolbar {ToolbarItem(placement:.confirmationAction){Button("Done"){model.saveSettings();dismiss()}}}}}
+    .toolbar {ToolbarItem(placement:.confirmationAction){Button("Done"){model.saveSettings();dismiss()}}}}
+    .preferredColorScheme(.dark).tint(RepairStyle.accent)}
 }
 
 struct ProjectView:View {
