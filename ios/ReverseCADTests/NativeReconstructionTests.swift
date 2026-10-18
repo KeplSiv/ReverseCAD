@@ -16,10 +16,16 @@ final class NativeReconstructionTests:XCTestCase {
     func testLocalSavedSessionProducesVerifiedModelAndExportsWithoutService()throws {
         let root=try temporary();defer{try? FileManager.default.removeItem(at:root)}
         let fixture=try NativeValidation.fixture(at:root)
+        XCTAssertFalse(FileManager.default.fileExists(atPath:fixture.capture.appendingPathComponent("calibration/setup.json").path))
         let before=try CaptureIO.sha256(file:fixture.capture.appendingPathComponent("frames.jsonl"))
         let result=try NativeReconstruction.run(capture:fixture.capture,project:root,target:fixture.target,repair:false,thicknessMM:nil,progress:{_ in})
         XCTAssertEqual(result.report["processing_location"] as? String,"iPhone")
         XCTAssertEqual(result.report["network_requests"] as? Int,0)
+        let calibration=try XCTUnwrap(result.report["phone_calibration"] as? [String:Any])
+        XCTAssertEqual(calibration["status"] as? String,"uncalibrated_sensor_scale")
+        XCTAssertEqual(calibration["reference_registered"] as? Bool,false)
+        XCTAssertEqual(calibration["physical_accuracy_validated"] as? Bool,false)
+        XCTAssertEqual(calibration["correction_applied"] as? Bool,false)
         try VerifiedArtifactStore.verify(infos:result.infos,directory:result.directory)
         XCTAssertTrue(result.infos.contains{$0.name=="observed_object.stl"})
         XCTAssertTrue(result.infos.contains{$0.name=="observed_object.ply"})
@@ -35,6 +41,28 @@ final class NativeReconstructionTests:XCTestCase {
         let retry=try NativeReconstruction.run(capture:fixture.capture,project:root,target:fixture.target,repair:false,thicknessMM:nil,progress:{_ in})
         XCTAssertNotEqual(retry.directory,result.directory)
         try VerifiedArtifactStore.verify(infos:result.infos,directory:result.directory)
+    }
+    func testSavedSelfieReferenceIsIgnoredAndObservedExportsStillProduced() throws {
+        let root=try temporary(); defer { try? FileManager.default.removeItem(at:root) }
+        let fixture=try NativeValidation.fixture(at:root)
+        let calibration=fixture.capture.appendingPathComponent("calibration")
+        try FileManager.default.createDirectory(at:calibration,withIntermediateDirectories:true)
+        try cameraJSONWrite(["same_object_required":true],calibration.appendingPathComponent("setup.json"))
+        // Rehash the fixture as a capture containing incomplete optional setup.
+        var hashes=[String:String]()
+        for file in try CaptureIO.files(directory:fixture.capture) where file.path != "checksums.json" {hashes[file.path]=try CaptureIO.sha256(file:file.url)}
+        try CaptureIO.atomicWrite(hashes,to:fixture.capture.appendingPathComponent("checksums.json"))
+        let before=try CaptureIO.sha256(file:fixture.capture.appendingPathComponent("frames.jsonl"))
+        let result=try NativeReconstruction.run(capture:fixture.capture,project:root,target:fixture.target,repair:false,thicknessMM:nil,progress:{_ in})
+        let report=try XCTUnwrap(result.report["phone_calibration"] as? [String:Any])
+        XCTAssertEqual(report["reference_registered"] as? Bool,false)
+        XCTAssertEqual(report["correction_applied"] as? Bool,false)
+        XCTAssertTrue((report["reason"] as? String ?? "").contains("not used"))
+        XCTAssertEqual(report["correction"] as? [Double],[0,0,0])
+        XCTAssertTrue(result.infos.contains{$0.name=="observed_object.stl"})
+        try VerifiedArtifactStore.verify(infos:result.infos,directory:result.directory)
+        XCTAssertEqual(try CaptureIO.sha256(file:fixture.capture.appendingPathComponent("frames.jsonl")),before)
+        XCTAssertTrue(FileManager.default.fileExists(atPath:calibration.appendingPathComponent("setup.json").path))
     }
     func testCancellationDoesNotPublishOrDeleteCapture() async throws {
         let root=try temporary();defer{try? FileManager.default.removeItem(at:root)}

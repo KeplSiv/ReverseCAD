@@ -28,13 +28,13 @@ enum NativeReconstruction {
         progress("Refining camera alignment on this iPhone…")
         let registration=try refine(&observations)
         var earlier=try earlierPass(capture:capture)
-        var referenceViews=earlier.isEmpty ? observations:earlier
-        progress("Checking the saved front depth reference…")
-        let calibration=try NativeCalibration.run(capture:capture,observations:&referenceViews)
-        for i in observations.indices {observations[i].correction=calibration.correction}
-        for i in earlier.indices {earlier[i].correction=calibration.correction}
-        try cameraJSONWrite(calibration.report,stage.appendingPathComponent("phone-calibration.json"))
-        var warnings=["Dimensions use recorded sensor scale. Physical dimensional accuracy has not been independently validated.","Unobserved surfaces and genuine holes remain open. This model is not automatically made watertight."]
+        // Rear reconstruction never consults selfie/TrueDepth setup, including
+        // references attached to older saved scans. Keep those originals intact.
+        let calibration: [String:Any] = ["status":"uncalibrated_sensor_scale","reference_registered":false,
+            "correction_applied":false,"correction":[0.0,0.0,0.0],"physical_accuracy_validated":false,
+            "reason":"Selfie calibration is not used. Dimensions use recorded rear sensor scale."]
+        try cameraJSONWrite(calibration,stage.appendingPathComponent("phone-calibration.json"))
+        var warnings=["Approximate model using recorded rear sensor scale. Physical dimensional accuracy has not been independently validated.","Unobserved surfaces and genuine holes remain open. This model is not automatically made watertight."]
         var crossPass:[String:Any]=["status":"single_saved_pass"]
         if !earlier.isEmpty {
             progress("Registering both saved passes…")
@@ -84,7 +84,7 @@ enum NativeReconstruction {
         let scanID=manifest.scanID
         var report:[String:Any]=["schema_version":1,"scan_id":scanID,"status":"ready","processing_location":"iPhone","network_requests":0,"implementation":"native-rgbd-surface-v1","bounds_mm":bounds,"measurements":measurements,"warnings":warnings,
             "surface":["kind":"observed_depth_cells","vertices":mesh.vertices.count,"triangles":mesh.faces.count,"boundary_edges":mesh.boundaryEdges,"hole_filling":false],
-            "registration":registration,"cross_pass":crossPass,"three_camera_stereo_refined_samples":stereo,"accepted_object_views":used,"phone_calibration":calibration.report,
+            "registration":registration,"cross_pass":crossPass,"three_camera_stereo_refined_samples":stereo,"accepted_object_views":used,"phone_calibration":calibration,
             "photo_detail":["status":stereo.values.reduce(0,+)>0 ? "photo_detail_integrated":"insufficient_evidence"]]
         if repair {
             progress("Checking supported damage and repair geometry on this iPhone…")

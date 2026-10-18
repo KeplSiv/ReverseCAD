@@ -5,7 +5,7 @@ import ImageIO
 struct ContentView: View {
     var body: some View {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-frontReferenceCheck") {PhoneReferenceSetup()} else if ProcessInfo.processInfo.arguments.contains("-jevPhoneCheck") { PhoneJevValidationView() } else if ProcessInfo.processInfo.arguments.contains("-localModelCheck") { NativeValidationView() } else if ProcessInfo.processInfo.arguments.contains("-multiCameraCheck") { MultiCameraValidationView() } else if ProcessInfo.processInfo.arguments.contains("-sensorCheck") {SensorCaptureProbeView()}
+        if ProcessInfo.processInfo.arguments.contains("-jevPhoneCheck") { PhoneJevValidationView() } else if ProcessInfo.processInfo.arguments.contains("-localModelCheck") { NativeValidationView() } else if ProcessInfo.processInfo.arguments.contains("-multiCameraCheck") { MultiCameraValidationView() } else if ProcessInfo.processInfo.arguments.contains("-sensorCheck") {SensorCaptureProbeView()}
         else {mainContent}
         #else
         mainContent

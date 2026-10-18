@@ -484,9 +484,6 @@ final class AppModel: ObservableObject {
             if let data=try? Data(contentsOf:source) {try data.write(to:destination,options:.atomic)}
             else if name == "counterpart_preview.json" {try? FileManager.default.removeItem(at:destination)}
         }
-        if let scanID=result.report["scan_id"] as? String {
-            try PhoneSetupStore.complete(result:result.directory.appendingPathComponent("phone-calibration.json"),scanID:scanID)
-        }
         self.scanMesh=try decoder.decode(MeshPreview.self,from:Data(contentsOf:result.directory.appendingPathComponent("scan_preview.json")))
         self.counterpartMesh=(try? Data(contentsOf:result.directory.appendingPathComponent("counterpart_preview.json"))).flatMap{try? decoder.decode(MeshPreview.self,from:$0)}
         self.updatePhotoDetail(result.report)
@@ -577,9 +574,6 @@ final class AppModel: ObservableObject {
         // No observable revision state changes until the complete immutable artifact set is verified.
         for artifact in infos {
             let file=published.appendingPathComponent(artifact.name)
-            if kind=="reconstruction",artifact.name=="phone-calibration.json",let scanID=savedScanID {
-                try PhoneSetupStore.complete(result:file,scanID:scanID)
-            }
             if artifact.name=="counterpart_preview.json" {let data=try Data(contentsOf:file);counterpartMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("counterpart_preview.json"),options:.atomic)}
             if artifact.name=="scan_preview.json" {let data=try Data(contentsOf:file);scanMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("scan_preview.json"),options:.atomic)}
             if kind=="repair" && ["preview.json","part_preview.json","mesh.json"].contains(artifact.name) {let data=try Data(contentsOf:file);partMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("part_preview.json"),options:.atomic)}

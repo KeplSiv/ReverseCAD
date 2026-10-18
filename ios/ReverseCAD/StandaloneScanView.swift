@@ -55,7 +55,7 @@ struct StandaloneScanView: View {
                             GeometryPreview(scan: mesh, part: nil, showPart: false, backgroundColor: UIColor(RepairStyle.surface)).frame(height: 350)
                                 .clipShape(RoundedRectangle(cornerRadius: 22))
                                 .accessibilityLabel("Your scanned object. Drag to rotate and pinch to zoom.")
-                            Text("Drag to rotate. Pinch to zoom. Holes and unseen surfaces remain open.").foregroundStyle(RepairStyle.secondary)
+                            Text("Approximate model. Drag to rotate and pinch to zoom. Holes and unseen surfaces remain open.").foregroundStyle(RepairStyle.secondary)
                             ForEach(Array(model.measurements.enumerated()), id: \.offset) { _, measurement in
                                 if let name = measurement["name"] as? String, let value = measurement["value"] as? Double {
                                     HStack { Text(name); Spacer(); Text(String(format: "%.2f mm", value)).monospacedDigit() }
@@ -276,13 +276,7 @@ struct StandaloneCameraView: View {
     var flow: ObjectFlow = .scan
     var embedded = false
     var detailPass = false
-    @AppStorage("reversecad.referenceArchive.v1") private var referenceArchive = ""
-    @State private var referenceSetup = false
-    @State private var referenceOpening = false
-    @State private var referenceOpeningID: UUID?
     @State private var cameraVisible = false
-    @State private var phoneSetup: PhoneSetupRecord?
-    @State private var setupLoaded = false
     var onLibrary: (() -> Void)? = nil
     var onComplete: (() -> Void)? = nil
     var onBusyChanged: ((Bool) -> Void)? = nil
@@ -298,11 +292,10 @@ struct StandaloneCameraView: View {
             if embedded { cameraContent }
             else { NavigationStack { cameraContent } }
         }.preferredColorScheme(.dark).tint(RepairStyle.accent)
-            .cameraCaptureButton(enabled:!referenceSetup && !referenceOpening && !pending && !identifier.running && capture.cameraReady && phoneSetup != nil) {
+            .cameraCaptureButton(enabled:!pending && !identifier.running && capture.cameraReady) {
                 Task {if capture.isCapturing {await finish()} else {await begin()}}
             }
             .interactiveDismissDisabled(capture.isCapturing || pending)
-            .sheet(isPresented:$referenceSetup,onDismiss:{ Task { await refreshSetupAndPreview() } }) { PhoneReferenceSetup() }
             .onAppear {
                 if detailPass,let project=model.projectDirectory,let saved=TwoPassScan.load(project)?.displayBox,saved.count==4,saved.allSatisfy(\.isFinite) {
                     let previous=CGRect(x:saved[0],y:saved[1],width:saved[2],height:saved[3]).intersection(CGRect(x:0,y:0,width:1,height:1))
@@ -332,14 +325,6 @@ struct StandaloneCameraView: View {
                                 .font(.caption2.weight(.semibold)).tracking(2)
                                 .padding(.horizontal, 16).padding(.vertical, 10)
                                 .background(RepairStyle.background.opacity(0.9), in: Capsule())
-                            if setupLoaded && phoneSetup == nil {
-                                Text("Set up the selfie camera before your first scan.")
-                                    .font(.subheadline.weight(.medium)).multilineTextAlignment(.center)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .padding(.horizontal, 14).padding(.vertical, 10)
-                                    .background(RepairStyle.background.opacity(0.95), in: RoundedRectangle(cornerRadius: 12))
-                                    .accessibilityIdentifier("selfieSetupHint")
-                            }
                         }.padding(.horizontal, 16).padding(.top, 16).allowsHitTesting(false)
                     }
                     .overlay(alignment:.topTrailing) {
@@ -367,14 +352,10 @@ struct StandaloneCameraView: View {
                         cameraControls { cameraAction(detailPass ? "Finish detail pass" : "Finish first pass", icon: "checkmark", accessibilityID: "finishObjectScan") { Task { await finish() } } }
                         Text("\(capture.frameCount) accepted views · \(capture.coverageViews) observed directions")
                             .font(.caption).foregroundStyle(RepairStyle.secondary)
-                    } else if phoneSetup == nil {
-                        cameraControls { cameraAction("Set up this phone",icon:"camera",accessibilityID:"setupPhone") { openReference() } }
-                        Text("For your first object, capture its selfie-camera and infrared depth reference. Jev checks the scene before you turn the phone for the rear scan.").font(.caption).foregroundStyle(RepairStyle.secondary)
                     } else {
                         cameraControls { cameraAction(detailPass ? "Start second 360° pass" : "Start first 360° pass", icon:"viewfinder",accessibilityID:"startObjectScan") { Task { await begin() } }.disabled(!capture.cameraReady) }
                         Text(detailPass ? "Use the same object and starting view. Your phone builds the live preview and final model." : "Drag the box around one object. Jev identifies it automatically after this first pass.")
                             .font(.caption).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
-                        if !detailPass {Button("Update phone setup") {openReference()}.font(.caption).disabled(pending)}
                     }
                 }.padding(.horizontal, 24).padding(.vertical, 20).background(RepairStyle.background)
             }.foregroundStyle(RepairStyle.text)
@@ -388,12 +369,12 @@ struct StandaloneCameraView: View {
                 .task {
                     guard !Task.isCancelled else { return }
                     cameraVisible = true
-                    await refreshSetupAndPreview()
+                    await startCameraPreview()
                 }
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
                 .onChange(of: identifier.running) { _, running in onBusyChanged?(running || pending) }
                 .onDisappear {
-                    cameraVisible = false; referenceOpening = false; referenceOpeningID = nil
+                    cameraVisible = false
                     identifier.cancel(); capture.pausePreview(); onBusyChanged?(false)
                 }
     }
@@ -416,25 +397,8 @@ struct StandaloneCameraView: View {
         identifier.cancel(clear: true); box = SelectionBox.initial; failure = nil
         await startCameraPreview()
     }
-    private func openReference() {
-        guard cameraVisible, !referenceOpening, !referenceSetup else { return }
-        let requestID = UUID()
-        referenceOpening = true; referenceOpeningID = requestID
-        capture.pausePreview {
-            guard cameraVisible, referenceOpeningID == requestID else { return }
-            referenceSetup = true
-            referenceOpening = false; referenceOpeningID = nil
-        }
-    }
-    private func refreshSetupAndPreview() async {
-        let device=PhoneSetupStore.deviceIdentity
-        phoneSetup=await Task.detached {PhoneSetupStore.load(deviceIdentity:device)}.value
-        guard !Task.isCancelled else{return}
-        setupLoaded=true
-        await startCameraPreview()
-    }
     private func startCameraPreview() async {
-        guard cameraVisible, !referenceOpening, !referenceSetup, !Task.isCancelled else { return }
+        guard cameraVisible, !Task.isCancelled else { return }
         do {try await capture.startPreview();failure=nil}
         catch is CancellationError {}
         catch {failure=error.localizedDescription}
@@ -462,13 +426,9 @@ struct StandaloneCameraView: View {
         } catch {failure=error.localizedDescription}
     }
     private func begin() async {
-        guard !pending, !capture.isCapturing, phoneSetup != nil else { return }
+        guard !pending, !capture.isCapturing else { return }
         pending = true; onBusyChanged?(true); defer { pending = false; onBusyChanged?(false) }
         do {
-            let device=PhoneSetupStore.deviceIdentity
-            guard let setup=await Task.detached(operation:{PhoneSetupStore.load(deviceIdentity:device)}).value else {
-                phoneSetup=nil;throw ServiceFailure(message:"The saved phone setup changed. Set up this phone again.")
-            }
             let name = objectDescription.trimmingCharacters(in: .whitespacesAndNewlines)
             if !detailPass {
                 model.create(name:name.isEmpty ? "Object scan" : String(name.prefix(80)),synthetic:false)
@@ -491,11 +451,7 @@ struct StandaloneCameraView: View {
                 try CaptureIO.atomicWrite(reference,to:project.appendingPathComponent("object-selection.json"))
             }
             capture.selectObject(normalizedRawImagePoint:CGPoint(x:raw.midX,y:raw.midY))
-            let profileURL=FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("PhoneCalibrationProfiles/current.json")
-            if let profile=try? Data(contentsOf:profileURL) { try profile.write(to:directory.appendingPathComponent("phone-reference-profile.json"),options:.atomic) }
-            try CaptureHardware.preserveReference(setup.archive,in:directory)
-            try PhoneSetupStore.attach(to:directory)
-            let provenance: [String:Any] = ["schema_version":1,"pass":detailPass ? "detail" : "identification","prior_pass_path":detailPass ? "identification-pass" : "","cross_pass_geometry_registered":false,"prior_information":"selected reference image, object identity and measured front reference; cross-pass geometry requires registration"]
+            let provenance: [String:Any] = ["schema_version":1,"pass":detailPass ? "detail" : "identification","prior_pass_path":detailPass ? "identification-pass" : "","cross_pass_geometry_registered":false,"selfie_reference_attached":false,"selfie_reference_status":"Selfie calibration is disabled for this scan flow.","prior_information":"selected rear reference image and object identity; dimensions use recorded rear sensor scale"]
             try JSONSerialization.data(withJSONObject:provenance,options:[.sortedKeys]).write(to:directory.appendingPathComponent("pass-provenance.json"),options:.atomic)
             try await capture.start(directory: directory, scanID: UUID().uuidString)
             model.captureActive = true

@@ -112,11 +112,6 @@ struct SavedObjectIdentity: Codable {
                     detections.append(result)
                 }
                 let confirmed = ObjectConsensus.confirmed(detections, anchor: anchor, referenceCategory: referenceCategory)
-                if !confirmed.isEmpty {
-                    message = "Checking the same object against your front depth reference…"
-                    try await Self.linkFrontReference(capture:capture,rear:reference,rearBox:selectedBox,client:client,key:key)
-                    try Task.checkCancellation();guard epoch==generation else{return}
-                }
                 let record = SavedObjectIdentity(sourceFramesSHA256: try CaptureIO.sha256(file: capture.appendingPathComponent("frames.jsonl")), referenceID: selection == nil ? first.frameID : referencePath, anchor: [anchor.x, anchor.y], frameIDs: views.map(\.frameID),
                     detections: detections, confirmedIndices: confirmed, category: referenceCategory ?? detections.first?.category ?? "other", userSelected: point != nil, referenceBox:selectedBox.map{[$0.minX,$0.minY,$0.width,$0.height]}, referenceImageSHA256:try CaptureIO.sha256(file:capture.appendingPathComponent(referencePath)))
                 identity = record
@@ -139,25 +134,6 @@ struct SavedObjectIdentity: Codable {
             }
             if epoch == generation { task = nil }
         }
-    }
-
-    private nonisolated static func linkFrontReference(capture:URL,rear:Data,rearBox:CGRect?,client:JevClient,key:String) async throws {
-        let setupURL=capture.appendingPathComponent("calibration/setup.json")
-        guard FileManager.default.fileExists(atPath:setupURL.path) else {return} // Legacy saved sessions remain usable.
-        let setup=try JSONSerialization.jsonObject(with:Data(contentsOf:setupURL)) as? [String:Any]
-        guard setup?["same_object_required"] as? Bool==true else {return}
-        let root=capture.appendingPathComponent("calibration/front")
-        let review=try JSONDecoder().decode(JevReferenceReview.self,from:Data(contentsOf:root.appendingPathComponent("scene-review.json")))
-        let evidence=try JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("reference-evidence.json"))) as? [String:Any]
-        guard review.accepted,let imagePath=evidence?["rgb"] as? String else {throw ServiceFailure(message:"The first scan needs its accepted front reference. Repeat phone setup.")}
-        let front=try requestImage(CaptureIO.safeURL(directory:root,path:imagePath)),b=review.box
-        let result=try await client.identifySavedView(jpeg:rear,reference:front,description:"the SAME first calibration object",anchor:CGPoint(x:(b.left+b.right)/2,y:(b.top+b.bottom)/2),requestID:UUID(),apiKey:key,referenceBox:CGRect(x:b.left,y:b.top,width:b.right-b.left,height:b.bottom-b.top))
-        try Task.checkCancellation()
-        guard let match=result.box,let target=rearBox else {throw ServiceFailure(message:"This rear view could not be matched to the front reference. Keep the same object in place. You can retry these saved views or repeat phone setup.")}
-        let actual=CGRect(x:match.left,y:match.top,width:match.right-match.left,height:match.bottom-match.top)
-        let intersection=actual.intersection(target)
-        guard !intersection.isNull,intersection.width*intersection.height >= min(actual.width*actual.height,target.width*target.height)*0.5 else {throw ServiceFailure(message:"The selected rear object differs from the front reference. Select the same object in the saved image, or repeat phone setup with this object.")}
-        try cameraJSONWrite(["schema_version":1,"same_instance":true,"front_request_sha256":CaptureIO.sha256(front),"rear_request_sha256":CaptureIO.sha256(rear),"evidence_sha256":setup?["evidence_sha256"] ?? "","model":result.model,"box":[match.left,match.top,match.right,match.bottom]],capture.appendingPathComponent("calibration/object-link.json"))
     }
 
     func build(project: URL, capture: URL, completion: @escaping ([String: Any]) -> Void) {

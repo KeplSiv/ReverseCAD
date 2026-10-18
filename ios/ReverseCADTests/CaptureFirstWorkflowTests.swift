@@ -116,7 +116,7 @@ private final class SavedViewProtocol: URLProtocol {
 
 
 extension CaptureFirstWorkflowTests {
-    func testFirstObjectMustMatchFrontReferenceAndRetryKeepsRearCapture() async throws {
+    func testSelfieReferenceIsIgnoredWithoutChangingSavedCapture() async throws {
         let directory=try capture(),front=directory.appendingPathComponent("calibration/front")
         try FileManager.default.createDirectory(at:front,withIntermediateDirectories:true)
         let jpeg=try Data(contentsOf:directory.appendingPathComponent("rgb/0.jpg"))
@@ -127,17 +127,24 @@ extension CaptureFirstWorkflowTests {
         let reference=ObjectSelectionReference(imageSHA256:CaptureIO.sha256(jpeg),rawBox:[0.1,0.1,0.8,0.8],detection:nil)
         try jpeg.write(to:directory.appendingPathComponent(reference.imagePath))
         try CaptureIO.atomicWrite(reference,to:root.appendingPathComponent("object-selection.json"))
-        let before=try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl")),value=workflow()
+        _ = try ScanPackageWriter.recover(directory:directory).finish()
+        let before=try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl"))
+        let checksumsBefore=try Data(contentsOf:directory.appendingPathComponent("checksums.json"))
+        let value=workflow()
         SavedViewProtocol.referenceMismatch=true
         value.find(project:root,capture:directory,description:"");try await settle(value)
-        XCTAssertTrue(value.failure?.contains("front reference") == true)
-        XCTAssertEqual(SavedViewProtocol.count,12)
-        XCTAssertFalse(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/object-link.json").path))
-        SavedViewProtocol.referenceMismatch=false
-        value.find(project:root,capture:directory,description:"");try await settle(value)
+        XCTAssertNil(value.failure)
         XCTAssertEqual(value.phase,"identified")
-        XCTAssertTrue(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/object-link.json").path))
+        XCTAssertEqual(SavedViewProtocol.count,11)
+        XCTAssertFalse(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/object-link.json").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/reference-not-used.json").path))
+        _ = try ScanPackageWriter.validate(directory:directory)
+        XCTAssertEqual(checksumsBefore,try Data(contentsOf:directory.appendingPathComponent("checksums.json")))
         XCTAssertEqual(before,try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl")))
+        let photo=directory.appendingPathComponent("rgb/0.jpg")
+        var changed=try Data(contentsOf:photo);changed.append(0)
+        try changed.write(to:photo)
+        XCTAssertThrowsError(try ScanPackageWriter.validate(directory:directory))
     }
     func testAdjustableBoxIdentificationIsSavedAndReusedAfterCapture() async throws {
         let id=BoxObjectIdentifier(clientFactory:{
