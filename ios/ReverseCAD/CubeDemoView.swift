@@ -40,6 +40,7 @@ struct CubeDemoView: View {
     @State private var corners: [CGPoint] = []
     @State private var finding: CubeFinding?
     @State private var showLibrary = false
+    @State private var showObservedScans = false
     @State private var showSettings = false
     @State private var manualCorners = false
     @State private var status = ""
@@ -60,7 +61,7 @@ struct CubeDemoView: View {
                 CubeScanCapture(onFinish: { frames in
                     photo = frames.last
                     Task { await analyzeFrames(frames) }
-                }, onLibrary: { showLibrary = true }, onSettings: { showSettings = true }, onLastModel: { restoreLastModel() })
+                }, onLibrary: { showLibrary = true }, onSettings: { showSettings = true }, onLastModel: { restoreLastModel() }, onObservedScans: { showObservedScans = true })
             } else {
                 NavigationStack {
                     ScrollView {
@@ -155,6 +156,7 @@ struct CubeDemoView: View {
                 await analyze()
             }
         }
+        .sheet(isPresented: $showObservedScans) { ObservedScanReview().environmentObject(model) }
         .sheet(isPresented: $showSettings) { SettingsView().environmentObject(model) }
         .confirmationDialog("Send this CAD for review?", isPresented: $showCADConsent, titleVisibility: .visible) {
             Button("Send to Jev + Grok") { Task { await reviewCAD() } }
@@ -468,6 +470,7 @@ private struct CubeScanCapture: View {
     let onLibrary: () -> Void
     let onSettings: () -> Void
     let onLastModel: () -> Void
+    let onObservedScans: () -> Void
     @StateObject private var camera = CubeScanCamera()
     @State private var finishing = false
     @State private var scanning = false
@@ -482,6 +485,7 @@ private struct CubeScanCapture: View {
                     Menu {
                         Button("Connection", action: onSettings)
                         Button("Last model", action: onLastModel)
+                        Button("Review whole saved scan", action: onObservedScans)
                     } label: { Image(systemName: "ellipsis.circle").font(.title2) }.disabled(scanning)
                 }.padding().background(.black.opacity(0.35))
                 Spacer()
@@ -566,5 +570,67 @@ private struct CubeModelPreview: UIViewRepresentable {
         camera.camera?.zFar = 1000
         scene.rootNode.addChildNode(camera)
         return scene
+    }
+}
+
+private struct ObservedScanReview: View {
+    @EnvironmentObject var model: AppModel
+    @State private var scans: [[String: Any]] = []
+    @State private var selected: String?
+    @State private var busy = false
+    @State private var result = ""
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("Reviews the observed object’s geometry and photos. Missing coverage stays unknown; this does not generate a replacement.")
+                    ForEach(scans.indices, id: \.self) { index in
+                        let scan = scans[index]
+                        Button {
+                            selected = scan["scan_id"] as? String
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(scan["project_id"] as? String ?? "Saved scan")
+                                Text(String((scan["scan_id"] as? String ?? "").prefix(8))).font(.caption)
+                            }
+                        }.disabled(busy)
+                    }
+                }
+                if let selected {
+                    Section {
+                        Text("Selected: " + String(selected.prefix(8)))
+                        Button(busy ? "Analyzing observed geometry…" : "Send whole scan to Jev + Grok") {
+                            Task { await review(selected) }
+                        }.disabled(busy)
+                        Text("Sends captured photos to TypeSafe and observed geometry, projections and photos to xAI.").font(.caption)
+                    }
+                }
+                if !result.isEmpty { Section("Unverified analysis") { Text(result) } }
+            }.navigationTitle("Whole-object review")
+                .task {
+                    do {
+                        let response = try await model.object("v1/observed-scans")
+                        scans = response["scans"] as? [[String: Any]] ?? []
+                        if scans.isEmpty { result = "No reconstructed scans on this Mac service." }
+                    } catch { result = error.localizedDescription }
+                }
+        }
+    }
+    private func review(_ id: String) async {
+        busy = true; result = ""
+        defer { busy = false }
+        do {
+            let response = try await model.object("v1/scans/\(id)/reason", method: "POST", json: ["consent_to_send": true])
+            guard let review = response["review"] as? [String: Any] else {
+                result = "Analysis unavailable: " + (response["status"] as? String ?? "unknown")
+                return
+            }
+            var lines = [review["summary"] as? String ?? ""]
+            lines += (response["capture_warnings"] as? [String] ?? []).map { "Capture: " + $0 }
+            lines += (review["concerns"] as? [String] ?? []).map { "Check: " + $0 }
+            lines += (review["next_views"] as? [String] ?? []).map { "Next view: " + $0 }
+            lines += ["No replacement generated. Inferences and fit remain unverified."]
+            result = lines.joined(separator: "\n\n")
+        } catch { result = error.localizedDescription }
     }
 }

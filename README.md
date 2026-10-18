@@ -164,3 +164,33 @@ Validation for this initial integration: 27 focused backend tests passed; iPhone
 Debug build succeeded and was installed. Three live Grok calls reviewed an edge
 and corner, including a corner retry with CAD renders. Unsupported claims remained;
 no geometry changes were applied and no physical fit was validated.
+
+### Whole observed-object reasoning
+
+The camera menu now has **Review whole saved scan**. This lists reconstructed
+captures on the paired Mac; selecting one sends its observed geometry and source
+frames through Jev → Grok. The route is `POST /v1/scans/{scan_id}/reason` with
+`{"consent_to_send":true}`; it verifies ownership and preview checksums.
+
+Unlike replacement-CAD review, this path reads the entire available scan preview,
+extracts bounded planar fits, calculates pairwise angles/distances, and supplies
+a sampled point cloud plus three observed projections. Original measurements,
+capture warnings, annotation context and unknown coverage remain explicit.
+No replacement model is substituted for absent scan geometry. Empty previews
+are rejected. A point cloud and fitted planes are **not complete editable CAD**.
+Plane relationships are hypotheses, not confirmed symmetry or donor matches.
+Grok can propose further inspection or copying a feature; this endpoint does not
+execute those proposals or generate a replacement.
+
+Offline/live replay:
+```sh
+PYDANTIC_DISABLE_PLUGINS=__all__ PYTHONPATH=backend python scripts/reason_scan.py \
+  --reconstruction work/reconstruction/reconstruction.json \
+  --reference selected-scan-photo.jpg --output work/observed-review --live
+```
+
+The saved mixed edge/corner capture was rebuilt from native depth because its
+previous observed preview was empty. The live review received six observed plane
+fits and the scan projections. It found insufficient reliable donor geometry:
+depth inconsistency remains a capture/reconstruction limitation. This proves the
+whole-observation handoff, not successful repair or fit.

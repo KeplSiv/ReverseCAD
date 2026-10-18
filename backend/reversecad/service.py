@@ -563,6 +563,41 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
         runner.wake.set()
         return view_job(job_for(job_id))
 
+    @app.get("/v1/observed-scans",dependencies=[Depends(authorize)])
+    def observed_scans():
+        return {"scans":store.all("SELECT scan_id,project_id,created_at FROM scans WHERE owner=? AND committed=1 AND reconstruction IS NOT NULL ORDER BY created_at DESC LIMIT 50",(owner,))}
+
+    @app.post("/v1/scans/{scan_id}/reason",dependencies=[Depends(authorize)])
+    def reason_observed_scan(scan_id: str, body: dict):
+        from .scan_reasoning import review_scan
+        scan=scan_for(scan_id)
+        if body.get("consent_to_send") is not True:
+            error(422,"consent_required","Approve sending scan geometry and photos to Jev and Grok")
+        if not scan["reconstruction"]:
+            error(409,"reconstruction_required","Reconstruct the observed scan first")
+        reconstruction=json.loads(scan["reconstruction"])
+        asset=next((a for a in reconstruction.get("artifacts",[]) if a["name"]=="scan_preview.json"),None)
+        item=store.one("SELECT * FROM artifacts WHERE artifact_id=? AND owner=?",(asset["id"],owner)) if asset else None
+        if not item or not Path(item["path"]).is_file() or digest(Path(item["path"]))!=item["sha256"]:
+            error(409,"observed_geometry_missing","Observed geometry is missing or corrupt")
+        try:
+            if Path(item["path"]).stat().st_size>64_000_000: raise ValueError("Observed preview too large")
+            preview=json.loads(Path(item["path"]).read_text())
+            root=store.scan_dir(scan_id)
+            frames=[json.loads(line) for line in (root/"frames.jsonl").read_text().splitlines() if line.strip()]
+            accepted=set(reconstruction.get("observations",{}).get("accepted_frames",[]))
+            frames=[f for f in frames if not accepted or f["frame_id"] in accepted]
+            selected=frames[::max(1,len(frames)//3)][:3]
+            images=[]
+            for frame in selected:
+                name=frame["rgb_path"];safe_asset_path(name)
+                path=(root/name).resolve()
+                if not path.is_relative_to(root.resolve()) or path.stat().st_size>8_000_000: raise ValueError("Invalid reference frame")
+                images.append(path.read_bytes())
+            return review_scan(reconstruction,preview,images,consent=True,annotations=store.annotations(scan))
+        except (ValueError,KeyError,TypeError,OSError) as exc:
+            error(422,"scan_reasoning_unavailable",str(exc)[:200])
+
     @app.post("/v1/scans/{scan_id}/reconstruction",dependencies=[Depends(authorize)])
     def reconstruction(scan_id: str, body: ReconstructionRequest | None = Body(default=None)):
         return enqueue(scan_for(scan_id),"reconstruction",reconstruction_request_id=body.request_id if body else None)
