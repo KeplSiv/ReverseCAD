@@ -13,6 +13,13 @@ final class CameraPreviewTests:XCTestCase {
         }
         CVPixelBufferUnlockBaseAddress(original,[])
         let copy=try ReferenceBufferCopy.pixel(original)
+        let context=CIContext(options:[.cacheIntermediates:false])
+        func decoded(_ buffer:CVPixelBuffer)->[UInt8] {
+            var bytes=[UInt8](repeating:0,count:64*48*4)
+            context.render(CIImage(cvPixelBuffer:buffer),toBitmap:&bytes,rowBytes:64*4,bounds:CGRect(x:0,y:0,width:64,height:48),format:.RGBA8,colorSpace:CGColorSpaceCreateDeviceRGB())
+            return bytes
+        }
+        XCTAssertEqual(decoded(original),decoded(copy))
         CVPixelBufferLockBaseAddress(original,[])
         CVPixelBufferGetBaseAddressOfPlane(original,0)!.storeBytes(of:UInt8(99),as:UInt8.self)
         CVPixelBufferUnlockBaseAddress(original,[])
