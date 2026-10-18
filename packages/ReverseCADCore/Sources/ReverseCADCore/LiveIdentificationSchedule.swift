@@ -7,7 +7,7 @@ public struct LiveIdentificationSchedule {
         public let sequence: Int
         public let sentAt: TimeInterval
     }
-    public static let interval: TimeInterval = 0.2
+    public static let interval: TimeInterval = 0.1
     public static let maximumAge: TimeInterval = 1.2
     public static let maximumInFlight = 4
     public private(set) var running = false

@@ -1,16 +1,20 @@
 # Prelude standalone scan update
 
-Prelude's `PreludeScanner` target starts with an object description, automatically calls TypeSafe directly from the iPhone approximately every 200 ms, and displays fresh category/box results over the moving camera preview. Tap **Scan outlined object** to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens the observed 3D preview, measurements and exports. It does not continue into repair generation.
+Prelude's `PreludeScanner` target starts with an object description, automatically calls TypeSafe directly from the iPhone approximately every 100 ms, and displays fresh category/box results over the moving camera preview. Tap **Scan outlined object** to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens the observed 3D preview, measurements and exports. It does not continue into repair generation.
 
 TestFlight uses public ARKit processed scene depth and the physical rear wide camera. It contains no private sparse capture sources. The separate sparse Debug target and its archive/distribution guards remain intact. The code and specification are published only to `pranav-dev`; no merge into `main` is part of this release.
 
 ## Continuous Jev detection
 
-The live loop replaces the earlier tap-to-identify/frozen-image Jev flow. It targets 200 ms between new JPEG requests, permits four in flight, drops opportunities under backpressure and never queues stale frames. It continues during capture, pauses in the background, and stops on close, finish or manual selection. Resuming waits for a new camera frame. Manual box selection remains available and uses a frozen local image.
+The live loop replaces the earlier tap-to-identify/frozen-image Jev flow. It targets 100 ms between new JPEG requests, permits four in flight, drops opportunities under backpressure and never queues stale frames. It continues during capture, pauses in the background, and stops on close, finish or manual selection. Resuming waits for a new camera frame. Manual box selection remains available and uses a frozen local image.
 
 Results are bound to the request UUID and JPEG hash. Out-of-order, expired (>1.2 seconds), absent, ambiguous and pose-stale detections cannot confirm a scan. Boxes disappear if camera translation exceeds 2.5 cm or any camera-axis cosine drops below 0.995 relative to the source frame. The overlay uses the AR frame's display transform. Confirmation saves the source JPEG, frame timestamp, response and box. Later Jev overlays do not switch the measurement tracker to a different object.
 
-Network/service failures back off for 2, 4, then 8 seconds; rate limits honor the supplied delay up to 300 seconds. Invalid credentials, access denial and exhausted credits stop retries and show specific messages. Direct client requests time out after 3 seconds. No Mac URL or pairing token is used by Jev detection. Actual displayed update rate depends on network latency, model latency, camera motion and available frames; 200 ms is a dispatch target, not a guaranteed inference latency.
+Network/service failures back off for 2, 4, then 8 seconds; rate limits honor the supplied delay up to 300 seconds. Invalid credentials, access denial and exhausted credits stop retries and show specific messages. Direct client requests time out after 3 seconds. No Mac URL or pairing token is used by Jev detection. Actual displayed update rate depends on network latency, model latency, camera motion and available frames; 100 ms is a dispatch target, not a guaranteed inference latency.
+
+## 100 ms interval — build 30
+
+At the user's request, the live dispatch interval is now 100 ms (10 requests per second when frames, connection capacity and provider latency permit). The existing limit of four concurrent requests, stale-reply checks, no-catch-up behavior and error backoff remain unchanged. The cadence regression now verifies no request before 100 ms, a request at 100 ms, saturation at four active requests and no catch-up burst. All 27 offline shared Swift tests passed; the opt-in live-provider test was skipped for this timing-only change. Signed archive, export and IPA verification passed. Apple accepted all 1,815,755 IPA bytes under upload ID `27a6ce4e-666f-439f-966d-98fc8eb56941`. Verified IPA SHA-256: `8346c1c5b9c3406913a65383fea01a578b16705fe3ca65158884a3f943066078`.
 
 ## Direct connection correction — build 29
 

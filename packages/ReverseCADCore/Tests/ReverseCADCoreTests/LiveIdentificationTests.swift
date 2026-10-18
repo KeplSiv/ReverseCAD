@@ -5,11 +5,12 @@ final class LiveIdentificationTests: XCTestCase {
     func testCadenceAndBackpressureWithoutCatchUpBurst() throws {
         var schedule = LiveIdentificationSchedule(); schedule.start(at: 0)
         let first = try XCTUnwrap(schedule.reserve(at: 0))
+        XCTAssertNil(schedule.reserve(at: 0.099))
+        XCTAssertNotNil(schedule.reserve(at: 0.1))
         XCTAssertNil(schedule.reserve(at: 0.199))
         XCTAssertNotNil(schedule.reserve(at: 0.2))
-        XCTAssertNotNil(schedule.reserve(at: 0.4))
-        XCTAssertNotNil(schedule.reserve(at: 0.601))
-        XCTAssertNil(schedule.reserve(at: 0.9)) // Four requests still active; drop this frame.
+        XCTAssertNotNil(schedule.reserve(at: 0.301))
+        XCTAssertNil(schedule.reserve(at: 0.5)) // Four requests still active; drop this frame.
         XCTAssertTrue(schedule.complete(first, at: 1))
         XCTAssertNotNil(schedule.reserve(at: 1))
         XCTAssertNil(schedule.reserve(at: 1)) // No catch-up queue.
