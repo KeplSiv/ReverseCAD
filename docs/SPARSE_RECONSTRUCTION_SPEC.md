@@ -22,7 +22,7 @@ Object description directs identification and foreground selection. It is not ev
 
 ### B. Identify it in the camera view
 
-Open the physical rear 1× camera and use the requested **Jev** vision component to locate the described object in the current field of view. The exact Jev model/service identifier is awaiting clarification; do not silently substitute another provider and claim it is Jev.
+Open the physical rear 1× camera and use **TypeSafe Jev** for category recognition and the initial object bounding box. The prototype targets `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
 
 Show the proposed target with a visible box and, when supported, a foreground outline. Let the user confirm the correct object or tap a different one. If several objects match, ask which one. If none matches reliably, ask the user to reframe, improve lighting or refine the description. Manual target selection must remain available if identification is unavailable.
 
@@ -46,43 +46,79 @@ The main action is **Export scan**. No repair recommendation, replacement-part g
 
 Export a package containing supported observed geometry, CAD representation, dimensions and provenance. If geometry is incomplete, say so and export an honest open surface or point cloud where possible. If metric scale is unsupported, do not label arbitrary units as mm or enable a measured CAD export.
 
-## 3. Vision identification contract
+## 3. Jev classification and bounding-box contract
 
-Jev is an object-identification/selection assistant, not the metrology engine. Its proposed contract is:
+**Provider resolved: TypeSafe AI’s Jev.** Use the documented HTTP endpoint `POST https://api.typesafe.ai/v1/systemone`, authenticated on the Mac service with a TypeSafe key. Keep credentials out of the phone app, capture packages and repository. The response identifies the actual model and token usage. [API reference](https://docs.typesafe.ai/api)
+
+Pin `jev-1.14.0` for repeatable prototype evaluation; the documented `jev-preview` alias also supports Box. Check the account’s model list before integration and retain the returned model ID. Image-bearing calls need `TypeSafe-Danger-Zone-Images: true`. Send JPEG/PNG through documented assets, preserving the original-to-request image transform. These image capabilities are experimental. [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images)
+
+One request can ask for category, target presence, instance count and location. `choice` supplies a selected label, option probabilities and confidence; include an explicit fallback category. [Choice](https://docs.typesafe.ai/primitives/choice)
+
+`box` supplies normalized `top`, `bottom`, `left`, `right` edges and confidence, one target per question. It takes no `criteria` and **always returns a rectangle, including when the target is absent**. Gate use of the box on the companion presence/instance decisions and user confirmation. [Box](https://docs.typesafe.ai/primitives/box)
+
+The following is an adapter request template, with an image reference generated uniquely for each real request. Replace `BASE64_JPEG_BYTES` with actual encoded data. The question wording and categories are application choices to evaluate on scan scenes, not a provider guarantee:
 
 ```json
 {
-  "request": {
-    "scan_id": "...",
-    "frame_id": "...",
-    "object_description": "small plastic box",
-    "image": "selected camera frame",
-    "image_width": 1280,
-    "image_height": 720
+  "model": "jev-1.14.0",
+  "state": {
+    "photo": "ac83f921-scan-frame",
+    "object_description": "the small plastic box on the table"
   },
-  "response": {
-    "target_found": true,
-    "label": "plastic box",
-    "bounding_box_normalized_xywh": [0.2, 0.15, 0.5, 0.6],
-    "mask_reference": null,
-    "confidence": null,
-    "alternatives": [],
-    "reason": "..."
+  "assets": {
+    "ac83f921-scan-frame": {
+      "type": "image",
+      "format": "jpg",
+      "data_base64": "BASE64_JPEG_BYTES"
+    }
+  },
+  "questions": {
+    "category": {
+      "type": "choice",
+      "instructions": "Which category describes the visible object matching `object_description` in `photo`?",
+      "criteria": {
+        "box": "Box, case or rectangular container",
+        "cup": "Cup or mug",
+        "bottle": "Bottle or cylindrical vessel",
+        "bracket": "Bracket or mounting component",
+        "other": "Another visible object category",
+        "not_visible": "The requested object is not visible"
+      }
+    },
+    "present": {
+      "type": "noul",
+      "instructions": "Is the object described by `object_description` visible in `photo`?"
+    },
+    "instances": {
+      "type": "choice",
+      "instructions": "How many visible objects in `photo` match `object_description`?",
+      "criteria": {
+        "none": "No matching object",
+        "one": "Exactly one matching object",
+        "several": "Multiple matching objects"
+      }
+    },
+    "target_box": {
+      "type": "box",
+      "instructions": "Locate the object described by `object_description` in `photo`."
+    }
   }
 }
 ```
 
-This is a proposed interface, not a claim that Jev currently implements these fields. Responses must retain frame ID, provider/model identity and the input-to-original-image transform. A reported score is not assumed calibrated. Validate finite normalized coordinates, dimensions and mask bounds; reject malformed or stale responses.
+**Application handling:** associate `answers.category`, `answers.present`, `answers.instances` and `answers.target_box` with the exact source frame. Reject nonfinite/reversed/out-of-bounds edges and stale frame responses. With absent or ambiguous targets, suppress automatic lock and request a clearer description or user selection. Tune decision thresholds on representative scans; no arbitrary threshold is claimed validated.
 
-The user-confirmed target initializes per-frame tracking/segmentation. Identification can be refreshed when appearance changes or tracking is lost, but a new response cannot overwrite the target without checking instance continuity. Bounding boxes alone may contain background; combine segmentation, multi-view geometry and review rather than treating every in-box point as object evidence.
+Convert normalized box edges to request-image pixels, undo any resize/padding/crop, then apply the recorded camera-to-screen transform for the visible overlay. Keep those transforms and detection provenance. A category/box result must not replace the object with a category-shaped primitive.
 
-Store original images and derived boxes/masks separately. Vision outputs must not supply metric scale, hidden dimensions, fabricated depth or unseen geometry. Provider failure remains distinct from sensor failure and reconstruction failure. Record provider configuration and request provenance; never export credentials.
+The Jev box initializes local foreground segmentation and tracking. The rectangle itself is not a pixel mask or a 3D boundary. Produce per-view masks and check instance continuity as the camera moves. Re-query Jev on deliberate target selection, tracking loss or an unresolved scene change; avoid sending every camera frame. Bound request queues, cache same-frame results and record latency/token usage. Actual cost and accuracy on this workflow remain to be measured.
+
+Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. No live Jev request or credentials have been used merely to prepare this specification.
 
 ## 4. Module architecture
 
 ```mermaid
 flowchart LR
-    P[What are you scanning?] --> V[Jev identification and user confirmation]
+    P[What are you scanning?] --> V[Jev category and Box plus user confirmation]
     V --> T[Target box and foreground tracking]
     A[Physical rear 1x images] --> C[Checksummed capture package]
     B[Timed sparse range packets] --> C
@@ -247,7 +283,7 @@ Until these checks pass, report which stage is incomplete rather than claiming a
 
 Implemented local core resides in `backend/reversecad/sparse/` (`capture`, `decoder`, `sfm`, `registration`, `stereo`, `pipeline`, `import_prelude`), `research/sparse-capture/`, the research branches of `ios/ReverseCAD/CaptureARKit.swift`, and shared package/schema validation. Existing core result artifacts include `points_measurement.npz`, `observed_points_m.ply`, optional `observed_surface_m.ply`, `scan_preview.json`, `point_support.json`, `direct_range_points.npz`, `camera_poses.json`, `decoded_sparse.jsonl`, `sparse_associations.json` and `selected_sparse_support.json`.
 
-The standalone prompt/selection/review/export adapters still need implementation. Do not expose the previous prototype's “Continue to repair” screen as this component's finished UI. Do not publish private capture code through a distribution target.
+The TypeSafe provider and Box request contract are now identified. The standalone prompt/selection/review/export adapters still need implementation. Do not expose the previous prototype's “Continue to repair” screen as this component's finished UI. Do not publish private capture code through a distribution target.
 
 Core-only reproduction from a worktree containing the implementation:
 
@@ -262,4 +298,4 @@ PYTHONPATH=backend .venv/bin/python -m pytest -q backend/tests/test_sparse_recon
 swift test --package-path packages/ReverseCADCore
 ```
 
-Use fresh output paths and preserve source recordings. These commands exercise the implemented geometry core, not the pending Jev and scanned-object STEP workflow. No live provider key is required for the core; the Jev adapter's configuration is a separate pending integration detail.
+Use fresh output paths and preserve source recordings. These commands exercise the implemented geometry core, not the pending Jev and scanned-object STEP workflow. No live provider key is required for the core; TypeSafe account credentials and live adapter validation remain implementation setup, not an unresolved provider identity.
