@@ -111,6 +111,9 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         self.segments = [initial]
         self.writer = try ScanPackageWriter(directory: directory, manifest: CaptureManifest(scanID: scanID, source: useDepth ? "arkit" : "camera_manual", device: "\(UIDevice.current.model) / iOS \(UIDevice.current.systemVersion)", segments: [initial]), maxBytes: limits.bytes)
         super.init()
+        if FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration-profile.json").path) {
+            try writer.finalizeAsset(path:"calibration-profile.json")
+        }
         motionQueue.maxConcurrentOperationCount = 1
         motionQueue.name = "com.pranav.reversecad.motion"
         let initialDiagnostics: [String: Any] = ["schema_version": 2, "timestamp_clock": "seconds_since_first_ARFrame", "scan_id": scanID, "capture_complete": false, "video_complete": false, "status": "capture_started_unfinalized; recover committed frames after interruption", "depth_units": "m", "pose_source": "ARKit visual-inertial world tracking"]

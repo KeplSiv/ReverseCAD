@@ -8,6 +8,8 @@ struct StandaloneScanView: View {
     @State private var description = ""
     @State private var camera = false
     @State private var settings = false
+    @State private var referenceSetup = false
+    @AppStorage("prelude.referenceArchive.v1") private var referenceArchive = ""
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -55,6 +57,13 @@ struct StandaloneScanView: View {
                         Button("Export original capture") { model.exportScan() }.disabled(model.busy || workflow.working)
                         Button("Back to scans") { workflow.cancel(); model.selectedID = nil }.disabled(model.busy)
                     } else {
+                        if referenceArchive.isEmpty {
+                            Button("Set up this phone") { referenceSetup = true }.buttonStyle(.borderedProminent)
+                            Text("Capture a front reference before scanning the same stationary object. Setup is provisional until independently validated.").font(.footnote).foregroundStyle(.secondary)
+                        } else {
+                            Text("Front reference saved · factory rear calibration active").font(.caption).foregroundStyle(.secondary)
+                            Button("Capture another phone reference") { referenceSetup = true }
+                        }
                         Text("Frame object").font(.largeTitle.bold())
                         Text("Place one object inside the box.").font(.title3)
                         TextField("Description (optional)", text: $description, axis: .vertical).textFieldStyle(.roundedBorder).lineLimit(1...3).accessibilityIdentifier("scanObjectDescription")
@@ -69,6 +78,7 @@ struct StandaloneScanView: View {
             }.navigationTitle("Prelude").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { settings = true } label: { Image(systemName: "network") }.accessibilityLabel("Connection").disabled(model.busy || model.captureActive || workflow.working) } }
                 .sheet(isPresented: $settings) { SettingsView() }
+                .sheet(isPresented: $referenceSetup) { PhoneReferenceSetup() }
                 .fullScreenCover(isPresented: $camera, onDismiss: { resumeSaved() }) { StandaloneCameraView(objectDescription: description) }
                 .sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
                 .task(id: model.selectedID) { if !camera { resumeSaved() } }
@@ -106,6 +116,7 @@ struct StandaloneCameraView: View {
     @State private var pending = false
     @State private var failure: String?
     @State private var delivered = false
+    @State private var cameraReady = false
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -119,13 +130,16 @@ struct StandaloneCameraView: View {
                         Text("\(capture.frameCount) accepted views · \(capture.coverageViews) observed directions").font(.caption)
                         Button("Finish") { Task { await finish() } }.buttonStyle(.borderedProminent).disabled(pending)
                     } else {
-                        Button("Start scan") { Task { await begin() } }.buttonStyle(.borderedProminent).disabled(pending).accessibilityIdentifier("startObjectScan")
+                        if cameraReady {
+                            Button("Start scan") { Task { await begin() } }.buttonStyle(.borderedProminent).disabled(pending).accessibilityIdentifier("startObjectScan")
+                        } else {
+                            Button("Start camera") { Task { do { try await capture.startPreview(); cameraReady = true } catch { failure = error.localizedDescription } } }.buttonStyle(.borderedProminent)
+                        }
                         Text("Full images are saved locally. The box is only a framing hint.").font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(.horizontal, 20).padding(.bottom, 16)
             }.navigationTitle(capture.isCapturing ? "Scan around it" : "Frame object").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarLeading) { Button(capture.isCapturing ? "Save & close" : "Close") { Task { if capture.isCapturing { await finish() } else { dismiss() } } }.disabled(pending) } }
-                .task { do { try await capture.startPreview() } catch { failure = error.localizedDescription } }
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
                 .onDisappear { capture.session.pause() }
         }.interactiveDismissDisabled(capture.isCapturing || pending)
@@ -138,6 +152,11 @@ struct StandaloneCameraView: View {
             model.create(name: name.isEmpty ? "Object scan" : String(name.prefix(80)), synthetic: false)
             model.update { $0.repairScope = "standalone_scan"; $0.intent = String(name.prefix(240)) }
             guard let directory = model.scanDirectory else { return }
+            let profiles = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("PhoneCalibrationProfiles/current.json")
+            if FileManager.default.fileExists(atPath:profiles.path) {
+                try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
+                try Data(contentsOf:profiles).write(to:directory.appendingPathComponent("calibration-profile.json"),options:.atomic)
+            }
             try await capture.start(directory: directory, scanID: UUID().uuidString)
             model.captureActive = true
         } catch { failure = error.localizedDescription; model.captureActive = false }
