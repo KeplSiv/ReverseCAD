@@ -20,7 +20,7 @@ At the user's request, the personal internal build includes a generated `Prelude
 
 Validation: 27 offline shared Swift tests passed; the opt-in live provider test also passed. The live check ran the exact Swift direct client, returned a category and box from `jev-1.14.0`, and completed in 238 ms on the synthetic calibration image. See `jev-direct-check.json`. Tests cover direct destination/authentication/schema, absence/ambiguity/invalid boxes, actionable 400/401/402/403 errors, redaction of provider response bodies, and 429 backoff. The Release simulator build passed, its bundled key resource matched the configured key, and the application launched to its home screen. Live phone detection remains to be checked on the user's device.
 
-Build 29 signing, package verification, upload and internal availability are recorded below once complete. The previous verified build 28 evidence is retained here for provenance.
+Build 29 passed signed archive, export and IPA verification, including the personal credential resource hash and exclusion of private sensor symbols. Verified IPA SHA-256: `092ce17ab663addb4d671256ef30a0740a982f08850c7ee6472f034e628c8a17`. Apple accepted all 1,815,798 bytes under upload ID `b5d92273-0eba-43e6-aa2a-18bb17022e2c`. Apple reports `VALID`, `INTERNAL_ONLY` and `IN_BETA_TESTING`. Build 29 is in the Prelude Personal internal group with the existing tester; `release-status.json` records the verification. The account-level tester state does not prove build 29 is installed on the phone. The previous verified build 28 evidence is retained here for provenance.
 
 ## Previous build 28 verification
 
