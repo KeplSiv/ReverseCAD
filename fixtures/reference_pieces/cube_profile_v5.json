@@ -1,0 +1,936 @@
+{
+  "schema_version": 1,
+  "status": "estimated_prototype",
+  "reference_set_id": "same-cube-2026-10-18-assembly-v5",
+  "scan_ids": [],
+  "pieces": {
+    "edge": {
+      "ratio_source": "Manually annotated pixel proportions, with an approximate projection correction. Cross-sectional depth, unseen transitions and groove depth are estimates; not photogrammetric measurements.",
+      "piece_type": "edge",
+      "images": [
+        "IMG_3847.HEIC",
+        "IMG_3848.HEIC",
+        "IMG_3849.HEIC",
+        "IMG_3850.HEIC",
+        "IMG_3851.HEIC",
+        "IMG_3857.HEIC",
+        "IMG_3858.HEIC",
+        "IMG_3859.HEIC",
+        "IMG_3860.HEIC",
+        "IMG_3861.HEIC"
+      ],
+      "video": "IMG_3863.MOV",
+      "foot_outline": [
+        [
+          220.08838529202964,
+          604.6560831903862
+        ],
+        [
+          226.4651111772647,
+          594.6452491137865
+        ],
+        [
+          237.02940026871664,
+          586.3006538462772
+        ],
+        [
+          249.689937672491,
+          580.3209978647858
+        ],
+        [
+          262.7868615461463,
+          576.6439310234917
+        ],
+        [
+          275.6115331686,
+          573.529217375454
+        ],
+        [
+          287.58657939171945,
+          569.0234275105817
+        ],
+        [
+          298.6367831130384,
+          562.4261254414191
+        ],
+        [
+          309.6520649273725,
+          555.445113012293
+        ],
+        [
+          321.44533988357915,
+          549.7829961377392
+        ],
+        [
+          333.9802093890539,
+          545.8745436864616
+        ],
+        [
+          346.9786302371859,
+          543.7938026705883
+        ],
+        [
+          360.16254205744656,
+          543.6147944803216
+        ],
+        [
+          373.2538844793073,
+          545.4115405058644
+        ],
+        [
+          385.97472661219683,
+          549.2577381065374
+        ],
+        [
+          398.1957186793706,
+          554.8552520398466
+        ],
+        [
+          410.2219979212309,
+          560.8186188431823
+        ],
+        [
+          422.4371992774919,
+          565.5669315185128
+        ],
+        [
+          435.08870292772195,
+          568.1323083960609
+        ],
+        [
+          448.10368143037465,
+          568.9875175259831
+        ],
+        [
+          461.3633529689644,
+          568.8120808050651
+        ],
+        [
+          474.74893572700574,
+          568.2855201300926
+        ],
+        [
+          488.14164788801315,
+          568.0873573978515
+        ],
+        [
+          501.43066297963617,
+          568.8096480543392
+        ],
+        [
+          514.5540880710522,
+          570.5064389906291
+        ],
+        [
+          527.4686218650983,
+          573.0273680636947
+        ],
+        [
+          540.130998948392,
+          576.2216785998805
+        ],
+        [
+          552.4983613666562,
+          579.9390617236205
+        ],
+        [
+          564.5930349975597,
+          584.1008456756815
+        ],
+        [
+          576.5735362761814,
+          588.7780322970699
+        ],
+        [
+          588.6154567571766,
+          594.0603890074789
+        ],
+        [
+          600.8943879952006,
+          600.0376832266023
+        ],
+        [
+          613.5807628791936,
+          606.8001266972404
+        ],
+        [
+          626.0290828787402,
+          614.5082084786612
+        ],
+        [
+          635.8938906129777,
+          623.4688374679777
+        ],
+        [
+          640.6576441420028,
+          633.9671166652633
+        ],
+        [
+          639.0406300652435,
+          645.0577692603491
+        ],
+        [
+          631.3748510395326,
+          654.5149135904909
+        ],
+        [
+          619.5069654836499,
+          661.2789537171901
+        ],
+        [
+          605.9426786740676,
+          664.9791513557919
+        ],
+        [
+          592.2402118624043,
+          666.5608072353974
+        ],
+        [
+          579.1190004501373,
+          668.1241466880593
+        ],
+        [
+          567.2678040724784,
+          671.8043177547182
+        ],
+        [
+          556.8490594153801,
+          678.5464044307244
+        ],
+        [
+          546.7974869637202,
+          686.519512747442
+        ],
+        [
+          536.030610352554,
+          693.7541369996898
+        ],
+        [
+          524.4047580619718,
+          699.809157308294
+        ],
+        [
+          512.1226031938338,
+          704.8073070950373
+        ],
+        [
+          499.387366921353,
+          708.8722120486015
+        ],
+        [
+          486.38506659374605,
+          712.1075697408786
+        ],
+        [
+          473.21350816462984,
+          714.5148977287804
+        ],
+        [
+          459.94230190801517,
+          716.0630529935071
+        ],
+        [
+          446.6410456168272,
+          716.7208780587457
+        ],
+        [
+          433.3792835352966,
+          716.4573644179834
+        ],
+        [
+          420.2202368627058,
+          715.2590939604728
+        ],
+        [
+          407.21492971053215,
+          713.1465802655684
+        ],
+        [
+          394.4129963657557,
+          710.1442033350772
+        ],
+        [
+          381.8640711153566,
+          706.2763431708064
+        ],
+        [
+          369.6177882463149,
+          701.5673797745633
+        ],
+        [
+          357.7237820456106,
+          696.0416931481544
+        ],
+        [
+          346.23168680022394,
+          689.7236632933871
+        ],
+        [
+          335.17311685794493,
+          682.6842169512307
+        ],
+        [
+          324.17830082225953,
+          676.0310877767378
+        ],
+        [
+          312.519520384103,
+          671.7185772599283
+        ],
+        [
+          299.93542629316426,
+          669.4583266224973
+        ],
+        [
+          286.5078390926991,
+          667.3379957092858
+        ],
+        [
+          272.3362187402683,
+          663.4369875363402
+        ],
+        [
+          257.93259709770854,
+          656.8900273960891
+        ],
+        [
+          244.35168413191124,
+          648.2199629597129
+        ],
+        [
+          232.68514315566074,
+          638.0441652740833
+        ],
+        [
+          224.02463748174088,
+          626.9800053860715
+        ],
+        [
+          219.46183042293583,
+          615.6448543425488
+        ]
+      ],
+      "ratios": {
+        "body_rounding": 0.06325555870039402,
+        "stem_width": 0.5308948676640213,
+        "stem_thickness": 0.31627779350197016,
+        "stem_length": 0.27109525157311726,
+        "foot_width": 1.0166071933991898,
+        "foot_thickness": 0.5421905031462345,
+        "shoulder_length": 0.20332143867983796,
+        "rim_height": 0.025,
+        "tip_length": 0.08584682966482046,
+        "foot_cap_height": 0.065
+      },
+      "annotations": {
+        "reference": "IMG_3860.HEIC",
+        "annotation_image_size": [
+          1050,
+          1400
+        ],
+        "body_projected_span_px": 626,
+        "assumed_projection": "two outer faces seen obliquely; span/sqrt(2) approximates face width",
+        "stem_width_px": 235,
+        "stem_length_px": 120,
+        "foot_width_px": 450,
+        "foot_outline_reference": "IMG_3861.HEIC"
+      },
+      "details": {
+        "version": 5,
+        "body_scoop_radius": 0.44,
+        "body_scoop_offset": 0.6,
+        "stem_channel_radius": 0.047,
+        "foot_recess_depth": 0.045,
+        "foot_groove_depth": 0.085,
+        "depth_status": "Estimated from oblique views; not metrically recovered",
+        "observations": [
+          {
+            "feature": "body_concavities",
+            "images": [
+              "IMG_3857.HEIC",
+              "IMG_3858.HEIC",
+              "IMG_3860.HEIC",
+              "IMG_3861.HEIC"
+            ],
+            "evidence": "Paired curved reliefs beside the central support; depth and curvature estimated."
+          },
+          {
+            "feature": "retaining_foot",
+            "images": [
+              "IMG_3847.HEIC",
+              "IMG_3848.HEIC",
+              "IMG_3860.HEIC"
+            ],
+            "evidence": "Stepped retaining profile with recessed bands."
+          },
+          {
+            "feature": "central_retaining_tab",
+            "images": [
+              "IMG_3849.HEIC",
+              "IMG_3850.HEIC",
+              "IMG_3851.HEIC",
+              "IMG_3861.HEIC"
+            ],
+            "evidence": "Raised rounded rectangular central tab; surrounding channel visible; depths estimated."
+          },
+          {
+            "feature": "dirt_exclusion",
+            "images": [
+              "IMG_3847.HEIC",
+              "IMG_3848.HEIC",
+              "IMG_3849.HEIC",
+              "IMG_3850.HEIC",
+              "IMG_3851.HEIC",
+              "IMG_3857.HEIC",
+              "IMG_3858.HEIC",
+              "IMG_3859.HEIC",
+              "IMG_3860.HEIC",
+              "IMG_3861.HEIC"
+            ],
+            "evidence": "Dark streaks excluded as dirt. No neck channels, wear pits or dark marks reconstructed without contour/height support."
+          },
+          {
+            "feature": "central_rib",
+            "images": [
+              "IMG_3849.HEIC",
+              "IMG_3851.HEIC",
+              "IMG_3861.HEIC"
+            ],
+            "evidence": "Small raised rib on the central tab, confirmed by bright side faces and silhouette, not dirt."
+          },
+          "Revision 5: smooth traced retaining outlines and drafted blind recess walls; recess depths remain estimated."
+        ],
+        "dirt_ignored": true,
+        "neck_channels_supported": false,
+        "central_rib_supported": true
+      },
+      "assembly_frame": "outer_faces"
+    },
+    "corner": {
+      "ratio_source": "Manually annotated pixel proportions, with an approximate projection correction. Cross-sectional depth, unseen transitions and groove depth are estimates; not photogrammetric measurements.",
+      "piece_type": "corner",
+      "images": [
+        "IMG_3852.HEIC",
+        "IMG_3853.HEIC",
+        "IMG_3854.HEIC",
+        "IMG_3855.HEIC",
+        "IMG_3856.HEIC"
+      ],
+      "foot_outline": [
+        [
+          198.77112335085684,
+          588.8953213487351
+        ],
+        [
+          205.54195555637043,
+          569.9601320617664
+        ],
+        [
+          215.35655017974833,
+          552.1657394069748
+        ],
+        [
+          227.8948210670537,
+          536.0619251731772
+        ],
+        [
+          242.83668206434962,
+          522.1984711491908
+        ],
+        [
+          259.8620441666747,
+          511.1251292975255
+        ],
+        [
+          278.6293343335623,
+          503.1668939717143
+        ],
+        [
+          298.72380272638713,
+          497.8832123736566
+        ],
+        [
+          319.71513333925174,
+          494.6706845280439
+        ],
+        [
+          341.1730101662587,
+          492.9259104595686
+        ],
+        [
+          362.6671172015103,
+          492.04549019292216
+        ],
+        [
+          383.82743857439357,
+          491.50908671623694
+        ],
+        [
+          404.6286619775598,
+          491.2711894726458
+        ],
+        [
+          425.1677600513491,
+          491.4547344616829
+        ],
+        [
+          445.5418501258972,
+          492.18285699194115
+        ],
+        [
+          465.84804953133994,
+          493.57869237201317
+        ],
+        [
+          486.1834755978129,
+          495.7653759104916
+        ],
+        [
+          506.64524565545156,
+          498.8660429159691
+        ],
+        [
+          527.2862982244051,
+          503.00466933264994
+        ],
+        [
+          547.8854307791881,
+          508.3104474680923
+        ],
+        [
+          568.1164354369309,
+          514.9145676746829
+        ],
+        [
+          587.6528907854781,
+          522.948224367849
+        ],
+        [
+          606.1683754126745,
+          532.5426119630181
+        ],
+        [
+          623.3364679063648,
+          543.8289248756179
+        ],
+        [
+          638.830746854394,
+          556.9383575210757
+        ],
+        [
+          652.3247908446064,
+          572.0021043148188
+        ],
+        [
+          663.4913820880747,
+          589.1464546454513
+        ],
+        [
+          671.9519355226483,
+          608.1813176884167
+        ],
+        [
+          677.246114227421,
+          628.413078315133
+        ],
+        [
+          678.9084289825349,
+          649.10421952977
+        ],
+        [
+          676.8400399454839,
+          669.6862552445747
+        ],
+        [
+          671.721456256917,
+          689.9499910397179
+        ],
+        [
+          664.3328905733517,
+          709.7321973240786
+        ],
+        [
+          655.4530031231084,
+          728.8701806076269
+        ],
+        [
+          645.6441043143489,
+          747.275959631818
+        ],
+        [
+          635.0320429399583,
+          765.0122767264623
+        ],
+        [
+          623.690172062651,
+          782.1600026078041
+        ],
+        [
+          611.6918447451407,
+          798.800007992087
+        ],
+        [
+          599.1104140501416,
+          815.0131635955552
+        ],
+        [
+          586.0192330403676,
+          830.880340134452
+        ],
+        [
+          572.4916547785325,
+          846.4824083250217
+        ],
+        [
+          558.6010323273506,
+          861.9002388835078
+        ],
+        [
+          544.4201014820485,
+          877.2137713767098
+        ],
+        [
+          529.9364423027307,
+          892.3744877463358
+        ],
+        [
+          514.9662982062126,
+          907.0754082079802
+        ],
+        [
+          499.30537026223595,
+          920.9785647987547
+        ],
+        [
+          482.7493595405426,
+          933.7459895557705
+        ],
+        [
+          465.0962278879902,
+          945.0370690716016
+        ],
+        [
+          446.3286959925508,
+          954.2949946917954
+        ],
+        [
+          426.74836707492983,
+          960.5898179028253
+        ],
+        [
+          406.6934516553495,
+          962.9703898703898
+        ],
+        [
+          386.6809577066387,
+          961.0514590018975
+        ],
+        [
+          367.4517185515672,
+          955.156185073659
+        ],
+        [
+          349.6639118332588,
+          945.6812700265349
+        ],
+        [
+          333.435392553097,
+          933.1841374492369
+        ],
+        [
+          318.69660843731305,
+          918.277956153341
+        ],
+        [
+          305.37782266405065,
+          901.5759498451653
+        ],
+        [
+          293.4092984114538,
+          883.691342231028
+        ],
+        [
+          282.7212988576668,
+          865.237357017248
+        ],
+        [
+          273.22422420397464,
+          846.7834648844376
+        ],
+        [
+          264.6096362937356,
+          828.4170919351023
+        ],
+        [
+          256.43343808633966,
+          809.9268426661192
+        ],
+        [
+          248.24950739645917,
+          791.096860701782
+        ],
+        [
+          239.66940545331238,
+          771.7343184237163
+        ],
+        [
+          230.8217338660242,
+          751.8528045211424
+        ],
+        [
+          222.10780157988202,
+          731.5747797241723
+        ],
+        [
+          213.93137225371783,
+          711.023684750026
+        ],
+        [
+          206.69620954636355,
+          690.3229603159227
+        ],
+        [
+          200.80607711665098,
+          669.596047139082
+        ],
+        [
+          196.66473862341218,
+          648.9663859367236
+        ],
+        [
+          194.67595772547892,
+          628.5574174260663
+        ],
+        [
+          195.24349808168316,
+          608.4925823243306
+        ]
+      ],
+      "ratios": {
+        "body_rounding": 0.0724235393738789,
+        "stem_width": 0.2682353310143663,
+        "stem_thickness": 0.25482356446364796,
+        "stem_length": 0.24,
+        "foot_width": 0.95,
+        "foot_thickness": 0.9,
+        "shoulder_length": 0.28,
+        "rim_height": 0.025,
+        "tip_length": 0.08047059930430989,
+        "foot_cap_height": 0.065
+      },
+      "annotations": {
+        "reference": "IMG_3853.HEIC",
+        "annotation_image_size": [
+          1050,
+          1400
+        ],
+        "outer_face_edge_endpoints": [
+          [
+            160,
+            350
+          ],
+          [
+            450,
+            130
+          ],
+          [
+            775,
+            330
+          ]
+        ],
+        "stem_width_px": 100,
+        "stem_length_px": 150,
+        "foot_width_px": 420,
+        "foot_outline_reference": "IMG_3855.HEIC"
+      },
+      "details": {
+        "version": 5,
+        "body_scoop_radius": 0.44,
+        "body_scoop_offset": 0.6,
+        "stem_channel_radius": 0.047,
+        "foot_recess_depth": 0.018,
+        "foot_groove_depth": 0.045,
+        "depth_status": "Estimated from oblique views; not metrically recovered",
+        "observations": [
+          {
+            "feature": "body_concavities",
+            "images": [
+              "IMG_3852.HEIC",
+              "IMG_3853.HEIC",
+              "IMG_3854.HEIC",
+              "IMG_3856.HEIC"
+            ],
+            "evidence": "Broad concave relief between exterior face rim and neck; bowl depth and curvature estimated."
+          },
+          {
+            "feature": "triangular_foot_recesses",
+            "images": [
+              "IMG_3855.HEIC",
+              "IMG_3856.HEIC"
+            ],
+            "evidence": "Outer lip, triangular perimeter channel, raised inner triangular rim and recessed center; blind depths estimated. No through-hole established."
+          },
+          {
+            "feature": "dirt_exclusion",
+            "images": [
+              "IMG_3852.HEIC",
+              "IMG_3853.HEIC",
+              "IMG_3854.HEIC",
+              "IMG_3855.HEIC",
+              "IMG_3856.HEIC"
+            ],
+            "evidence": "Dark streaks excluded as dirt. No neck channels, wear pits or dark marks reconstructed without contour/height support."
+          },
+          "Revision 5: smooth traced retaining outlines and drafted blind recess walls; recess depths remain estimated.",
+          "Flat-sided rounded neck observed in IMG_3853 and IMG_3854."
+        ],
+        "dirt_ignored": true,
+        "neck_channels_supported": false,
+        "channel_outer": [
+          [
+            244,
+            557
+          ],
+          [
+            381,
+            543
+          ],
+          [
+            635,
+            603
+          ],
+          [
+            605,
+            733
+          ],
+          [
+            484,
+            891
+          ],
+          [
+            399,
+            938
+          ],
+          [
+            307,
+            829
+          ],
+          [
+            259,
+            709
+          ]
+        ],
+        "channel_inner": [
+          [
+            274,
+            586
+          ],
+          [
+            397,
+            574
+          ],
+          [
+            612,
+            619
+          ],
+          [
+            561,
+            748
+          ],
+          [
+            454,
+            875
+          ],
+          [
+            399,
+            907
+          ],
+          [
+            338,
+            827
+          ],
+          [
+            291,
+            717
+          ]
+        ],
+        "center_outline": [
+          [
+            301,
+            616
+          ],
+          [
+            410,
+            606
+          ],
+          [
+            578,
+            643
+          ],
+          [
+            532,
+            744
+          ],
+          [
+            452,
+            834
+          ],
+          [
+            406,
+            868
+          ],
+          [
+            359,
+            812
+          ],
+          [
+            321,
+            717
+          ]
+        ],
+        "trace_source": "IMG_3855.HEIC, upright 1050x1400. Separate visible lip contours; dark dirt texture excluded. Perspective and recess depth estimated."
+      },
+      "assembly_frame": "outer_faces"
+    }
+  },
+  "source_hashes": {
+    "IMG_3847.HEIC": "b7cc11117233f8a33d8d54ca3e0a87f6891f60956de867057803ee5fe62b1910",
+    "IMG_3848.HEIC": "f772202153caf867dc3e1760bb368bfa0631951f483475933ff3be72ba9dff51",
+    "IMG_3849.HEIC": "c68b5442597e760808df79a83579560f46a20d54634c846c4531f32ec63bca48",
+    "IMG_3850.HEIC": "7d8539d3baca1242e7311fdb148d58a2282b13ee9bd88597402530a5c77f73bf",
+    "IMG_3851.HEIC": "4980b944dfe96b39d20b9061a6e9c64606d16a22fac580ca184665f15fb7f791",
+    "IMG_3852.HEIC": "4cce015430a5af69cb9e2276ef30b080a75bed922b1c41491f4b5e05e84a3d09",
+    "IMG_3853.HEIC": "33f63f6e7e2b8a577af5765fcc9a0ce00783c97b7c900f30470be8ae11a2dab0",
+    "IMG_3854.HEIC": "2ba9f5a617c0e0ce3877a2dc689525a38dc1580b7fb3dd913647401e8ac5210d",
+    "IMG_3855.HEIC": "11ca5712158601e09fdbdc31256c15816453f346119bf33b2eabab82d9c25d40",
+    "IMG_3856.HEIC": "15117ff1c042da55df2f2260397ed7ca266e28c2968c1780dcf3b2313ade58cd",
+    "IMG_3857.HEIC": "d158b5ecd7401661c37052bb729b3ad3b788a71162441e128822540393487ed7",
+    "IMG_3858.HEIC": "a61f6f10f59a9d7f0a01599601c29b2a51acd6e6b7dad5231e4158c457a48f6a",
+    "IMG_3859.HEIC": "2023c1459382f28fa0eb3fa631bf35f80ef1783b40c152b86c1f27d8382b3334",
+    "IMG_3860.HEIC": "6b9ffad6370f2dc592eedb2a9d5a8e7ea708ba28daf5fface93377410326cbf3",
+    "IMG_3861.HEIC": "f8543d8818bbe80d49aefe7110c12c052721926666381caebd8c7864556507db",
+    "IMG_3863.MOV": "b18a500cae93cffa11bf7e26337a86a9c7537e8058d3afe6260d61cef3882a10",
+    "IMG_3864.HEIC": "70814727d987400817f87406b11123a7f71e315d075713c99fc44f7e7ca0128e",
+    "IMG_3865.HEIC": "16b6a188a1dfc895dc9e653254bc03b9bcb7ef24e381a55e5ccbc776fb928c36",
+    "IMG_3866.HEIC": "73d5e6bdda3fca0c904e8c47899412022cb99f1c007bd2b29c0362722ec1fcb7"
+  },
+  "color_used": false,
+  "automatic_multiview_reconstruction_succeeded": false,
+  "assembly_observations": {
+    "images": [
+      "IMG_3864.HEIC",
+      "IMG_3865.HEIC",
+      "IMG_3866.HEIC"
+    ],
+    "method": "manual proportional revision, not calibrated reconstruction",
+    "constraints": [
+      "Corner retaining triangle registered to the three exterior face directions.",
+      "Edge long foot axis lies between its two exterior face normals.",
+      "Side profile IMG_3853 supports shorter neck and thinner foot layers than revision 3.",
+      "Assembly photos require nonintersecting connector solids."
+    ],
+    "dirt_ignored": true,
+    "dimension_status": "Estimated proportions revised to satisfy the visible assembly and tested for solid collisions; not image-calibrated dimensions."
+  },
+  "association_note": "Example geometry from one physical cube. Explicitly associate only scans of this same design after review; do not apply automatically to other cubes."
+}

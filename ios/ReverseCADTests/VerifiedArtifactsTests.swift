@@ -3,6 +3,72 @@ import ReverseCADCore
 @testable import ReverseCAD
 
 final class VerifiedArtifactsTests: XCTestCase {
+    func testReferencePrototypeSTEPIsIncludedAndMustBePresent() throws {
+        let files=["printable_edge.stl", "printable_edge.3mf", "printable_edge.step"]
+        let report: [String: Any] = ["closure": ["files": files]]
+        XCTAssertEqual(try ExteriorPrintFiles.names(report: report, available: Set(files)), files)
+        XCTAssertThrowsError(try ExteriorPrintFiles.names(report: report, available: Set(files.dropLast())))
+    }
+    func testMultiPieceExportIncludesEveryDeclaredSolidAndRejectsMissingPiece() throws {
+        let files = ["replacement_01.stl", "replacement_01.3mf", "replacement_02.stl", "replacement_02.3mf", "printable_edge.stl", "printable_edge.3mf"]
+        let report: [String: Any] = ["closure": ["files": files]]
+        XCTAssertEqual(try ExteriorPrintFiles.names(report: report, available: Set(files)), files)
+        XCTAssertThrowsError(try ExteriorPrintFiles.names(report: report, available: Set(files.dropFirst())))
+        XCTAssertEqual(try ExteriorPrintFiles.names(report: nil, available: ["printable_edge.stl", "printable_edge.3mf"]), ["printable_edge.stl", "printable_edge.3mf"])
+    }
+    func testResultIdentityMustMatchCaptureEvenWhenFilesAreVerified() {
+        XCTAssertTrue(ReconstructionIdentity.matches(["scan_id":"a"], scanID:"a"))
+        XCTAssertTrue(ReconstructionIdentity.matches(["reconstruction":["scan_id":"a"]], scanID:"a"))
+        XCTAssertFalse(ReconstructionIdentity.matches(["scan_id":"a"], scanID:"b"))
+        XCTAssertFalse(ReconstructionIdentity.matches([:], scanID:"a"))
+        XCTAssertFalse(ReconstructionIdentity.matches(["scan_id":"a"], scanID:nil))
+    }
+
+    @MainActor
+    func testWrongScanCacheNeverRestoresGhostOrPrintableMesh() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let model = AppModel(rootURL: root)
+        model.create(name: "Saved scan", synthetic: false)
+        model.update { $0.scanID = "current"; $0.repairScope = "cube_exterior" }
+        let dir = try XCTUnwrap(model.projectDirectory)
+        let wrong: [String:Any] = ["scan_id":"older", "face_repair":["status":"proposal_needs_review"],
+                                  "counterpart":["watertight_replacement":true]]
+        try JSONSerialization.data(withJSONObject:wrong).write(to:dir.appendingPathComponent("reconstruction.json"))
+        try JSONEncoder().encode(MeshPreview(vertices:[[0,0,0]])).write(to:dir.appendingPathComponent("counterpart_preview.json"))
+        model.loadDerived()
+        XCTAssertTrue(model.reconstructionNeedsUpdate)
+        XCTAssertNil(model.faceRepair); XCTAssertNil(model.counterpartMesh)
+        XCTAssertFalse(model.counterpartPrintable)
+    }
+
+    @MainActor
+    func testNewCaptureCannotReplaceProjectWhileResultIsDownloading() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let model = AppModel(rootURL: root)
+        model.create(name:"First", synthetic:false)
+        let id = model.selectedID
+        model.busy = true
+        model.create(name:"Second", synthetic:false)
+        XCTAssertEqual(model.selectedID,id); XCTAssertEqual(model.projects.count,1)
+    }
+
+    @MainActor
+    func testWrongScanResponseRejectedBeforeDownloadingOrSaving() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let model = AppModel(rootURL: root)
+        model.create(name:"Current", synthetic:false)
+        model.update { $0.scanID = "current" }
+        model.serverURL = "http://127.0.0.1:1"
+        do {
+            try await model.receive(["scan_id":"different", "artifacts":[]], kind:"reconstruction")
+            XCTFail("A different scan must be rejected")
+        } catch { XCTAssertTrue(error.localizedDescription.contains("different scan")) }
+        XCTAssertFalse(FileManager.default.fileExists(atPath:model.projectDirectory!.appendingPathComponent("reconstruction.json").path))
+    }
+
     private func fixture() throws -> (URL, [ArtifactInfo]) {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("verified-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

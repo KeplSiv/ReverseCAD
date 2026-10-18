@@ -160,7 +160,7 @@ class Contact(Contract):
 
 
 class Annotations(Contract):
-    repair_scope: Literal["general", "cube_exterior", "rectangular_planar"] = "general"
+    repair_scope: Literal["general", "cube_exterior", "rectangular_planar", "automatic"] = "general"
     planar_thickness_mm: float | None = Field(default=None, gt=0, le=100)
     crop_min_m: list[float] | None = Field(default=None, min_length=3, max_length=3)
     crop_max_m: list[float] | None = Field(default=None, min_length=3, max_length=3)

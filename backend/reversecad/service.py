@@ -397,13 +397,14 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
 
     @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
     def analyze_cube(body: dict[str, Any]):
-        from .cube import CubeInputError, analyze_cube_face
+        from .cube import CubeInputError
+        from .face_first import analyze_photo_geometry
         encoded = body.get("photo_base64")
         if not isinstance(encoded, str):
             error(422,"invalid_photo","Select a cube photo before analyzing")
         try:
             photo = base64.b64decode(encoded, validate=True)
-            return analyze_cube_face(photo, body.get("corners"))
+            return analyze_photo_geometry(photo, body.get("corners"))
         except (ValueError, binascii.Error, CubeInputError) as exc:
             error(422,"cube_analysis_needs_input",str(exc))
 

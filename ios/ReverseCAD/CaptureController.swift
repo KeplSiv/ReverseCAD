@@ -51,6 +51,7 @@ enum CaptureFailure: LocalizedError {
     let session = ARSession()
     private var provider: CaptureProvider?
     private var selectedObjectPoint = CGPoint(x: 0.5, y: 0.5)
+    private var guideLayout: (CGRect, CGSize, UIInterfaceOrientation)?
     private var backgroundObserver: NSObjectProtocol?
 
     init() {
@@ -84,7 +85,9 @@ enum CaptureFailure: LocalizedError {
         let allowed = await AVCaptureDevice.requestAccess(for: .video)
         guard allowed else { throw CaptureFailure.unavailable("Camera permission is required. Enable Reverse CAD in Settings → Privacy & Security → Camera.") }
         guard !isCapturing else { return }
+        guard let (rect, size, orientation) = guideLayout else { throw CaptureFailure.unavailable("Wait for the camera guide to appear, then capture.") }
         let capture = try ARKitCaptureProvider(session: session, directory: directory, scanID: scanID, useDepth: hasLiDAR, motionDiagnostics: motionDiagnostics)
+        capture.setGuide(rect: rect, viewport: size, orientation: orientation)
         capture.onLiveGeometry = { [weak self] snapshot in
             Task { @MainActor in self?.receiveLiveGeometry(snapshot) }
         }
@@ -102,6 +105,11 @@ enum CaptureFailure: LocalizedError {
         selectedObjectPoint = normalizedRawImagePoint
         (provider as? ARKitCaptureProvider)?.selectObject(point: normalizedRawImagePoint)
         guidance = "Scan center selected. Keep this object still and move the phone."
+    }
+
+    func updateGuide(rect: CGRect, viewport: CGSize, orientation: UIInterfaceOrientation) {
+        guideLayout = (rect, viewport, orientation)
+        (provider as? ARKitCaptureProvider)?.setGuide(rect: rect, viewport: viewport, orientation: orientation)
     }
 
     func stop() async throws -> URL {
@@ -197,15 +205,19 @@ struct CapturePreview: UIViewRepresentable {
     let session: ARSession
     var onSelect: ((CGPoint) -> Void)? = nil
     var ghost: LiveGhostResponse.Candidate? = nil
+    var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)? = nil
     func makeCoordinator() -> Coordinator { Coordinator(session: session, onSelect: onSelect) }
     func makeUIView(context: Context) -> ARView {
-        let view = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        let view = GuidedARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        view.onGuide = onGuide
         view.session = session
         view.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:))))
         view.accessibilityLabel = "Live camera. Tap the stationary object to select its foreground region."
         return view
     }
     func updateUIView(_ view: ARView, context: Context) {
+        (view as? GuidedARView)?.onGuide = onGuide
+        view.setNeedsLayout()
         context.coordinator.onSelect = onSelect
         context.coordinator.updateGhost(ghost, in: view)
     }
@@ -233,12 +245,34 @@ struct CapturePreview: UIViewRepresentable {
         @objc func tapped(_ recognizer: UITapGestureRecognizer) {
             guard let view = recognizer.view, let frame = session.currentFrame, view.bounds.width > 0, view.bounds.height > 0 else { return }
             let position = recognizer.location(in: view)
+            if let guided = view as? GuidedARView, guided.onGuide != nil,
+               !GuidedARView.guideRect(in: view.bounds).contains(position) { return }
             let normalized = CGPoint(x: position.x / view.bounds.width, y: position.y / view.bounds.height)
             let orientation = view.window?.windowScene?.interfaceOrientation ?? .portrait
             // Inverse display transform maps portrait screen coordinates back to raw calibrated image coordinates.
             let image = normalized.applying(frame.displayTransform(for: orientation, viewportSize: view.bounds.size).inverted())
             onSelect?(CGPoint(x: min(1, max(0, image.x)), y: min(1, max(0, image.y))))
         }
+    }
+}
+
+/// Draw and measure the guide in the same view that displays the AR image.
+final class GuidedARView: ARView {
+    var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)?
+    private let guide = CAShapeLayer()
+    static func guideRect(in bounds: CGRect) -> CGRect {
+        let size = CGSize(width: min(270, bounds.width * 0.8), height: min(300, bounds.height * 0.85))
+        return CGRect(x: bounds.midX-size.width/2, y: bounds.midY-size.height/2, width: size.width, height: size.height)
+    }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard let onGuide, bounds.width > 0, bounds.height > 0 else { guide.removeFromSuperlayer(); return }
+        let rect = Self.guideRect(in: bounds)
+        if guide.superlayer == nil { layer.addSublayer(guide) }
+        guide.path = UIBezierPath(rect: rect).cgPath
+        guide.fillColor = UIColor.clear.cgColor; guide.strokeColor = UIColor.white.withAlphaComponent(0.85).cgColor
+        guide.lineWidth = 2; guide.lineDashPattern = [18, 8]
+        onGuide(rect, bounds.size, window?.windowScene?.interfaceOrientation ?? .portrait)
     }
 }
 

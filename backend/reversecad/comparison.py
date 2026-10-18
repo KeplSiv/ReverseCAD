@@ -61,7 +61,17 @@ def learned_outputs(scan_dir, frames, output_dir, progress):
     # previews/reports enter the phone's verified artifact revision.
     arrays=output_dir/'inputs.npz'
     np.savez_compressed(arrays,intrinsics=np.stack([f['image_k'] for f in selected]),depth=np.stack([f['depth'] for f in selected]))
-    request={'arrays':str(arrays),'images':[str((scan_dir/f['rgb_path']).resolve()) for f in selected],
+    import cv2
+    from .capture_region import masked_photo
+    model_images=[]
+    for f in selected:
+        path=scan_dir/f['rgb_path']
+        image=cv2.imread(str(path),cv2.IMREAD_GRAYSCALE)
+        if image is None:raise ValueError('Model input photo unavailable')
+        path=output_dir/(f['frame_id']+'_guided.png')
+        if not cv2.imwrite(str(path),masked_photo(image,f.get('capture_region'))):raise ValueError('Cannot prepare guided model image')
+        model_images.append(str(path.resolve()))
+    request={'arrays':str(arrays),'images':model_images,
              'frame_ids':[f['frame_id'] for f in selected]}
     write_json(output_dir/'request.json',request)
     adapter=Path(__file__).resolve().parents[2]/'scripts/run_geometry_model.py'
@@ -143,7 +153,7 @@ def learned_surface(packet, selected, mode, output, variant):
 
 def compare_reconstructions(scan_dir,output_dir,base,annotations=None,progress=None):
     from .reconstruction import _load_package,_prepare
-    from .photo_cube import estimate_cube
+    from .face_first import repair_from_faces
     import open3d as o3d
     start=time.monotonic();scan_dir=Path(scan_dir);output_dir=Path(output_dir)
     progress=progress or (lambda *args:None)
@@ -199,35 +209,17 @@ def compare_reconstructions(scan_dir,output_dir,base,annotations=None,progress=N
         pose_file=output_dir/'photo_camera_poses.json'
         if pose_file.exists():
             poses=json.loads(pose_file.read_text())['poses'];fixed=[{**f,'pose':np.array(poses[f['frame_id']])} for f in frames if f['frame_id'] in poses]
-            cached=output_dir/'face_detections.json';lookup={f['frame_id']:f for f in fixed}
-            detections=[(lookup[d['frame_id']],d['analysis']) for d in json.loads(cached.read_text()) if d['frame_id'] in lookup] if cached.exists() else None
             try:
                 folder=private/'tracked';folder.mkdir()
-                result=estimate_cube(fixed,scan_dir,folder,base.get('photo_alignment',{}),track_faces=True,detections=detections)
+                result=repair_from_faces(fixed,scan_dir,folder)
                 copy_result(folder,output_dir,tracked,result)
                 tracked['message']='Estimated exterior from tracked repeated features. Cube-specific structural assumption; fine relief and fit are unverified.'
             except (ValueError,RuntimeError) as exc:tracked['message']=str(exc)
         else:tracked['message']='A shared photo camera frame is required for the tracked-structure baseline.'
         tracked['seconds']=time.monotonic()-t;variants.append(tracked)
-        learned=[base_variant('learned_rgb','Learned RGB','MapAnything Apache: RGB + calibration'),
-                 base_variant('learned_depth','Learned RGB + depth','MapAnything Apache: RGB + calibration + native depth')]
-        model_dir=private/'model';model_dir.mkdir()
-        try:selected,reason=learned_outputs(scan_dir,frames,model_dir,progress)
-        except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
-            selected,reason=None,'Model setup failed: '+type(exc).__name__
-        for variant,mode in zip(learned,['rgb','depth']):
-            metadata=model_dir/f'{mode}.json'
-            if metadata.exists():
-                details=json.loads(metadata.read_text());variant['metrics'].update(details);variant['seconds']=details.get('seconds',0)
-            if selected is None or not (model_dir/f'{mode}.npz').exists():
-                variant['status']='unavailable' if not os.environ.get('REVERSECAD_GEOMETRY_PYTHON') else 'failed'
-                variant['message']=variant['metrics'].get('reason') or reason or 'Model did not produce output.'
-            else:
-                try:learned_surface(model_dir,selected,mode,output_dir,variant)
-                except (ValueError,RuntimeError) as exc:variant['status']='needs_more_evidence';variant['message']=str(exc)
-            variants.append(variant)
-        # Logs help diagnose model failures without adding large model data to phone downloads.
-        if (model_dir/'model.log').exists():shutil.copyfile(model_dir/'model.log',output_dir/'comparison_model.log')
+        # Neural reconstruction is paused after failing the real-reference benchmark.
+        # Keep the offline helpers above for research, but never launch a learned
+        # model or advertise learned variants from an app comparison request.
     prototypes=[v for v in variants if v['printable'] and v['part_preview']]
     prototypes.sort(key=lambda v:not v['id'].startswith('geometry_'))
     selected=prototypes[0]['id'] if prototypes else next((v['id'] for v in variants if v['scan_preview'] and v['status']=='surface_only'),current['id'])

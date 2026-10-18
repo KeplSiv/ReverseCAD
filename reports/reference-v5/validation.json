@@ -1,0 +1,22 @@
+{
+  "backend_tests_passed": 56,
+  "revision": 5,
+  "watertight": true,
+  "assembly": {
+    "status": "no_solid_intersections",
+    "pairs": [
+      {
+        "piece_indices": [
+          0,
+          1
+        ],
+        "intersection_volume_mm3": 0.0,
+        "numerical_tolerance_mm3": 0.01
+      }
+    ],
+    "physical_fit": "not_tested",
+    "scope": "Only proposed pieces at their assembled positions; surviving mechanism and motion are not validated."
+  },
+  "physical_fit": "not_tested",
+  "detail_accuracy": "Image-guided proportions; recess depths remain estimates."
+}

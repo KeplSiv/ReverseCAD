@@ -7,6 +7,31 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import numpy as np
 from .geometry import transform_points
+from .capture_region import region_mask, masked_photo
+
+
+def write_alignment_image(scan_dir, frame, images, masks):
+    """Preserve calibration while excluding out-of-guide pixels and features."""
+    import cv2
+    import shutil
+    name=frame['frame_id']+'.jpg'
+    region=frame.get('capture_region')
+    if region is None:
+        shutil.copyfile(scan_dir/frame['rgb_path'],images/name)
+        image=cv2.imread(str(scan_dir/frame['rgb_path']))
+        if image is None:raise ValueError('Alignment photo is unavailable')
+        cv2.imwrite(str(masks/(name+'.png')),np.full(image.shape[:2],255,np.uint8))
+        return
+    image=cv2.imread(str(scan_dir/frame['rgb_path']))
+    if image is None:raise ValueError('Alignment photo is unavailable')
+    if not cv2.imwrite(str(images/name),masked_photo(image,region)):
+        raise ValueError('Could not prepare masked alignment photo')
+    mask=region_mask(region,image.shape).astype(np.uint8)*255
+    # Suppress features created by the artificial black boundary. COLMAP
+    # expects image-name-with-extension followed by .png for each mask.
+    mask=cv2.erode(mask,np.ones((17,17),np.uint8))
+    if not cv2.imwrite(str(masks/(name+'.png')),mask):
+        raise ValueError('Could not prepare alignment guide mask')
 
 
 def robust_scale(samples, minimum=30):
@@ -41,17 +66,18 @@ def align_photos(scan_dir, frames, capture_frames, output_dir):
         root = Path(temporary)
         import shutil
         images = root/'images'; images.mkdir()
+        masks = root/'masks'; masks.mkdir()
         # A tracking-limited RGB photo can still constrain COLMAP; its ARKit pose
         # and depth never become accepted native measurement frames.
         photos=[f for f in capture_frames if float(f.get('quality',{}).get('blur_score',0))>=8]
         photos=[photos[i] for i in np.unique(np.linspace(0,len(photos)-1,min(32,len(photos)),dtype=int))]
         for f in photos:
-            shutil.copyfile(scan_dir/f['rgb_path'], images/(f['frame_id']+'.jpg'))
+            write_alignment_image(scan_dir,f,images,masks)
         k = chosen[0]['image_k']
         params = ','.join(str(float(v)) for v in [k[0,0], k[1,1], k[0,2], k[1,2]])
         database = root/'database.db'
         pc.extract_features(database, images, camera_mode=pc.CameraMode.SINGLE,
-            reader_options={'camera_model':'PINHOLE','camera_params':params},
+            reader_options={'camera_model':'PINHOLE','camera_params':params,'mask_path':str(masks)},
             extraction_options={'num_threads':2,'max_image_size':1920}, device=pc.Device.cpu)
         pc.match_exhaustive(database, matching_options={'num_threads':2}, device=pc.Device.cpu)
         models = pc.incremental_mapping(database, images, root/'models', options={
@@ -77,11 +103,13 @@ def align_photos(scan_dir, frames, capture_frames, output_dir):
             meta=metadata[f['frame_id']]
             depth=np.fromfile(scan_dir/meta['depth_path'],dtype='<f4').reshape(f['depth'].shape)
             confidence=np.fromfile(scan_dir/meta['confidence_path'],dtype=np.uint8).reshape(depth.shape) if meta.get('confidence_path') else np.ones(depth.shape)
+            guide=region_mask(meta.get('capture_region'),depth.shape)
             samples=[]
             for p in im.points2D:
                 if not p.has_point3D():continue
                 x,y=np.rint(p.xy/np.array(f['image_size'])*np.array(depth.shape[::-1])).astype(int)
                 if not (1<=x<depth.shape[1]-1 and 1<=y<depth.shape[0]-1):continue
+                if not guide[y-1:y+2,x-1:x+2].all():continue
                 patch=depth[y-1:y+2,x-1:x+2]
                 d=float(depth[y,x]); z=float((im.cam_from_world()*model.points3D[p.point3D_id].xyz)[2])
                 if not (.08<d<3 and z>0 and confidence[y,x]>=1 and np.isfinite(patch).all()):continue
@@ -95,7 +123,8 @@ def align_photos(scan_dir, frames, capture_frames, output_dir):
             scale,scale_report=robust_scale(background if len(background)>=30 else foreground)
         except ValueError as exc:
             return [], {**report,'reason':str(exc)}
-        scale_report['region']='background' if len(background)>=30 else 'object'
+        scale_report['region']=('background_inside_guide' if len(background)>=30 else 'object_inside_guide') if all(f.get('capture_region') is not None for f in selected) else ('background' if len(background)>=30 else 'object')
+        report['guide_restricted_frames']=sum(f.get('capture_region') is not None for f in photos)
         scale_report['per_frame_medians']=by_frame
         # Keep the first aligned camera in its recorded world frame; scale only translation.
         first=selected[0];original=first['pose'];sfm=poses[first['frame_id']+'.jpg']

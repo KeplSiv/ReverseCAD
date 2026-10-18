@@ -200,3 +200,26 @@ def test_independent_photo_recovery_survives_failed_native_depth_but_requires_fo
     assert len(depths)>500 and abs(np.median(depths)-.24)<.001
     a['depth'][:]=0;b['depth'][:]=0
     assert stereo_pair(a,b,trust_native_depth=False) is None
+
+
+def test_stereo_guide_rejects_background_in_both_cameras():
+    from reversecad.capture_region import region_mask
+    from reversecad.geometry import unproject, project
+    a,b=stereo_observations()
+    for f in (a,b):
+        f['capture_region']=[.25,.2,.5,.6]
+        f['foreground_mask']=np.ones(f['depth'].shape,bool)  # permissive segmentation must still be clipped
+    output=stereo_pair(a,b)
+    assert output is not None
+    points,_=unproject(output['depth'],output['k'],output['pose'])
+    for f in (a,b):
+        uv,_=project(points,f['image_k'],f['pose'])
+        pixels=np.rint(uv).astype(int)
+        guide=region_mask(f['capture_region'],f['depth'].shape)
+        assert guide[pixels[:,1],pixels[:,0]].all()
+    # Outside-box changes must not affect the recovered geometry.
+    for f in (a,b):
+        f['image'][~region_mask(f['capture_region'],f['image'].shape)]=255
+    changed=stereo_pair(a,b)
+    assert changed is not None
+    np.testing.assert_allclose(changed['depth'],output['depth'])

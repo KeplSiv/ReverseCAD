@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A0E7F06D3BCA4785980DC352 /* UnifiedRepairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E7F06D3BCA4785980DC351 /* UnifiedRepairView.swift */; };
 		13E7F06D3BCA4785980DC351 /* LiveGhost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E7F06D3BCA4785980DC352 /* LiveGhost.swift */; };
 		13E7F06D3BCA4785980DC341 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E7F06D3BCA4785980DC342 /* ComparisonResults.swift */; };
 		13E7F06D3BCA4785980DC331 /* PatternRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E7F06D3BCA4785980DC332 /* PatternRepairTests.swift */; };
@@ -49,6 +50,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A0E7F06D3BCA4785980DC351 /* UnifiedRepairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedRepairView.swift; sourceTree = "<group>"; };
 		13E7F06D3BCA4785980DC352 /* LiveGhost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveGhost.swift; sourceTree = "<group>"; };
 		13E7F06D3BCA4785980DC342 /* ComparisonResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonResults.swift; sourceTree = "<group>"; };
 		13E7F06D3BCA4785980DC332 /* PatternRepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepairTests.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
 				CD62E45CC23E859803453CF8 /* CaptureController.swift */,
+				A0E7F06D3BCA4785980DC351 /* UnifiedRepairView.swift */,
 				62C4B8D600B0E72F9EF6D166 /* ContentView.swift */,
 				F0E1D2C3B4A5968778695A4C /* CubeDemoView.swift */,
 				44149E87E66872F41062845F /* DesignView.swift */,
@@ -290,6 +293,7 @@
 				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
+				A0E7F06D3BCA4785980DC352 /* UnifiedRepairView.swift in Sources */,
 				99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */,
 				F0E1D2C3B4A5968778695A4B /* CubeDemoView.swift in Sources */,
 				9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */,

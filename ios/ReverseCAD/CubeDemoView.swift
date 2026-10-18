@@ -33,6 +33,7 @@ private struct CubeFinding {
 }
 
 struct CubeDemoView: View {
+    init(showSavedScan: Bool = false) { _observedScan = State(initialValue: showSavedScan) }
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
@@ -53,6 +54,8 @@ struct CubeDemoView: View {
     @State private var showCounterpart = true
     @State private var showCubeContext = false
     @State private var inspectFailedScan = false
+    @State private var faceDisplay = "Ghost"
+    @State private var faceReviewed = false
 
     var body: some View {
         Group {
@@ -158,13 +161,108 @@ struct CubeDemoView: View {
         } message: { Text(error ?? "") }
     }
 
+    private var facePieceCount: Int { model.faceRepair?["piece_count"] as? Int ?? 1 }
+    private var hasReferencePrototype: Bool { model.faceRepair?["reference_prototype"] as? [String: Any] != nil }
+    private var hasReferenceRelief: Bool {
+        let reference = model.faceRepair?["reference_prototype"] as? [String: Any]
+        return (reference?["detail_revision"] as? Int ?? 1) >= 2
+    }
+
+    @ViewBuilder private var grokAdvice: some View {
+        if let visual = model.faceRepair?["vision_adviser"] as? [String: Any] {
+            let review = visual["review"] as? [String: Any]
+            let plan = visual["plan"] as? [String: Any]
+            let advice = (review?["advice"] as? [String: Any]) ?? (plan?["advice"] as? [String: Any])
+            if visual["error_code"] as? String == "visual_review_rejected_model_selection" {
+                Text("Grok found a mismatch in its suggestion. Showing the geometry baseline; review every ghost.")
+                    .font(.footnote).foregroundStyle(.orange).multilineTextAlignment(.center)
+            } else if let advice, let explanation = advice["explanation"] as? String {
+                VStack(spacing: 4) {
+                    Text(review?["advice"] != nil ? "Grok’s visual feedback · unverified" : "Grok’s suggestion · unverified").font(.caption.bold())
+                    if let verdict = advice["verdict"] as? String {
+                        Text(verdict == "supported"
+                             ? "Grok found no obvious front-outline mismatch. Physical fit still needs testing."
+                             : "Grok flagged this outline for another look. This feedback is unverified; compare the ghost with your object.")
+                            .font(.footnote).lineLimit(4)
+                    } else {
+                        Text(explanation).font(.footnote).lineLimit(4)
+                    }
+                    if let direction = advice["next_view"] as? String,
+                       let instruction = ["left": "Try a view farther left.", "right": "Try a view farther right.",
+                                          "above": "Try a higher viewpoint.", "below": "Try a lower viewpoint.",
+                                          "closer": "Move closer while keeping the whole face in the box.",
+                                          "farther": "Move back to show the whole face.",
+                                          "hold_still": "Hold the phone still for a sharper view."][direction] {
+                        Text(instruction).font(.footnote.bold())
+                    }
+                }
+                .foregroundStyle((visual["needs_attention"] as? Bool ?? false) ? Color.orange : Color.secondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("grokVisualAdvice")
+            } else if ["unavailable", "invalid_response", "geometry_rejected_selection"].contains(visual["status"] as? String ?? "") {
+                Text("Grok review unavailable · showing the geometry result")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var faceResult: some View {
+        VStack(spacing: 14) {
+            Picker("Preview", selection: $faceDisplay) {
+                Text("Original").tag("Original")
+                Text("Ghost").tag("Ghost")
+                if model.counterpartMesh != nil { Text(facePieceCount > 1 ? "Pieces" : "Piece").tag("Piece") }
+            }.pickerStyle(.segmented)
+            if faceDisplay == "Piece", let piece = model.counterpartMesh {
+                GeometryPreview(scan: nil, part: piece, selectionMode: "none")
+                    .frame(minHeight: 260, maxHeight: .infinity)
+            } else if let url = model.cubeImageURL(ghost: faceDisplay != "Original"),
+                      let image = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: image).resizable().scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .accessibilityLabel(faceDisplay == "Original" ? "Captured object" : "Proposed missing area over the captured object")
+            }
+            Text(model.counterpartPrintable ? (facePieceCount > 1 ? "\(facePieceCount) proposed pieces" : "Proposed replacement") : "Face found · piece unresolved")
+                .font(.title2.bold())
+            Text(model.counterpartPrintable
+                 ? (hasReferencePrototype
+                    ? (hasReferenceRelief
+                       ? "Reference-shaped test piece with recessed body, retaining grooves and piece-specific connector. Drag to inspect the underside. Recess depths and fit are estimated, not measured. Ghost shows the observed front outline."
+                       : "Reference-shaped test piece. Rounded body, stem and retaining foot are estimated from your reference photos. Scale comes from this scan. Grooves, clearances and physical fit are unverified. Ghost shows the observed front outline.")
+                    : "Ghost shows the observed front outline from matching intact features. Piece includes inferred sides and depth; connectors are unresolved. Only this face is assessed.")
+                 : model.repairMessage)
+                .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            // Paused: live scan trials did not show a reliable improvement.
+            // grokAdvice
+            if model.counterpartPrintable {
+                Toggle(hasReferencePrototype ? "I understand the fit is untested" : (facePieceCount > 1 ? "Every ghost matches a missing piece" : "Ghost matches the missing area"), isOn: $faceReviewed).font(.subheadline)
+                Button(facePieceCount > 1 ? "Export \(facePieceCount) test pieces" : (hasReferencePrototype ? "Export estimated test piece" : "Export exterior test piece")) { model.exportObservedSurface(printableOnly: true) }
+                    .buttonStyle(.borderedProminent).controlSize(.large).disabled(!faceReviewed)
+            } else {
+                Button("Reprocess saved scan") { model.reconstructCubeExterior() }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+            }
+        }
+        .onChange(of: model.counterpartMesh) { _, _ in faceReviewed = false; faceDisplay = "Ghost" }
+        .onChange(of: model.project?.id) { _, _ in faceReviewed = false; faceDisplay = "Ghost" }
+    }
+
     private var observedResult: some View {
         NavigationStack {
             VStack(spacing: 18) {
                 if model.busy {
                     Spacer(); ProgressView(model.progress).multilineTextAlignment(.center); Spacer()
-                } else if model.comparison != nil {
-                    ComparisonPanel().environmentObject(model)
+                } else if model.faceRepair != nil, model.cubeImageURL(ghost: true) != nil {
+                    faceResult
+                } else if model.reconstructionNeedsUpdate {
+                    Spacer()
+                    Text("Update this saved scan").font(.title2.bold())
+                    Text("Create a ghost and replacement from this capture’s own photos.")
+                        .multilineTextAlignment(.center).foregroundStyle(.secondary)
+                    Button("Create replacement") { model.reconstructCubeExterior() }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
+                    Spacer()
                 } else if let mesh = model.scanMesh, !mesh.vertices.isEmpty {
                     if !model.scanNeedsRescan || inspectFailedScan {
                         GeometryPreview(scan: model.counterpartPrintable && !showCubeContext ? nil : mesh, part: model.patternMesh ?? (showCounterpart ? model.counterpartMesh : nil), selectionMode: "none")
@@ -218,7 +316,7 @@ struct CubeDemoView: View {
                         .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy) }
                 } else {
                     Spacer()
-                    Text(model.error ?? model.progress).multilineTextAlignment(.center)
+                    Text(model.error ?? (model.repairMessage.isEmpty ? model.progress : model.repairMessage)).multilineTextAlignment(.center)
                     Button("Rebuild cubie exterior") { model.reconstructCubeExterior() }.buttonStyle(.borderedProminent)
                     Spacer()
                 }
@@ -229,13 +327,15 @@ struct CubeDemoView: View {
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
-                            Button("Compare methods on saved scan") { model.uploadAndReconstruct() }.disabled(model.busy)
                             Button("Rebuild cubie exterior") { model.reconstructCubeExterior() }.disabled(model.busy)
                             Button("Connection settings") { showSettings = true }
                         } label: { Image(systemName: "ellipsis.circle") }
                     }
                 }
         }.sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
+            .task(id: model.project?.id) {
+                if model.reconstructionNeedsUpdate && !model.busy { model.reconstructCubeExterior() }
+            }
             .alert("Scan needs attention", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
                 Button("OK") { model.error = nil }
             } message: { Text(model.error ?? "") }
@@ -393,8 +493,7 @@ struct CubeScanCapture: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            CapturePreview(session: camera.session, onSelect: { camera.selectObject(normalizedRawImagePoint: $0) }, ghost: camera.ghost.selected).ignoresSafeArea()
-            VStack {
+            VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("ReverseCAD").font(.headline)
@@ -407,17 +506,14 @@ struct CubeScanCapture: View {
                         Button("Connection", action: onSettings)
                         Button("Last scan or model", action: onLastModel)
                     } label: { Image(systemName: "ellipsis.circle").font(.title2) }
-                        .disabled(camera.isCapturing || transitioning)
+                        .disabled(camera.isCapturing || transitioning || model.busy)
                 }.padding().background(.black.opacity(0.35))
-                Spacer()
-                RoundedRectangle(cornerRadius: 28)
-                    .stroke(.white.opacity(0.85), style: StrokeStyle(lineWidth: 2, dash: [18, 8]))
-                    .frame(width: 270, height: 300)
-                    .overlay(alignment: .bottom) {
-                        Text(planarMode ? "Show the whole part and all four edges" : "Keep the cube inside · show the gap").font(.caption)
-                            .padding(8).background(.black.opacity(0.45), in: Capsule()).offset(y: 38)
-                    }.allowsHitTesting(false)
-                Spacer()
+                // Give the calibrated camera its own viewport. Controls must never
+                // cover the guide or change which pixels its boundary represents.
+                CapturePreview(session: camera.session, onSelect: { camera.selectObject(normalizedRawImagePoint: $0) }, ghost: camera.ghost.selected,
+                    onGuide: { rect, size, orientation in camera.updateGuide(rect: rect, viewport: size, orientation: orientation) })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                 VStack(spacing: 20) {
                     if camera.isCapturing && !planarMode {
                         HStack {
@@ -429,11 +525,11 @@ struct CubeScanCapture: View {
                             }
                         }.foregroundStyle(camera.ghost.selected == nil ? Color.white : Color.orange)
                     }
-                    Text(failure ?? (planarMode ? "Lay it flat on a contrasting surface. Keep the entire outline in frame. Hold still while capturing." : (camera.isCapturing ? camera.guidance : "Keep the object still. Tap it to set the scan center. Move the phone, not the object.")))
+                    Text(failure ?? (planarMode ? "Only the box is analyzed. Keep the entire part inside it with a little background around every edge. Hold still." : (camera.isCapturing ? camera.guidance : "Keep the whole object inside the box. Tap it to select it. Move the phone slowly around the stationary object.")))
                         .font(.subheadline).multilineTextAlignment(.center)
                     HStack {
                         Button(action: onLibrary) { Image(systemName: "photo.on.rectangle").font(.title2).frame(width: 52) }
-                            .disabled(camera.isCapturing || transitioning).accessibilityLabel("Photo prototype")
+                            .disabled(camera.isCapturing || transitioning || model.busy).accessibilityLabel("Photo prototype")
                         Spacer()
                         Button { Task { await toggle() } } label: {
                             ZStack {
@@ -442,7 +538,7 @@ struct CubeScanCapture: View {
                                 else if camera.isCapturing { RoundedRectangle(cornerRadius: 7).fill(.red).frame(width: 30, height: 30) }
                                 else { Circle().fill(.white).frame(width: 64, height: 64) }
                             }
-                        }.disabled(transitioning || failure != nil)
+                        }.disabled(transitioning || failure != nil || model.busy)
                             .accessibilityLabel(camera.isCapturing ? "Finish scan" : "Start scan").accessibilityIdentifier("startCubeScan")
                         Spacer()
                         Color.clear.frame(width: 52, height: 30)
@@ -476,8 +572,8 @@ struct CubeScanCapture: View {
                     Section("3 · Capture ridges and openings") {
                         Text("Move closer only while edges stay sharp. View each ridge, intact reference feature and visible recess from several angles. Aim into the damaged opening from both sides; shadows and glare can hide its shape.")
                     }
-                    Section("4 · Match an intact edge") {
-                        Text("Show both exposed faces of one intact edge cubie, then the gap from both sides. Include three outer cube faces across the scan. This mode estimates the exterior only; leave the cube assembled. Internal connectors are not modeled.")
+                    Section("4 · Match intact features") {
+                        Text("Show the damaged face and intact features of the same type: corners for missing corners, edges for missing edges. Keep at least five intact tile outlines visible, spanning all three rows and columns. Move slowly through overlapping views with the whole face inside the box and no fingers covering it. Review every ghost. Internal connectors are unresolved.")
                     }
                     Section("What the guide measures") {
                         Text("Prompts check camera tracking, local sharpness, distance, framing and viewing direction. They do not certify minute detail or complete coverage. LiDAR provides coarse depth; photographs must resolve small features.")
@@ -490,7 +586,7 @@ struct CubeScanCapture: View {
             .onChange(of: camera.savedRevision) { _, _ in deliver() }
     }
     private func toggle() async {
-        guard !transitioning else { return }
+        guard !transitioning && !model.busy else { return }
         transitioning = true
         defer { transitioning = false }
         do {
@@ -571,6 +667,7 @@ struct PlanarRepairView: View {
     @State private var settings = false
     @State private var library = false
     @State private var experiments = false
+    @State private var openSavedCube = false
     @State private var display = "Ghost"
     @State private var thickness = ""
     @State private var confirmed = false
@@ -657,13 +754,22 @@ struct PlanarRepairView: View {
                 }
             }
         }.sheet(isPresented: $settings) { SettingsView().environmentObject(model) }
-            .sheet(isPresented: $experiments) { CubeDemoView().environmentObject(model) }
+            .sheet(isPresented: $experiments, onDismiss: { openSavedCube = false }) {
+                CubeDemoView(showSavedScan: openSavedCube).environmentObject(model)
+            }
             .sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
             .sheet(isPresented: $library) {
                 NavigationStack {
                     List(model.projects) { project in
                         Button {
-                            model.select(project); result = true; library = false; confirmed = false; display = "Ghost"
+                            model.select(project); library = false; confirmed = false; display = "Ghost"
+                            if project.repairScope != "rectangular_planar" {
+                                openSavedCube = true
+                                // Present after the library sheet has dismissed.
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { experiments = true }
+                                return
+                            }
+                            result = true
                             thickness = project.planarThicknessMM.map { String($0) } ?? ""
                             if model.planarRepair == nil { model.reconstructRectangle(thickness: project.planarThicknessMM) }
                         } label: {
@@ -679,6 +785,7 @@ struct PlanarRepairView: View {
                                 }
                             }
                         }.disabled(model.busy)
+                            .accessibilityIdentifier("savedScan_\(project.id)")
                     }.navigationTitle("Saved scans")
                         .toolbar { Button("Done") { library = false } }
                 }
@@ -686,5 +793,12 @@ struct PlanarRepairView: View {
             .alert("Repair needs attention", isPresented: Binding(get: { model.error != nil && !settings }, set: { if !$0 { model.error = nil } })) {
                 Button("OK") { model.error = nil }
             } message: { Text(model.error ?? "") }
+            .onAppear {
+                #if DEBUG
+                if ProcessInfo.processInfo.environment["REVERSECAD_REPLAY_SCAN"] != nil {
+                    openSavedCube = true; experiments = true
+                }
+                #endif
+            }
     }
 }

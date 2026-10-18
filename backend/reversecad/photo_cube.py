@@ -13,6 +13,18 @@ from scipy.ndimage import distance_transform_edt, gaussian_filter
 from skimage.measure import marching_cubes
 from .cube import analyze_cube_face, CubeInputError
 from .geometry import project
+from .capture_region import capture_bounds, masked_photo
+
+
+def analyze_guided_face(image, region=None):
+    """Detect within the guide, return calibrated full-image coordinates."""
+    h,w=image.shape[:2]
+    x0,y0,x1,y1=capture_bounds(region,image.shape)
+    _,encoded=cv2.imencode('.jpg',image[y0:y1,x0:x1])
+    result=analyze_cube_face(encoded.tobytes())
+    for key in ('face_corners','missing_polygon'):
+        result[key]=((np.asarray(result[key])*[x1-x0,y1-y0]+[x0,y0])/[w,h]).tolist()
+    return result
 
 
 def fit_square(views):
@@ -121,6 +133,7 @@ def fit_outline(mask):
     error=float(np.median(abs(residual(fit.x))))
     if error>.02 or abs(fit.x[2]-fit.x[3])>.08:raise ValueError('Intact outline is not a consistent rounded cubie')
     return {'width_fraction':float(2*np.mean(fit.x[2:4])), 'radius_fraction':float(fit.x[4]),
+            'center_fraction':fit.x[:2].tolist(),'half_extents_fraction':fit.x[2:4].tolist(),
             'median_boundary_error_fraction':error, 'fit':'robust_rounded_rectangle_from_observed_outline'}
 
 
@@ -149,8 +162,7 @@ def detect_views(frames, scan_dir):
         image=cv2.imread(str(scan_dir/f['rgb_path']))
         if image is None:continue
         factor=min(1,960/max(image.shape[:2]));image=cv2.resize(image,None,fx=factor,fy=factor)
-        _,encoded=cv2.imencode('.jpg',image)
-        try:a=analyze_cube_face(encoded.tobytes())
+        try:a=analyze_guided_face(image,f.get('capture_region'))
         except CubeInputError:continue
         if a['confidence']=='high' and a['missing_cell']['type']=='edge':views.append((f,a))
     return views
@@ -165,7 +177,7 @@ def tracked_groups(frames, views, scan_dir):
         im=cv2.imread(str(scan_dir/f['rgb_path']))
         if im is None:continue
         factor=min(1,960/max(im.shape[:2]))
-        images[f['frame_id']]=cv2.cvtColor(cv2.resize(im,None,fx=factor,fy=factor),cv2.COLOR_BGR2RGB)
+        images[f['frame_id']]=masked_photo(cv2.cvtColor(cv2.resize(im,None,fx=factor,fy=factor),cv2.COLOR_BGR2RGB),f.get('capture_region'))
     groups=[];indices={f['frame_id']:i for i,f in enumerate(frames)}
     for source,analysis in views[:4]:
         group=[(source,analysis)];index=indices[source['frame_id']]
@@ -179,6 +191,8 @@ def tracked_groups(frames, views, scan_dir):
                                    cv2.cvtColor(images[fid],cv2.COLOR_RGB2GRAY),corners)
                 if track is None:break
                 quad,evidence=track
+                x0,y0,x1,y1=capture_bounds(f.get('capture_region'),images[fid].shape)
+                if np.any(quad<[x0,y0]) or np.any(quad>[x1-1,y1-1]):break
                 a=_analyze_face(images[fid],(quad/images[fid].shape[1::-1]).tolist())
                 if a['confidence']!='high' or a['missing_cell']!=analysis['missing_cell']:break
                 a['tracking']={**evidence,'source_frame':source['frame_id'],'previous_frame':previous}

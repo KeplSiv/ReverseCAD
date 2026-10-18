@@ -19,7 +19,7 @@ import numpy as np
 from .geometry import (AR_TO_CV, dot, fit_cylinder_frustum, fit_plane, project,
                        rigid_transform, scaled_intrinsics, transform_points, unproject)
 
-VERSION = "rgbd-1.4.0"
+VERSION = "rgbd-1.6.0"
 MAX_FRAMES = 240
 MAX_SCAN_BYTES = 512 * 1024 * 1024
 MAX_DEPTH_PIXELS = 640 * 480
@@ -109,7 +109,9 @@ def _read_depth(scan_dir: Path, frame: dict) -> np.ndarray:
 
 
 def _mask(scan_dir: Path, frame: dict, depth: np.ndarray, annotations: dict) -> tuple[np.ndarray, str]:
+    from .capture_region import region_mask, capture_bounds
     height, width = depth.shape
+    guide = region_mask(frame.get('capture_region'), depth.shape)
     if frame.get("mask_path"):
         raw = np.frombuffer(_asset(scan_dir, frame["mask_path"]).read_bytes(), dtype=np.uint8)
         if raw.size == width * height:
@@ -125,11 +127,12 @@ def _mask(scan_dir: Path, frame: dict, depth: np.ndarray, annotations: dict) -> 
     else:
         # Depth-connected center seed keeps narrow connected handles. This is an
         # initial region proposal, not an assertion that the table was excluded.
-        valid = np.isfinite(depth) & (depth > .04) & (depth < 3)
+        valid = np.isfinite(depth) & (depth > .04) & (depth < 3) & guide
         coordinates = np.column_stack(np.nonzero(valid))
         selected = np.zeros_like(depth, dtype=bool)
         if len(coordinates):
-            distance = np.sum(((coordinates - [height / 2, width / 2]) / [height, width]) ** 2, axis=1)
+            x0,y0,x1,y1 = capture_bounds(frame.get('capture_region'), depth.shape)
+            distance = np.sum(((coordinates - [(y0+y1)/2, (x0+x1)/2]) / [height, width]) ** 2, axis=1)
             y, x = coordinates[np.argmin(distance)]
             flood = np.where(valid, depth, -100).astype(np.float32)
             floodmask = np.zeros((height + 2, width + 2), dtype=np.uint8)
@@ -148,6 +151,8 @@ def _mask(scan_dir: Path, frame: dict, depth: np.ndarray, annotations: dict) -> 
             cv2.fillPoly(raster, [np.round(polygon).astype(np.int32)], fill)
             selected = raster > 0
             source = "user_mask_correction"
+    selected &= guide
+    if frame.get('capture_region') is not None: source += '+capture_guide'
     return selected, source
 
 
@@ -241,6 +246,8 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
         feature_scale = min(1, 640 / max(rgb.shape[:2]))
         fw, fh = round(rgb.shape[1] * feature_scale), round(rgb.shape[0] * feature_scale)
         feature_rgb = cv2.resize(rgb, (fw, fh), interpolation=cv2.INTER_AREA)
+        from .capture_region import masked_photo
+        feature_rgb = masked_photo(feature_rgb, frame.get('capture_region'))
         feature_k = scaled_intrinsics(frame["intrinsics"], frame["intrinsics_width"],
                                       frame["intrinsics_height"], fw, fh)
         accepted.append({"rgb_path": frame["rgb_path"], "image_size": (rgb.shape[1], rgb.shape[0]),
@@ -249,6 +256,7 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
                          "color": color_depth, "k": k, "pose": pose, "feature_rgb": feature_rgb,
                          "feature_k": feature_k, "mask_source": mask_source,
                          "foreground_mask": selected,
+                         "capture_region": frame.get('capture_region'),
                          "depth_calibration_mode": calibration_mode,
                          "points": points[indices], "colors": color_depth[pixels[indices, 1], pixels[indices, 0]] / 255.,
                          "raw_points": raw_points[raw_indices],
@@ -343,6 +351,10 @@ def _rgb_consistency(frames: list[dict]) -> tuple[dict, np.ndarray, np.ndarray]:
         im = frame["feature_rgb"]
         mask = cv2.resize((frame["depth"] > 0).astype(np.uint8) * 255,
                           (im.shape[1], im.shape[0]), interpolation=cv2.INTER_NEAREST)
+        if frame.get('capture_region') is not None:
+            from .capture_region import region_mask
+            guide=region_mask(frame['capture_region'],im.shape).astype(np.uint8)*255
+            mask &= cv2.erode(guide,np.ones((17,17),np.uint8))
         frame["keypoints"], frame["descriptors"] = orb.detectAndCompute(cv2.cvtColor(im, cv2.COLOR_RGB2GRAY), mask)
     total_matches, errors, depth_errors, anchors, anchor_colors, pairs = 0, [], [], [], [], []
     matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -605,6 +617,21 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     # Independent finite serialization check before annotations affect geometry.
     json.dumps(annotations, allow_nan=False)
     manifest, capture_frames, segments = _load_package(scan_dir)
+    if annotations.get("repair_scope") == "automatic":
+        from .automatic_route import select_route
+        route = select_route(scan_dir, capture_frames)
+        if route["scope"]:
+            selected = {**annotations, "repair_scope": route["scope"]}
+            result = reconstruct(scan_dir, output_dir, selected, stage=stage)
+        else:
+            result = {"schema_version": 1, "algorithm_version": VERSION, "scan_id": manifest["scan_id"],
+                      "source": manifest.get("source"), "unit": "mm", "status": "needs_input",
+                      "warnings": [], "measurements": [], "primitives": [],
+                      "counterpart": {"reason": route["reason"], "watertight_replacement": False}}
+            _json(output_dir / "scan_preview.json", {"vertices": [], "triangles": [], "colors": [], "normals": [], "unit": "mm"})
+        result["automatic_route"] = route
+        _json(output_dir / "reconstruction.json", result)
+        return result
     if annotations.get("repair_scope") == "rectangular_planar":
         from .planar_repair import reconstruct_planar
         return reconstruct_planar(scan_dir, output_dir, manifest, capture_frames, annotations)
@@ -613,7 +640,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
         warnings.append("incomplete_capture: committed views recovered; capture was not ended normally")
     if not (scan_dir / "checksums.json").exists():
         warnings.append("checksum_manifest_absent: import lacks end-to-end asset checksums")
-    if any(f["mask_source"].endswith("needs_confirmation") for f in frames):
+    if any("needs_confirmation" in f["mask_source"] for f in frames):
         warnings.append("foreground_unconfirmed: confirm/correct depth-connected object region or apply a 3D crop")
     base = {"schema_version": 1, "algorithm_version": VERSION, "scan_id": manifest["scan_id"],
             "input_revision": {"manifest_sha256": hashlib.sha256((scan_dir / "manifest.json").read_bytes()).hexdigest(),
@@ -621,8 +648,15 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
             "source": manifest.get("source"), "stage": stage, "unit": "mm", "warnings": warnings,
             "measurements": list(annotations.get("measurements", [])), "primitives": [],
             "observations": {"accepted_frames": [f["frame_id"] for f in frames], "rejected_frames": rejected},
+            "capture_boundary": {"guided_frames":sum(f.get('capture_region') is not None for f in capture_frames),
+                                 "total_frames":len(capture_frames),"legacy_frames_use_full_image":True},
             "metrics": {"accepted_frames": len(frames), "rejected_frames": len(rejected), "timestamp_gaps": gaps},
             "physical_validation": {"phone_sensing": "not_tested", "dimension_accuracy": "not_calibrated", "printed_fit": "not_tested"}}
+    if annotations.get("repair_scope") == "cube_exterior" and stage == "rgb_assisted":
+        # A repeated face is solved from photographs before any dense surface
+        # fusion. Hue and color-class gap detectors are never fallbacks here.
+        from .face_first import reconstruct_faces
+        return reconstruct_faces(scan_dir, output_dir, capture_frames, frames, base)
     if not frames:
         base.update(status="needs_input", bounds_mm={"min": [], "max": [], "extent": []}, point_count=0)
         base["warnings"].append("No usable native depth: capture more supported views or enter manual dimensions")
@@ -786,7 +820,6 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     # photographs and attempt a clearly labeled constrained exterior hypothesis.
     if stage == "rgb_assisted" and (not geometry_consistent or annotations.get("repair_scope") == "cube_exterior") and manifest.get("source") == "arkit":
         from .photo_alignment import align_photos
-        from .photo_cube import estimate_cube
         photo_alignment = {"status": "unavailable"}
         try:
             photo_frames, photo_alignment = align_photos(scan_dir, frames, capture_frames, output_dir)
@@ -829,12 +862,10 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                         "exports":["observed_surface.stl","observed_surface_mm.ply"], "note":"Independently matched photo surface; native depth is only scale evidence."}
                     base["photo_detail"] = {"status":"photo_detail_integrated", "accepted_pixels":checks["cross_pair_supported_pixels"],
                         "limitations":"Captured donor detail plus explicitly inferred planar interiors and flat inner caps. Fine-feature accuracy and fit are unverified."}
-                    estimate = repair_cube_exterior(recovered_mesh, supported, output_dir)
+                    estimate = repair_cube_exterior(recovered_mesh, supported, output_dir,
+                                                    photo_frames=photo_frames,scan_dir=scan_dir)
                 else:
-                    estimate = estimate_cube(photo_frames, scan_dir, output_dir, photo_alignment)
-                    base["surface"] = {"kind":"inferred_cube_context", "unit":"mm", "editable_parametric_cad":False, "exports":[]}
-                    base["photo_detail"] = {"status":"outline_estimate_only", "accepted_pixels":0,
-                        "limitations":"Fine surface relief unresolved; rounded exterior and unseen sides are inferred."}
+                    raise ValueError("Photo surfaces recovered, but no supported general-object repair was established.")
                 base["counterpart"] = estimate
                 base["status"] = "proposal_needs_review"
                 recovery["replacement_generated"] = True

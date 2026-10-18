@@ -7,6 +7,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from .geometry import dot, project, transform_points
+from .capture_region import region_mask, masked_photo
 
 
 def stereo_pair(a, b, *, trust_native_depth=True):
@@ -15,7 +16,7 @@ def stereo_pair(a, b, *, trust_native_depth=True):
     baseline = np.linalg.norm(relative[:3, 3])
     if not .006 <= baseline <= .06:
         return None
-    image_a, image_b = a['image'], b['image']
+    image_a, image_b = [masked_photo(f['image'],f.get('capture_region')) for f in (a,b)]
     h, w = image_a.shape[:2]
     if image_b.shape != image_a.shape:
         return None
@@ -31,6 +32,10 @@ def stereo_pair(a, b, *, trust_native_depth=True):
     left, right = [cv2.remap(im, *m, cv2.INTER_LINEAR) for im, m in zip((image_a, image_b), maps)]
     mask_a = a.get('foreground_mask')
     mask_b = b.get('foreground_mask')
+    if a.get('capture_region') is not None:
+        mask_a=region_mask(a['capture_region'],image_a.shape) & (mask_a if mask_a is not None else True)
+    if b.get('capture_region') is not None:
+        mask_b=region_mask(b['capture_region'],image_b.shape) & (mask_b if mask_b is not None else True)
     if mask_a is not None and mask_b is not None:
         # Rectify the phone's foreground masks with the same calibration as the
         # photos. Without this, stereo happily reconstructs the tabletop and
@@ -161,6 +166,10 @@ def refine_photos(frames, scan_dir: Path, max_pairs=8, *, trust_native_depth=Tru
                                         interpolation=cv2.INTER_NEAREST)
             if foreground is not None:
                 foreground = cv2.resize(foreground, size, interpolation=cv2.INTER_NEAREST) > 0
+        if frame.get('capture_region') is not None:
+            guide=region_mask(frame['capture_region'],image.shape)
+            foreground=guide & (foreground if foreground is not None else True)
+            image=masked_photo(image,frame['capture_region'])
         result = {**frame, 'image': image, 'image_k': resize @ frame['image_k'],
                   'foreground_mask': foreground}
         cache[frame['frame_id']] = result

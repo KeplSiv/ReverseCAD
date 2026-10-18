@@ -41,7 +41,7 @@ struct ComparisonVariant: Codable, Identifiable {
 
 struct ComparisonPanel: View {
     @EnvironmentObject var model: AppModel
-    @State private var showScan = true
+    @State private var showScan = false
     @State private var showRepair = true
     var body: some View {
         VStack(spacing: 12) {
@@ -52,10 +52,10 @@ struct ComparisonPanel: View {
             }.pickerStyle(.menu).accessibilityIdentifier("comparisonMethod")
             if let variant = model.selectedComparison {
                 if model.comparisonScan != nil || model.comparisonPart != nil {
-                    GeometryPreview(scan: showScan ? model.comparisonScan : nil, part: showRepair ? model.comparisonPart : nil, selectionMode: "none")
-                        .frame(minHeight: 160, maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 20))
+                    GeometryPreview(scan: (showScan || model.comparisonPart == nil) ? model.comparisonScan : nil, part: showRepair ? model.comparisonPart : nil, selectionMode: "none")
+                        .frame(minHeight: 260, maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 20))
                     HStack {
-                        Toggle("Scan", isOn: $showScan).tint(.blue)
+                        Toggle("Show on scan", isOn: $showScan).tint(.blue).disabled(model.comparisonPart == nil)
                         Toggle("Proposal", isOn: $showRepair).tint(.orange).disabled(model.comparisonPart == nil)
                     }.font(.caption)
                 } else {

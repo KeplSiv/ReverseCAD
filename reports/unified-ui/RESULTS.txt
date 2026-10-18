@@ -1,0 +1,33 @@
+Unified repair UI — 2026-10-18
+
+Implemented:
+- One camera entry and shared result screen for the existing planar and cube paths.
+- User palette: #1A1423 #3D314A #684756 #96705B #AB8476.
+- Original / Repair / Pieces preview; portrait photos keep their orientation.
+- Larger rounded buttons, concise guidance, technical information in Details.
+- Automatic geometry-based routing inside saved capture boundaries; no color classifier.
+- Explicit shape choice when evidence is insufficient/conflicting; manual correction in More.
+- Existing model geometry, per-piece colors, export verification and fit-review checks retained.
+
+Validation:
+- iOS simulator build succeeded.
+- Four focused routing/contract tests passed.
+- Three real saved cube scans routed to cube_exterior.
+- One recent paper scan routed to rectangular_planar; replay produced one closed patch.
+- Another paper scan abstained because no supported outline was found.
+- Legacy scans without capture-boundary metadata require a choice.
+- Main text on primary button: 5.39:1 contrast; white on panel: 12.09:1; white on selected tab: 8.00:1.
+- Camera layout and actual saved cube output inspected in a separate simulator app (com.sivasaran.reversecad.uipreview).
+
+Scope and deployment:
+- This unifies the two existing supported paths; it does not add arbitrary-object reconstruction.
+- Paper replay used a 1 mm TEST thickness solely to exercise solid export, not a measured thickness claim.
+- Pi3X experiment untouched. No dirt filter. No GitHub push. No phone installation or running-service restart in this UI task.
+- Deploying the new app requires restarting the Mac service to load the extended annotation contract (repair_scope=automatic).
+- camera-layout.png is a simulator layout preview with a blank camera. cube-result.png shows the existing estimated donor geometry, not a new neural reconstruction.
+
+Control layout revision:
+- Saved scans is now top left and removed from the More menu.
+- Circular reset arrow sits left of the record button.
+- Large camera error paragraph and Retry camera button removed.
+- Reset saves an active capture locally, suppresses automatic processing, and creates a fresh camera session.

@@ -1,0 +1,252 @@
+[
+  {
+    "schema_version": 1,
+    "scope": null,
+    "needs_choice": true,
+    "evidence": [
+      {
+        "frame_id": "000000",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000001",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000002",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000003",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000004",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      }
+    ],
+    "color_used": false,
+    "reason": "The scan does not clearly distinguish a flat part from a repeated 3D shape. Choose the shape to continue with this saved scan.",
+    "assumption_requires_review": true,
+    "scan": "99E93F09-3DE8-4CB5-9884-9BEAFC8BE7EA"
+  },
+  {
+    "schema_version": 1,
+    "scope": "rectangular_planar",
+    "needs_choice": false,
+    "evidence": [
+      {
+        "frame_id": "000000",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000001",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000002",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000003",
+        "repeated_grid": false,
+        "supported_rectangle": true
+      }
+    ],
+    "color_used": false,
+    "reason": "Flat surface with four supported edges",
+    "assumption_requires_review": true,
+    "scan": "9B1295C2-CDE4-458C-9C41-5AEE9DDFA36F"
+  },
+  {
+    "schema_version": 1,
+    "scope": "cube_exterior",
+    "needs_choice": false,
+    "evidence": [
+      {
+        "frame_id": "000000",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000002",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000005",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000008",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000011",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000013",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000016",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000019",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000022",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000025",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      }
+    ],
+    "color_used": false,
+    "reason": "Repeated face outlines",
+    "assumption_requires_review": true,
+    "scan": "95B2CBEB-BED4-4646-8FCF-378ED6FC8116"
+  },
+  {
+    "schema_version": 1,
+    "scope": "cube_exterior",
+    "needs_choice": false,
+    "evidence": [
+      {
+        "frame_id": "000000",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000003",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000007",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000011",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000015",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000018",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000022",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000026",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000030",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000034",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      }
+    ],
+    "color_used": false,
+    "reason": "Repeated face outlines",
+    "assumption_requires_review": true,
+    "scan": "44C8FEC2-DBE2-4962-B6E2-5E3F4BA08696"
+  },
+  {
+    "schema_version": 1,
+    "scope": "cube_exterior",
+    "needs_choice": false,
+    "evidence": [
+      {
+        "frame_id": "000000",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000003",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000006",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000009",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000012",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000016",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000019",
+        "repeated_grid": true,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000022",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000025",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      },
+      {
+        "frame_id": "000029",
+        "repeated_grid": false,
+        "supported_rectangle": false
+      }
+    ],
+    "color_used": false,
+    "reason": "Repeated face outlines",
+    "assumption_requires_review": true,
+    "scan": "35886EF2-037A-4A33-9500-7BC3FF3D1968"
+  }
+]

@@ -12,6 +12,12 @@ struct MeshPreview: Codable, Equatable {
     var normals: [[Double]]?
     var unit: String
 
+    var validatedColors: [[Double]]? {
+        guard let colors, colors.count == vertices.count,
+              colors.allSatisfy({ $0.count == 3 && $0.allSatisfy { $0.isFinite && (0...1).contains($0) } }) else { return nil }
+        return colors
+    }
+
     init(vertices: [[Double]], triangles: [[Int]] = [], colors: [[Double]]? = nil,
          normals: [[Double]]? = nil, unit: String = "mm") {
         self.vertices = vertices
@@ -37,6 +43,27 @@ struct MeshPreview: Codable, Equatable {
     }
 }
 
+/// Refit when SwiftUI gives the preview its real size, including sheet resizing.
+final class GeometrySceneView: SCNView {
+    var onViewportChange: (() -> Void)?
+    private var previousSize: CGSize = .zero
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        // A static scene created at zero size can otherwise keep an unrendered
+        // Metal drawable when SwiftUI inserts it into the Piece tab.
+        rendersContinuously = window != nil
+        isPlaying = window != nil
+        if window != nil { setNeedsLayout(); setNeedsDisplay() }
+    }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0, bounds.height > 0, bounds.size != previousSize else { return }
+        previousSize = bounds.size
+        onViewportChange?()
+        setNeedsDisplay()
+    }
+}
+
 /// One finger orbits; two fingers pan; pinch zooms. Tap observed geometry to annotate.
 /// onSelect reports the object-frame point in meters and a unit surface normal.
 struct GeometryPreview: UIViewRepresentable {
@@ -44,6 +71,7 @@ struct GeometryPreview: UIViewRepresentable {
     var part: MeshPreview?
     var showScan: Bool = true
     var showPart: Bool = true
+    var backgroundColor: UIColor? = nil
     var selectionMode: String = "contact"
     var contactPoints: [[Double]] = []
     var damagePoints: [[Double]] = []
@@ -53,9 +81,13 @@ struct GeometryPreview: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> SCNView {
-        let view = SCNView(frame: .zero)
+        let view = GeometrySceneView(frame: .zero)
         view.scene = SCNScene()
-        view.backgroundColor = UIColor.secondarySystemBackground
+        let background = (backgroundColor ?? UIColor.secondarySystemBackground).resolvedColor(with: view.traitCollection)
+        view.backgroundColor = background
+        view.scene?.background.contents = background
+        view.layer.cornerRadius = 20
+        view.clipsToBounds = true
         view.allowsCameraControl = true
         view.autoenablesDefaultLighting = true
         view.antialiasingMode = .multisampling4X
@@ -65,13 +97,14 @@ struct GeometryPreview: UIViewRepresentable {
         view.defaultCameraController.automaticTarget = false
         view.accessibilityIdentifier = "geometryPreview"
         view.isAccessibilityElement = true
-        view.accessibilityLabel = "3D geometry. Blue observed scan; orange proposed repair."
+        view.accessibilityLabel = "3D geometry. Blue observed scan; distinct colors identify proposed pieces."
         view.accessibilityHint = "Drag to orbit, pinch to zoom, two fingers to pan. Tap the observed scan to select a contact or damage location."
         let recognizer = UITapGestureRecognizer(target: context.coordinator,
                                                 action: #selector(Coordinator.selectPoint(_:)))
         recognizer.delegate = context.coordinator
         view.addGestureRecognizer(recognizer)
         context.coordinator.view = view
+        view.onViewportChange = { [weak coordinator = context.coordinator] in coordinator?.fitCamera() }
         context.coordinator.update(self)
         return view
     }
@@ -99,6 +132,7 @@ struct GeometryPreview: UIViewRepresentable {
         init(_ parent: GeometryPreview) { self.parent = parent }
 
         func update(_ newValue: GeometryPreview) {
+            let visibilityChanged = parent.showScan != newValue.showScan || parent.showPart != newValue.showPart
             parent = newValue
             guard let view, let scene = view.scene else { return }
             let scanChanged = lastScan != newValue.scan
@@ -123,7 +157,7 @@ struct GeometryPreview: UIViewRepresentable {
             scanNode?.isHidden = !newValue.showScan
             partNode?.isHidden = !newValue.showPart
             // Preserve a user's orbit while annotations, toggles, or network state change.
-            if scanChanged || partChanged || !didFit { fitCamera() }
+            if scanChanged || partChanged || visibilityChanged || !didFit { fitCamera() }
             if scanChanged || lastContactPoints != newValue.contactPoints || lastDamagePoints != newValue.damagePoints {
                 savedMarkers.forEach { $0.removeFromParentNode() }
                 markerNode?.removeFromParentNode()
@@ -189,6 +223,18 @@ struct GeometryPreview: UIViewRepresentable {
                 }
             }
             var sources = [SCNGeometrySource(vertices: positions.map { SCNVector3($0.x, $0.y, $0.z) })]
+            let vertexColors = observed ? nil : mesh.validatedColors
+            if let vertexColors {
+                var rgba = [Float]()
+                for index in mesh.vertices.indices where remap[index] >= 0 {
+                    rgba.append(contentsOf: vertexColors[index].map(Float.init)); rgba.append(1)
+                }
+                let data = rgba.withUnsafeBytes { Data($0) }
+                sources.append(SCNGeometrySource(data: data, semantic: .color,
+                    vectorCount: positions.count, usesFloatComponents: true,
+                    componentsPerVector: 4, bytesPerComponent: MemoryLayout<Float>.size,
+                    dataOffset: 0, dataStride: MemoryLayout<Float>.size * 4))
+            }
             if vertexNormals.allSatisfy({ $0 != nil }) {
                 sources.append(SCNGeometrySource(normals: vertexNormals.compactMap { $0 }.map { SCNVector3($0.x, $0.y, $0.z) }))
             }
@@ -203,8 +249,9 @@ struct GeometryPreview: UIViewRepresentable {
             }
             let geometry = SCNGeometry(sources: sources, elements: [element])
             let material = SCNMaterial()
-            material.diffuse.contents = color
-            material.emission.contents = color.withAlphaComponent(0.12)
+            let resolved = color.resolvedColor(with: view?.traitCollection ?? UITraitCollection.current)
+            material.diffuse.contents = vertexColors == nil ? resolved : UIColor.white
+            material.emission.contents = vertexColors == nil ? resolved.withAlphaComponent(0.12) : UIColor.black
             material.lightingModel = indices.isEmpty ? .constant : .blinn
             material.isDoubleSided = true
             material.transparency = observed && !indices.isEmpty ? 0.75 : 1
@@ -215,12 +262,12 @@ struct GeometryPreview: UIViewRepresentable {
             return (node, positions, vertexNormals)
         }
 
-        private func fitCamera() {
+        func fitCamera() {
             guard let view, let root = view.scene?.rootNode else { return }
             var lower = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
             var upper = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
             var found = false
-            for node in [scanNode, partNode].compactMap({ $0 }) {
+            for node in [scanNode, partNode].compactMap({ $0 }) where !node.isHidden {
                 let (minimum, maximum) = node.boundingBox
                 lower = simd_min(lower, SIMD3(minimum.x, minimum.y, minimum.z))
                 upper = simd_max(upper, SIMD3(maximum.x, maximum.y, maximum.z))
@@ -228,14 +275,21 @@ struct GeometryPreview: UIViewRepresentable {
             }
             guard found else { return }
             let center = (lower + upper) * 0.5
-            radius = max(0.015, simd_length(upper - lower) * 0.5)
+            radius = max(0.001, simd_length(upper - lower) * 0.5)
             let camera = view.pointOfView ?? SCNNode()
             if camera.parent == nil { root.addChildNode(camera) }
             camera.camera = camera.camera ?? SCNCamera()
             camera.camera?.fieldOfView = 45
             camera.camera?.zNear = Double(max(0.0001, radius / 100))
             camera.camera?.zFar = Double(max(10, radius * 100))
-            camera.simdPosition = center + simd_normalize(SIMD3<Float>(1, 0.7, 1.5)) * radius * 3.4
+            // Fit the limiting viewport dimension. A portrait view otherwise
+            // crops the model horizontally; a short panel can make it tiny.
+            camera.camera?.projectionDirection = .vertical
+            let verticalHalfAngle = Float.pi / 8
+            let aspect = Float(view.bounds.width / max(1, view.bounds.height))
+            let halfAngle = min(verticalHalfAngle, atan(tan(verticalHalfAngle) * max(0.1, aspect)))
+            let distance = radius / sin(halfAngle) * 1.12
+            camera.simdPosition = center + simd_normalize(SIMD3<Float>(1, 0.7, 1.5)) * distance
             let target = SCNVector3(center.x, center.y, center.z)
             camera.look(at: target)
             view.pointOfView = camera

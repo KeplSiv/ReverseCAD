@@ -30,21 +30,21 @@ def test_planar_tracking_rejects_uniform_images_and_unrelated_views():
     assert track_region(a,b,corners) is None
 
 
-def test_model_failure_preserves_other_comparison_results(tmp_path,monkeypatch):
+def test_app_comparison_does_not_launch_or_offer_neural_models(tmp_path,monkeypatch):
     import reversecad.reconstruction as reconstruction
     import reversecad.comparison as comparison
     monkeypatch.setattr(reconstruction,'_load_package',lambda scan:({'scan_id':'same-scan'},[],{}))
     monkeypatch.setattr(reconstruction,'_prepare',lambda *args:([],[],[],[]))
-    monkeypatch.setattr(comparison,'learned_outputs',lambda *args:(_ for _ in ()).throw(RuntimeError('model unavailable')))
+    monkeypatch.setattr(comparison,'learned_outputs',lambda *args:(_ for _ in ()).throw(AssertionError('neural model must not run')))
     (tmp_path/'scan_preview.json').write_text(json.dumps({'vertices':[[0,0,0]],'triangles':[],'unit':'mm'}))
     result=compare_reconstructions(tmp_path,tmp_path,{'status':'needs_input','input_revision':{'manifest_sha256':'unchanged'},'counterpart':{'reason':'native failure'}})
     report=result['comparison']
-    assert len(report['variants'])==6
+    assert len(report['variants'])==4
+    assert not any(v['id'].startswith('learned_') for v in report['variants'])
     assert report['verified_winner'] is None
     assert report['scan_id']=='same-scan'
     assert report['variants'][0]['scan_preview']=='scan_preview.json'
     assert all(not v['printable'] for v in report['variants'])
-    assert 'Model setup failed' in report['variants'][-1]['message']
     assert json.loads((tmp_path/'comparison.json').read_text())['input_revision']['manifest_sha256']=='unchanged'
 
 

@@ -60,6 +60,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var segment = UUID().uuidString.lowercased()
     private var segments: [CaptureSegment]
     private var selectedPoint = CGPoint(x: 0.5, y: 0.5)
+    private var guideLayout: (CGRect, CGSize, UIInterfaceOrientation)?
     private var timeline = CaptureTimeline()
     private var lastVideoTimestamp = -Double.infinity
     private var lastKeyframeTimestamp = -Double.infinity
@@ -125,6 +126,10 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         onLiveGeometry?(nil)
     }
 
+    func setGuide(rect: CGRect, viewport: CGSize, orientation: UIInterfaceOrientation) {
+        lock.lock(); guideLayout = (rect, viewport, orientation); lock.unlock()
+    }
+
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         lock.lock()
         guard active else { lock.unlock(); return }
@@ -132,7 +137,24 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         guard let elapsed = timeline.relativeTimestamp(frame.timestamp) else { lock.unlock(); return }
         let currentSegment = segment
         let point = selectedPoint
+        let layout = guideLayout
         lock.unlock()
+        let displayRotation: Int?
+        switch layout?.2 {
+        case .portrait: displayRotation = 90
+        case .portraitUpsideDown: displayRotation = 270
+        case .landscapeLeft: displayRotation = 180
+        case .landscapeRight: displayRotation = 0
+        default: displayRotation = nil
+        }
+        let region: [Double]?
+        if let (rect, viewport, orientation) = layout {
+            let normalized = CGRect(x: rect.minX/viewport.width, y: rect.minY/viewport.height,
+                                    width: rect.width/viewport.width, height: rect.height/viewport.height)
+            let raw = normalized.applying(frame.displayTransform(for: orientation, viewportSize: viewport).inverted())
+                .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+            region = [Double(raw.minX), Double(raw.minY), Double(raw.width), Double(raw.height)]
+        } else { region = nil }
         if elapsed >= limits.durationSeconds {
             lock.lock(); active = false; lock.unlock()
             workQueue.async { [self] in stopForBudget("Capture duration limit reached. Saved views remain available; capture another scan for missing surfaces.") }
@@ -186,13 +208,13 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             defer { slots.signal() }
             autoreleasepool {
                 do {
-                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch)
+                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch, region: region, displayRotation: displayRotation)
                 } catch { stopForBudget(error.localizedDescription); failure = error.localizedDescription }
             }
         }
     }
 
-    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String) throws {
+    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String, region: [Double]?, displayRotation: Int?) throws {
         guard !stats.finished else { return }
         lock.lock(); stats.dropped += pendingDrops; pendingDrops = 0; lock.unlock()
         try appendVideo(rgb, timestamp: timestamp)
@@ -205,7 +227,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         }
         lastKeyframeTimestamp = timestamp
         let width = CVPixelBufferGetWidth(rgb), height = CVPixelBufferGetHeight(rgb)
-        let blur = Self.blurScore(rgb)
+        let blur = Self.blurScore(rgb, region: region)
         var detailPoint = point
         var objectInFrame = true
         if let target = guideTarget, point == guideSelection {
@@ -217,7 +239,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
                 detailPoint.x = min(1, max(0, detailPoint.x)); detailPoint.y = min(1, max(0, detailPoint.y))
             } else { objectInFrame = false }
         }
-        let objectBlur = Self.blurScore(rgb, around: detailPoint)
+        let objectBlur = Self.blurScore(rgb, around: detailPoint, region: region)
         var reasons = [String]()
         if let trackingReason { reasons.append(trackingReason) }
         if blur < 7 { reasons.append("Low image detail or motion blur; steady the phone and add texture/light") }
@@ -226,9 +248,11 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         let depthHeight = depth.map(CVPixelBufferGetHeight) ?? 0
         let depthData = try depth.map { try Self.copyRows($0, bytesPerPixel: 4, expectedFormat: kCVPixelFormatType_DepthFloat32) }
         let confidenceData = try confidence.map { try Self.copyRows($0, bytesPerPixel: 1, expectedFormat: kCVPixelFormatType_OneComponent8) }
-        let validDepthFraction = depthData.map(Self.validDepthFraction) ?? 0
+        let qualityDepth = depthData.map { Self.regionSamples($0, width: depthWidth, height: depthHeight, bytesPerPixel: 4, region: region) }
+        let qualityConfidence = confidenceData.map { Self.regionSamples($0, width: depthWidth, height: depthHeight, bytesPerPixel: 1, region: region) }
+        let validDepthFraction = qualityDepth.map(Self.validDepthFraction) ?? 0
         if useDepth && validDepthFraction < 0.1 { reasons.append("Too little finite positive native depth; change distance or avoid reflective/transparent surfaces") }
-        let poorConfidence = confidenceData.map { $0.filter({ $0 >= 1 }).count < $0.count / 8 } ?? false
+        let poorConfidence = qualityConfidence.map { $0.isEmpty || $0.filter({ $0 >= 1 }).count < $0.count / 8 } ?? false
         if poorConfidence { reasons.append("Too few reliable depth samples") }
         let accepted = tracking == "normal" && blur >= 7 && !poorConfidence && (!useDepth || validDepthFraction >= 0.1)
         if !accepted && stats.rejected >= limits.rejectedFrames {
@@ -246,11 +270,24 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
         var maskPath: String?
         // Masks are native depth-size labels and derived from the original raw image with .up orientation.
-        if accepted, objectInFrame, depthWidth > 0, let mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
+        if accepted, objectInFrame, depthWidth > 0, var mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
+            if let region {
+                mask.withUnsafeMutableBytes { raw in
+                    let bytes = raw.bindMemory(to: UInt8.self)
+                    for y in 0..<depthHeight { for x in 0..<depthWidth {
+                        let u = Double(x)/Double(depthWidth), v = Double(y)/Double(depthHeight)
+                        if u < region[0] || u >= region[0]+region[2] || v < region[1] || v >= region[1]+region[3] {
+                            bytes[y*depthWidth+x] = 0
+                        }
+                    } }
+                }
+            }
             maskPath = "masks/\(id).u8"; assets[maskPath!] = mask
         }
         var capture = CaptureFrame(scanID: scanID, segmentID: segment, frameID: id, timestampS: timestamp, rgbPath: rgbPath, rgbWidth: width, rgbHeight: height, depthPath: depthPath, depthWidth: depthWidth, depthHeight: depthHeight, depthRowBytes: depthWidth * 4, confidencePath: confidencePath, maskPath: maskPath, intrinsics: Self.columnMajor(intrinsics), intrinsicsWidth: Int(resolution.width), intrinsicsHeight: Int(resolution.height), worldCamera: Self.columnMajor(pose), trackingState: tracking, quality: CaptureQuality(blurScore: blur, accepted: accepted, reasons: reasons))
         capture.depthCalibrationMode = "native_arkit"
+        capture.captureRegion = region
+        capture.displayRotationCW = displayRotation
         try writer.append(frame: capture, assets: assets)
         exposureRecords.append(["frame_id": id, "exposure_duration_s": exposureDuration, "exposure_offset_ev": exposureOffset, "confidence_available": confidence != nil, "depth_source": useDepth ? "native_sceneDepth" : "absent_camera_manual", "valid_depth_fraction": validDepthFraction, "mask_available": maskPath != nil])
         if accepted {
@@ -514,7 +551,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         return data
     }
 
-    static func blurScore(_ buffer: CVPixelBuffer, around point: CGPoint? = nil) -> Double {
+    static func blurScore(_ buffer: CVPixelBuffer, around point: CGPoint? = nil, region: [Double]? = nil) -> Double {
         CVPixelBufferLockBaseAddress(buffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(buffer, .readOnly) }
         guard CVPixelBufferGetPlaneCount(buffer) > 0, let base = CVPixelBufferGetBaseAddressOfPlane(buffer, 0) else { return 0 }
@@ -527,6 +564,13 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             y0 = max(3, Int((point.y - 0.12) * Double(height)))
             y1 = min(height - 3, Int((point.y + 0.12) * Double(height)))
         }
+        if let r = region {
+            x0 = max(x0, Int(ceil(r[0]*Double(width)))+3)
+            x1 = min(x1, Int(floor((r[0]+r[2])*Double(width)))-3)
+            y0 = max(y0, Int(ceil(r[1]*Double(height)))+3)
+            y1 = min(y1, Int(floor((r[1]+r[3])*Double(height)))-3)
+        }
+        guard x1 > x0, y1 > y0 else { return 0 }
         for y in Swift.stride(from: y0, to: y1, by: 8) { for x in Swift.stride(from: x0, to: x1, by: 8) {
             let p = base.advanced(by: y * stride + x).assumingMemoryBound(to: UInt8.self)
             let lap = Double(Int(p[-2]) + Int(p[2]) + Int(p[-2 * stride]) + Int(p[2 * stride]) - 4 * Int(p[0]))
@@ -534,6 +578,17 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         } }
         guard count > 0 else { return 0 }
         return max(0, squared / count - pow(sum / count, 2))
+    }
+
+    static func regionSamples(_ data: Data, width: Int, height: Int, bytesPerPixel: Int, region: [Double]?) -> Data {
+        guard let r = region else { return data }
+        guard width > 0, height > 0, data.count == width*height*bytesPerPixel else { return Data() }
+        let x0 = max(0, Int(ceil(r[0]*Double(width)))), y0 = max(0, Int(ceil(r[1]*Double(height))))
+        let x1 = min(width, Int(floor((r[0]+r[2])*Double(width)))), y1 = min(height, Int(floor((r[1]+r[3])*Double(height))))
+        guard x1 > x0, y1 > y0 else { return Data() }
+        var selected = Data()
+        for y in y0..<y1 { selected.append(data[(y*width+x0)*bytesPerPixel..<(y*width+x1)*bytesPerPixel]) }
+        return selected
     }
 
     static func validDepthFraction(_ data: Data) -> Double {

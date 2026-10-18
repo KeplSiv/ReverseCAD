@@ -8,6 +8,7 @@ final class PatternRepairTests: XCTestCase {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let model = AppModel(rootURL: root)
         model.create(name: "General repair test", synthetic: true)
+        model.update { $0.scanID = "same-input" }
         let dir = try XCTUnwrap(model.projectDirectory)
         let revision = dir.appendingPathComponent("revisions/test")
         try FileManager.default.createDirectory(at: revision, withIntermediateDirectories: true)
@@ -26,7 +27,7 @@ final class PatternRepairTests: XCTestCase {
         try JSONSerialization.data(withJSONObject: ["version": 1, "revisionKey": "test", "artifacts": list]).write(to: revision.appendingPathComponent(".verified-artifacts.json"))
         let options = [PatternRepairOption(id: "pattern_1", preview: "pattern_1_solid.json", print_preview: "pattern_1_solid.json", pattern_kind: "reflection", validation: .init(status: "closed_exterior_prototype", watertight: true, files: ["pattern_1.stl", "pattern_1.3mf"]))]
         let optionJSON = try JSONSerialization.jsonObject(with: JSONEncoder().encode(options))
-        try JSONSerialization.data(withJSONObject: ["pattern_hypotheses": ["candidates": optionJSON], "comparison": comparisonJSON]).write(to: dir.appendingPathComponent("reconstruction.json"))
+        try JSONSerialization.data(withJSONObject: ["scan_id": "same-input", "pattern_hypotheses": ["candidates": optionJSON], "comparison": comparisonJSON]).write(to: dir.appendingPathComponent("reconstruction.json"))
         model.loadDerived() // Exercise restored backend results, not direct UI state injection.
         XCTAssertEqual(model.patternRepairs.count, 1)
         return (model, root)
@@ -54,6 +55,16 @@ final class PatternRepairTests: XCTestCase {
         try Data("changed".utf8).write(to: model.projectDirectory!.appendingPathComponent("revisions/test/pattern_1.stl"))
         model.exportPattern(); try await settle(model)
         XCTAssertFalse(model.showingShare); XCTAssertNotNil(model.error)
+    }
+    func testDifferentScanArtifactRecordBlocksPreview() async throws {
+        let (model, root) = try fixture(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = model.projectDirectory!.appendingPathComponent("observed_artifacts.json")
+        var record = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        record["scan_id"] = "different-input"
+        try JSONSerialization.data(withJSONObject: record).write(to: url)
+        model.selectPattern("pattern_1"); try await settle(model)
+        XCTAssertNil(model.patternMesh)
+        XCTAssertTrue(model.error?.contains("another scan") == true)
     }
     func testChangingSelectionClearsReviewAndFailedScanBlocksExport() async throws {
         let (model, root) = try fixture(); defer { try? FileManager.default.removeItem(at: root) }

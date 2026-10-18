@@ -174,6 +174,9 @@ final class AppModel: ObservableObject {
     @Published var patternReviewed = false
     var selectedPattern: PatternRepairOption? { patternRepairs.first { $0.id == selectedPatternID } }
     @Published var counterpartPrintable = false
+    @Published var faceRepair: [String: Any]?
+    @Published var reconstructionNeedsUpdate = false
+    @Published var automaticRoute: [String: Any]?
     @Published var planarRepair: [String: Any]?
     @Published var scanNeedsRescan = false
     @Published var scanFailureTitle = "Scan didn’t line up"
@@ -198,18 +201,52 @@ final class AppModel: ObservableObject {
         #if targetEnvironment(simulator)
         let initial = "http://127.0.0.1:8767"
         #else
-        let initial = "http://your-mac.local:8767"
+        let initial = ""
         #endif
         serverURL = arg("-serviceURL") ?? ProcessInfo.processInfo.environment["REVERSECAD_TEST_URL"] ?? UserDefaults.standard.string(forKey:"serverURL") ?? initial
         token = arg("-pairingToken") ?? ProcessInfo.processInfo.environment["REVERSECAD_TEST_TOKEN"] ?? TokenStore.load()
         try? FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["REVERSECAD_CLEAR_CAPTURE_DIAGNOSTICS"] == "1" {
+            do { print("Removed \(try Self.removeSavedCaptureDiagnostics(root: root)) saved capture diagnostics") }
+            catch { print("Capture diagnostics cleanup failed: \(error.localizedDescription)") }
+        }
+        #endif
         reload()
+        #if DEBUG
+        if let scanID = ProcessInfo.processInfo.environment["REVERSECAD_REPLAY_SCAN"],
+           let jobID = ProcessInfo.processInfo.environment["REVERSECAD_REPLAY_JOB"],
+           let saved = projects.first(where: { $0.scanID == scanID }) {
+            select(saved)
+            update { $0.repairScope = "cube_exterior"; $0.jobID = jobID; $0.jobKind = "reconstruction" }
+            perform { try await self.runJob(["job_id":jobID], kind: "reconstruction") }
+        }
+        #endif
         if arg("-serviceURL") != nil || ProcessInfo.processInfo.environment["REVERSECAD_TEST_URL"] != nil {
             saveSettings()
             checkConnection()
         }
     }
     var project: RepairProject? { projects.first{$0.id == selectedID} }
+    /// Explicit maintenance action only. Preserve scans and their integrity manifests.
+    static func removeSavedCaptureDiagnostics(root: URL) throws -> Int {
+        let manager = FileManager.default
+        var removed = 0
+        for project in try manager.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isSymbolicLinkKey]) {
+            if try project.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink == true { continue }
+            let scan = project.appendingPathComponent("scan", isDirectory: true)
+            let diagnostic = scan.appendingPathComponent("capture_diagnostics.json")
+            guard manager.fileExists(atPath: diagnostic.path) else { continue }
+            let checksum = scan.appendingPathComponent("checksums.json")
+            let original = try Data(contentsOf: checksum)
+            var hashes = try JSONDecoder().decode([String:String].self, from: original)
+            hashes.removeValue(forKey: "capture_diagnostics.json")
+            try JSONEncoder().encode(hashes).write(to: checksum, options: .atomic)
+            do { try manager.removeItem(at: diagnostic); removed += 1 }
+            catch { try original.write(to: checksum, options: .atomic); throw error }
+        }
+        return removed
+    }
     func directory(_ id: String) -> URL { root.appendingPathComponent(id,isDirectory:true) }
     var projectDirectory: URL? { selectedID.map(directory) }
     var scanDirectory: URL? { projectDirectory?.appendingPathComponent("scan",isDirectory:true) }
@@ -218,6 +255,7 @@ final class AppModel: ObservableObject {
         projects = urls.compactMap { try? JSONDecoder().decode(RepairProject.self,from:Data(contentsOf:$0.appendingPathComponent("project.json"))) }.sorted{$0.created>$1.created}
     }
     func create(name:String,synthetic:Bool) {
+        guard !busy && !captureActive else { return }
         var p=RepairProject(name:name.isEmpty ? "Untitled repair":name)
         p.source=synthetic ? "synthetic":"arkit"
         projects.insert(p,at:0);selectedID=p.id;save();loadDerived()
@@ -261,12 +299,23 @@ final class AppModel: ObservableObject {
     }
     func saveSettings() {UserDefaults.standard.set(serverURL,forKey:"serverURL");TokenStore.save(token)}
     func loadDerived() {
+        reconstructionNeedsUpdate = false
         comparison=nil;selectedComparisonID=nil;comparisonScan=nil;comparisonPart=nil;comparisonReviewed=false
         patternRepairs=[];selectedPatternID=nil;patternMesh=nil;patternReviewed=false
-        planarRepair=nil;counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
+        automaticRoute=nil;planarRepair=nil;faceRepair=nil;counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
         guard let dir=projectDirectory else{return}
+        if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] {
+            guard ReconstructionIdentity.matches(info, scanID: savedScanID) else {
+                reconstructionNeedsUpdate = true
+                repairMessage = "This saved result belongs to another scan. Update this scan to create its own preview."
+                return
+            }
+            updatePhotoDetail(info)
+            let hasFaceWorkflow = faceRepair != nil || (info["surface"] as? [String: Any])?["kind"] as? String == "tracked_face_outlines"
+            let oldFaceGeometry = faceRepair != nil && (faceRepair?["geometry_version"] as? Int ?? 1) < 2
+            reconstructionNeedsUpdate = project?.repairScope == "cube_exterior" && (!hasFaceWorkflow || oldFaceGeometry)
+        } else { reconstructionNeedsUpdate = project?.repairScope == "cube_exterior" }
         counterpartMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("counterpart_preview.json")))
-        if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { updatePhotoDetail(info) }
         scanMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("scan_preview.json")))
         partMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("part_preview.json")))
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let d=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { measurements=d["measurements"] as? [[String:Any]] ?? [];warnings=d["warnings"] as? [String] ?? [] }
@@ -294,6 +343,11 @@ final class AppModel: ObservableObject {
     }
     // HTTP is paired and bounded. Scan package transfer uses the shared Core client.
     func request(_ path:String,method:String="GET",json:[String:Any]?=nil,raw:Data?=nil,hash:String?=nil) async throws -> Data {
+        guard !serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              URL(string: serverURL)?.host?.lowercased() != "your-mac.local",
+              !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw ServiceFailure(message:"Connect this iPhone to the Mac service in Connection settings first. Your scan is saved; reopen it from Saved scans after connecting.")
+        }
         guard let base=URL(string:serverURL),["http","https"].contains(base.scheme ?? ""),let host=base.host,!host.isEmpty else{throw ServiceFailure(message:"Enter the Mac service URL, including http:// or https://.")}
         #if !targetEnvironment(simulator)
         if ["localhost","127.0.0.1","::1"].contains(host) {throw ServiceFailure(message:"On iPhone use your Mac's LAN address, not localhost.")}
@@ -333,6 +387,10 @@ final class AppModel: ObservableObject {
         d["fragment_points_m"]=p.fragmentPoints ?? []
         return d
     }
+    func reconstructAutomatically() {
+        update { $0.repairScope = "automatic" }
+        uploadAndReconstruct(compareMethods: false)
+    }
     func reconstructRectangle(thickness: Double? = nil) {
         update { $0.repairScope = "rectangular_planar"; $0.planarThicknessMM = thickness }
         uploadAndReconstruct(compareMethods: false)
@@ -340,6 +398,11 @@ final class AppModel: ObservableObject {
     func planarImageURL(ghost: Bool) -> URL? {
         guard let (folder, infos) = try? observedArtifactLocation() else { return nil }
         let name = ghost ? "planar_overlay.jpg" : "planar_original.jpg"
+        return infos.contains(where: { $0.name == name }) ? folder.appendingPathComponent(name) : nil
+    }
+    func cubeImageURL(ghost: Bool) -> URL? {
+        guard let (folder, infos) = try? observedArtifactLocation() else { return nil }
+        let name = ghost ? "cube_overlay.jpg" : "cube_original.jpg"
         return infos.contains(where: { $0.name == name }) ? folder.appendingPathComponent(name) : nil
     }
     func exportPlanar() { perform {
@@ -359,7 +422,7 @@ final class AppModel: ObservableObject {
         update { $0.repairScope = "cube_exterior" }
         uploadAndReconstruct(compareMethods: false)
     }
-    func uploadAndReconstruct(compareMethods: Bool = true) {perform {
+    func uploadAndReconstruct(compareMethods: Bool = false) {perform {
         guard let dir=self.scanDirectory,let p=self.project else{return}
         let manifest=(try JSONSerialization.jsonObject(with:Data(contentsOf:dir.appendingPathComponent("manifest.json")))) as! [String:Any]
         let scanID=manifest["scan_id"] as? String ?? p.id
@@ -404,11 +467,13 @@ final class AppModel: ObservableObject {
     }}
     func resumeJob() {guard let id=project?.jobID else{return};let kind=project?.jobKind ?? "repair";perform{try await self.runJob(["job_id":id],kind:kind)}}
     func runJob(_ initial:[String:Any],kind:String) async throws {
+        guard let projectID = project?.id else { return }
         guard let id=initial["job_id"] as? String ?? initial["id"] as? String else{throw ServiceFailure(message:"Service omitted the job identifier.")}
         update{$0.jobID=id;$0.jobKind=kind;$0.stage="Processing";if kind=="repair" {$0.repairID=initial["repair_id"] as? String ?? $0.repairID}}
         for _ in 0..<1200 {
             try Task.checkCancellation()
             let job=try await object("v1/jobs/\(id)")
+            guard project?.id == projectID else { throw CancellationError() }
             let state=job["state"] as? String ?? "queued"
             progress="\(state.replacingOccurrences(of:"_",with:" ").capitalized) · \(job["message"] ?? "")"
             if state=="complete" || state=="needs_input" {
@@ -422,6 +487,7 @@ final class AppModel: ObservableObject {
                     progress="Needs measurements: "+warnings.joined(separator:" ")
                     update{$0.pendingRepairBody=nil;$0.pendingRepairFingerprint=nil;$0.pendingRepairRoute=nil}
                 } else {try await receive(result,kind:kind)}
+                guard project?.id == projectID else { throw CancellationError() }
                 update{$0.jobID=nil;if kind=="reconstruction" {$0.pendingReconstructionID=nil;$0.pendingReconstructionFingerprint=nil};$0.stage=state=="needs_input" ? "Needs measurements":(kind=="repair" ? "CAD checks passed":"Scan reconstructed")}
                 if state=="needs_input" {warnings.append("More views or confirmed measurements are required. Review the quality report.")}
                 return
@@ -438,12 +504,16 @@ final class AppModel: ObservableObject {
     }
     func receive(_ result:[String:Any],kind:String) async throws {
         guard let dir=projectDirectory,let p=project,let url=URL(string:serverURL) else{return}
+        if kind == "reconstruction" && !ReconstructionIdentity.matches(result, scanID: savedScanID) {
+            throw ServiceFailure(message: "The returned result belongs to a different scan. Your saved capture is unchanged; reprocess this scan.")
+        }
         let list=result["artifacts"] as? [[String:Any]] ?? []
         let decoder=JSONDecoder()
         let infos=try decoder.decode([ArtifactInfo].self,from:JSONSerialization.data(withJSONObject:list))
         let revision=result["revision"] as? Int ?? (p.revision+1)
         let key=kind=="repair" ? "repair-\(result["repair_id"] as? String ?? p.repairID ?? p.id)-r\(revision)" : "scan-\(p.jobID ?? UUID().uuidString)"
         let published=try await VerifiedArtifactStore.download(infos:infos,baseDirectory:dir.appendingPathComponent("revisions"),revisionKey:key,client:ServiceClient(baseURL:url,token:token))
+        guard project?.id == p.id else { throw CancellationError() }
         if kind == "reconstruction" {
             counterpartMesh = nil
             try? FileManager.default.removeItem(at: dir.appendingPathComponent("counterpart_preview.json"))
@@ -456,9 +526,10 @@ final class AppModel: ObservableObject {
             if kind=="repair" && ["preview.json","part_preview.json","mesh.json"].contains(artifact.name) {let data=try Data(contentsOf:file);partMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("part_preview.json"),options:.atomic)}
         }
         if kind=="reconstruction" {
-            try JSONSerialization.data(withJSONObject: ["folder": "revisions/"+key, "artifacts": list], options: .prettyPrinted).write(to: dir.appendingPathComponent("observed_artifacts.json"), options: .atomic)
+            try JSONSerialization.data(withJSONObject: ["folder": "revisions/"+key, "artifacts": list, "scan_id": savedScanID ?? ""], options: .prettyPrinted).write(to: dir.appendingPathComponent("observed_artifacts.json"), options: .atomic)
             let reconstruction=result["reconstruction"] as? [String:Any] ?? result
             updatePhotoDetail(reconstruction)
+            reconstructionNeedsUpdate = false
             measurements=reconstruction["measurements"] as? [[String:Any]] ?? []
             if !p.cropEnabled,let bounds=reconstruction["bounds_mm"] as? [String:Any],let low=bounds["min"] as? [Double],let high=bounds["max"] as? [Double],low.count==3,high.count==3 {update{$0.cropMin=low.map{$0-1};$0.cropMax=high.map{$0+1}}}
             warnings=reconstruction["warnings"] as? [String] ?? []
@@ -517,7 +588,9 @@ final class AppModel: ObservableObject {
         return false
     }
     private func updatePhotoDetail(_ info: [String: Any]) {
+        automaticRoute = info["automatic_route"] as? [String: Any]
         planarRepair = info["planar_repair"] as? [String: Any]
+        faceRepair = info["face_repair"] as? [String: Any]
         selectedComparisonID = nil; comparisonScan = nil; comparisonPart = nil; comparisonReviewed = false
         if let value = info["comparison"], let data = try? JSONSerialization.data(withJSONObject: value) {
             comparison = try? JSONDecoder().decode(ComparisonReport.self, from: data)
@@ -530,13 +603,13 @@ final class AppModel: ObservableObject {
         let notes = info["warnings"] as? [String] ?? []
         let counterpart = info["counterpart"] as? [String: Any] ?? [:]
         exteriorEstimated = counterpart["geometry_is_estimated"] as? Bool == true && counterpart["watertight_replacement"] as? Bool == true
-        scanNeedsRescan = !exteriorEstimated && notes.contains { $0.hasPrefix("cross_view_depth_inconsistency") || $0.hasPrefix("rgb_pose_inconsistency") }
+        scanNeedsRescan = !exteriorEstimated && ((faceRepair != nil && info["status"] as? String == "needs_input") || notes.contains { $0.hasPrefix("cross_view_depth_inconsistency") || $0.hasPrefix("rgb_pose_inconsistency") })
         let alignment = info["photo_alignment"] as? [String: Any] ?? [:]
         let photosAligned = alignment["status"] as? String == "aligned_photos"
         let alignedCount = alignment["registered_frames"] as? Int ?? 0
         scanFailureTitle = photosAligned ? "Replacement not resolved" : "Scan didn’t line up"
         if scanNeedsRescan && photosAligned {
-            repairMessage = "The photos aligned, but depth disagreed and no reliable replacement was found. This is a reconstruction limitation, not necessarily a scanning mistake."
+            repairMessage = alignment["repair_failure"] as? String ?? counterpart["reason"] as? String ?? "The photos aligned, but no supported replacement was found. Review the saved scan."
         } else if scanNeedsRescan {
             repairMessage = "The captured views could not be combined reliably. Keep the object still and take sharp, overlapping views of the intact feature and damaged opening."
         } else {
@@ -544,7 +617,7 @@ final class AppModel: ObservableObject {
         }
         counterpartPrintable = (info["counterpart"] as? [String: Any])?["watertight_replacement"] as? Bool ?? false
         let detail = info["photo_detail"] as? [String: Any] ?? [:]
-        photoDetailStatus = exteriorEstimated ? "Cubie exterior · captured donor geometry with inferred flat regions" : scanNeedsRescan ? (photosAligned ? "\(alignedCount) photos aligned. Fine surface geometry and the missing part remain unresolved." : "Photo alignment needs more overlapping, sharp views.") : detail["status"] as? String == "photo_detail_integrated"
+        photoDetailStatus = exteriorEstimated ? "Observed donor outline · inferred side shape and depth" : scanNeedsRescan ? (photosAligned ? "\(alignedCount) photos aligned. Fine surface geometry and the missing part remain unresolved." : "Photo alignment needs more overlapping, sharp views.") : detail["status"] as? String == "photo_detail_integrated"
             ? "Photo detail matched across views · accuracy uncalibrated"
             : "Fine photo detail unresolved. Try closer, sharp overlapping views."
     }
@@ -594,11 +667,33 @@ final class AppModel: ObservableObject {
         }
     }
 
+    private var savedScanID: String? {
+        if let dir = scanDirectory,
+           let data = try? Data(contentsOf: dir.appendingPathComponent("manifest.json")),
+           let manifest = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let id = manifest["scan_id"] as? String { return id }
+        return project?.scanID
+    }
+
     private func observedArtifactLocation() throws -> (URL, [ArtifactInfo]) {
         guard let dir = projectDirectory else { throw ServiceFailure(message: "Open a saved scan first.") }
+        let reconstruction = try JSONSerialization.jsonObject(with: Data(contentsOf: dir.appendingPathComponent("reconstruction.json"))) as? [String: Any] ?? [:]
+        guard ReconstructionIdentity.matches(reconstruction, scanID: savedScanID) else {
+            throw ServiceFailure(message: "The saved result belongs to another scan. Reprocess this scan before opening or exporting its result.")
+        }
         let record = try JSONSerialization.jsonObject(with: Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))) as? [String: Any]
         guard let folder = record?["folder"] as? String, folder.hasPrefix("revisions/"), !folder.contains(".."),
               let list = record?["artifacts"] as? [[String: Any]] else { throw ServiceFailure(message: "The scan's verified files are unavailable. Reprocess the scan.") }
+        if let id = record?["scan_id"] as? String, id != savedScanID {
+            throw ServiceFailure(message: "The saved files belong to another scan. Reprocess this scan.")
+        }
+        let provenanceURL = dir.appendingPathComponent(folder).appendingPathComponent("input_provenance.json")
+        if FileManager.default.fileExists(atPath: provenanceURL.path) {
+            let provenance = try JSONSerialization.jsonObject(with: Data(contentsOf: provenanceURL)) as? [String: Any] ?? [:]
+            guard ReconstructionIdentity.matches(provenance, scanID: savedScanID) else {
+                throw ServiceFailure(message: "The saved files do not match this capture. Reprocess this scan.")
+            }
+        }
         let infos = try JSONDecoder().decode([ArtifactInfo].self, from: JSONSerialization.data(withJSONObject: list))
         return (dir.appendingPathComponent(folder), infos)
     }
@@ -619,20 +714,18 @@ final class AppModel: ObservableObject {
     func exportObservedSurface(printableOnly: Bool = false) { perform {
         guard !self.scanNeedsRescan else { throw ServiceFailure(message: self.repairMessage) }
         if self.exteriorEstimated && !printableOnly { throw ServiceFailure(message: "Only the estimated replacement is exportable; the original scan did not align.") }
-        guard let dir = self.projectDirectory else { return }
-        let data = try Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))
-        let record = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        guard let folder = record?["folder"] as? String, folder.hasPrefix("revisions/"), !folder.contains(".."),
-              let list = record?["artifacts"] as? [[String: Any]], list.contains(where: { $0["name"] as? String == (printableOnly ? "printable_edge.stl" : "observed_surface.stl") }) else {
+        let (directory, infos) = try self.observedArtifactLocation()
+        guard infos.contains(where: { $0.name == (printableOnly ? "printable_edge.stl" : "observed_surface.stl") }) else {
             throw ServiceFailure(message: "No surface mesh was reconstructed. Capture more views and try again.")
         }
-        let infos = try JSONDecoder().decode([ArtifactInfo].self, from: JSONSerialization.data(withJSONObject: list))
-        let directory = dir.appendingPathComponent(folder)
         try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: directory) }.value
         if printableOnly && !infos.contains(where: { $0.name == "printable_edge.stl" }) {
             throw ServiceFailure(message: "No validated closed piece is available. Scan both sides of the intact edge again.")
         }
-        self.shareURLs = infos.filter { (printableOnly ? ["printable_edge.stl", "printable_edge.3mf", "printable_edge.json", "counterpart.json"] : ["observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json", "input_provenance.json", "photo_detail.json", "counterpart.json", "counterpart_surface.stl"]).contains($0.name) }.map { directory.appendingPathComponent($0.name) }
+        let names = printableOnly
+            ? try ExteriorPrintFiles.names(report: self.faceRepair, available: Set(infos.map(\.name)))
+            : ["observed_surface.stl", "observed_surface_mm.ply", "reconstruction.json", "input_provenance.json", "photo_detail.json", "counterpart.json", "counterpart_surface.stl"].filter { name in infos.contains { $0.name == name } }
+        self.shareURLs = names.map { directory.appendingPathComponent($0) }
         self.showingShare = true
     }}
 

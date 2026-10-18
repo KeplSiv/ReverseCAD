@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 
-def track_region(previous, current, corners):
+def track_region(previous, current, corners, excluded_polygon=None, excluded_polygons=None):
     """Return a homography-supported quad or reject an ambiguous/weak track.
 
     Coordinates are pixels in same-sized grayscale images. Forward/backward
@@ -18,6 +18,12 @@ def track_region(previous, current, corners):
     mask = np.zeros((h,w),np.uint8)
     cv2.fillConvexPoly(mask,np.rint(corners).astype(np.int32),255)
     mask=cv2.erode(mask,np.ones((5,5),np.uint8))
+    exclusions=list(excluded_polygons or [])
+    if excluded_polygon is not None:exclusions.append(excluded_polygon)
+    for polygon in exclusions:
+        excluded=np.asarray(polygon,np.float32)
+        if excluded.shape != (4,2) or not np.isfinite(excluded).all():return None
+        cv2.fillConvexPoly(mask,np.rint(excluded).astype(np.int32),0)
     points=cv2.goodFeaturesToTrack(previous,maxCorners=400,qualityLevel=.006,minDistance=5,mask=mask,blockSize=5)
     if points is None or len(points)<12:return None
     params=dict(winSize=(25,25),maxLevel=4,criteria=(cv2.TERM_CRITERIA_EPS|cv2.TERM_CRITERIA_COUNT,40,.01))

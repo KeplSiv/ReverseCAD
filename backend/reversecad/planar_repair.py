@@ -14,17 +14,28 @@ from shapely.geometry import Polygon, box
 from .geometry import scaled_intrinsics, unproject
 
 
-def candidate_contours(image):
+from .capture_region import capture_bounds
+
+
+def candidate_contours(image, region=None):
     """Generate contrasting foreground candidates; rectangle evidence ranks them."""
+    if region is not None:
+        x0,y0,x1,y1 = capture_bounds(region,image.shape)
+        # Segment only inside the guide, including threshold/background
+        # statistics. Border-touching contours are rejected, never capped.
+        for contour in candidate_contours(image[y0:y1,x0:x1]):
+            yield contour + [x0,y0]
+        return
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB).astype(float)
     h, w = gray.shape
-    border = np.concatenate([lab[:h//12].reshape(-1,3), lab[-h//12:].reshape(-1,3),
-                             lab[:, :w//12].reshape(-1,3), lab[:, -w//12:].reshape(-1,3)])
-    distance = np.linalg.norm(lab-np.median(border, axis=0), axis=2)
+    border = np.concatenate([gray[:max(1,h//12)].ravel(), gray[-max(1,h//12):].ravel(),
+                             gray[:, :max(1,w//12)].ravel(), gray[:, -max(1,w//12):].ravel()])
+    # Brightness contrast locates boundaries. Hue and saturation never decide
+    # which material survives or which area is missing.
+    distance = np.abs(gray.astype(float)-np.median(border))
     distance = np.clip(distance, 0, 255).astype(np.uint8)
     masks=[]
-    for channel in [gray, distance, cv2.cvtColor(image,cv2.COLOR_BGR2HSV)[:,:,1]]:
+    for channel in [gray, distance]:
         threshold, mask=cv2.threshold(channel,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         masks.extend([mask,255-mask])
         for offset in (15,30,45):
@@ -134,7 +145,10 @@ def analyze_frame(scan_dir, frame):
     kd=scaled_intrinsics(frame['intrinsics'],frame['intrinsics_width'],frame['intrinsics_height'],
                          depth.shape[1],depth.shape[0],frame.get('depth_calibration_mode','pixel_center'))
     best=None
-    for contour in candidate_contours(image):
+    depth_rejections=0
+    plane_candidates=0
+    region = frame.get('capture_region')
+    for contour in candidate_contours(image, region):
         mask=np.zeros(depth.shape,np.uint8)
         dc=contour*[depth.shape[1]/image.shape[1],depth.shape[0]/image.shape[0]]
         cv2.fillPoly(mask,[np.rint(dc).astype(np.int32)],1)
@@ -144,15 +158,23 @@ def analyze_frame(scan_dir, frame):
             confidence=np.fromfile(scan_dir/frame['confidence_path'],dtype=np.uint8).reshape(depth.shape)
             valid &= confidence>=1
         points,_=unproject(depth,kd,np.eye(4),valid)
-        if len(points)<70:continue
+        if len(points)<70:
+            depth_rejections+=1
+            continue
         cloud=o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
         o3d.utility.random.seed(23)
         plane,ids=cloud.segment_plane(.003,3,300)
-        if len(ids)<len(points)*.8:continue
+        if len(ids)<len(points)*.8:
+            depth_rejections+=1
+            continue
+        plane_candidates+=1
         normal=np.asarray(plane[:3]);distance=float(plane[3]);normal/=np.linalg.norm(normal)
         try:
             quad,lines=supporting_quad(contour,image.shape)
         except ValueError:continue
+        if region is not None:
+            x0,y0,x1,y1=capture_bounds(region,image.shape)
+            if np.any(quad < [x0,y0]) or np.any(quad > [x1-1,y1-1]):continue
         du=np.linalg.inv(k)@np.cross(lines[0],lines[1])
         dv=np.linalg.inv(k)@np.cross(lines[2],lines[3])
         du/=np.linalg.norm(du);dv/=np.linalg.norm(dv)
@@ -186,7 +208,10 @@ def analyze_frame(scan_dir, frame):
             best={**fit,'score':score,'image':image,'k':k,'plane_origin':plane_origin,
                   'plane_basis':basis,'frame_id':frame['frame_id'],'plane_residual_mm':residual,
                   'plane_inlier_fraction':len(ids)/len(points),'contour_px':contour,'image_from_plane':np.linalg.inv(homography)}
-    if best is None:raise ValueError('Outline not resolved. Place the flat part on a contrasting surface and show all four original edges.')
+    if best is None and depth_rejections and not plane_candidates:
+        raise ValueError('The photo has a candidate outline, but depth does not establish a reliable flat surface. Dimensions and replacement are unresolved; the outline may already be inside the box.')
+    if best is None:raise ValueError('Outline not resolved inside the box. Keep the whole flat part inside the box with background visible around every edge.' if region is not None else 'Outline not resolved. Place the flat part on a contrasting surface and show all four original edges.')
+    best['capture_region'] = region
     return best
 
 
@@ -222,13 +247,17 @@ def reconstruct_planar(scan_dir, output_dir, manifest, frames, annotations):
     thickness=annotations.get('planar_thickness_mm')
     if thickness is not None and (not np.isfinite(thickness) or not 0 < thickness <= 100):
         raise ValueError('Thickness must be a measured value greater than zero and no more than 100 mm')
-    base={'schema_version':1,'algorithm_version':'planar-1.0','scan_id':manifest['scan_id'],
+    base={'schema_version':1,'algorithm_version':'planar-1.1','scan_id':manifest['scan_id'],
           'source':manifest.get('source'),'unit':'mm','warnings':[], 'measurements':[], 'primitives':[],
           'input_revision':{'manifest_sha256':hashlib.sha256((scan_dir/'manifest.json').read_bytes()).hexdigest(),
                             'annotations_sha256':hashlib.sha256(json.dumps(annotations,sort_keys=True).encode()).hexdigest()},
           'physical_validation':{'dimension_accuracy':'not_calibrated','printed_fit':'not_tested'}}
     def save(name,value): (output_dir/name).write_text(json.dumps(value,indent=2,allow_nan=False))
-    valid=[f for f in frames if f.get('depth_path') and f.get('tracking_state')=='normal']
+    # This path uses one frame's RGB, native depth and camera intrinsics. It
+    # never uses ARKit's world pose, so limited world tracking at session
+    # startup must not discard an otherwise valid photo. analyze_frame still
+    # checks depth confidence, planarity, calibration and supporting edges.
+    valid=[f for f in frames if f.get('depth_path') and f.get('tracking_state') in ('normal', 'limited')]
     selected=[valid[i] for i in np.unique(np.linspace(0,len(valid)-1,min(10,len(valid))).astype(int))] if valid else []
     candidates=[];failures=[]
     for f in selected:
@@ -243,14 +272,23 @@ def reconstruct_planar(scan_dir, output_dir, manifest, frames, annotations):
     dims=np.sort([fit['width'],fit['height']]);agree=[f for f in candidates if np.max(abs(np.sort([f['width'],f['height']])/dims-1))<.05]
     patches=fit['patches']
     original=fit['image'].copy();overlay=original.copy();layer=original.copy()
-    for p in patches:cv2.fillPoly(layer,[np.rint(local_to_pixels(p.exterior.coords,fit)).astype(np.int32)],(0,165,255))
+    from .preview_display import piece_color
+    for i,p in enumerate(patches):cv2.fillPoly(layer,[np.rint(local_to_pixels(p.exterior.coords,fit)).astype(np.int32)],tuple(int(v*255) for v in piece_color(i)[::-1]))
     overlay=cv2.addWeighted(layer,.55,overlay,.45,0)
     boundary=local_to_pixels([[0,0],[fit['width'],0],[fit['width'],fit['height']],[0,fit['height']]],fit)
     cv2.polylines(overlay,[np.rint(boundary).astype(np.int32)],True,(255,220,0),2,cv2.LINE_AA)
+    # Result images show exactly the analyzed area. Geometry projection keeps
+    # full-image intrinsics; cropping is a presentation step only.
+    if fit.get('capture_region') is not None:
+        x0,y0,x1,y1=capture_bounds(fit['capture_region'],original.shape)
+        original=original[y0:y1,x0:x1];overlay=overlay[y0:y1,x0:x1]
+    from .preview_display import orient_preview
+    metadata=next(f for f in frames if f['frame_id']==fit['frame_id'])
+    original=orient_preview(original,metadata);overlay=orient_preview(overlay,metadata)
     cv2.imwrite(str(output_dir/'planar_original.jpg'),original)
     cv2.imwrite(str(output_dir/'planar_overlay.jpg'),overlay)
     observed,_=mesh_polygon(fit['observed'])
-    def preview(m):return {'vertices':m.vertices.tolist(),'triangles':m.faces.tolist(),'colors':[],'normals':[],'unit':'mm'}
+    def preview(m,colors=None):return {'vertices':m.vertices.tolist(),'triangles':m.faces.tolist(),'colors':colors or [],'normals':[],'unit':'mm'}
     save('scan_preview.json',preview(observed))
     all_meshes=[];shapes=[];exports=[]
     for i,p in enumerate(patches):
@@ -258,7 +296,9 @@ def reconstruct_planar(scan_dir, output_dir, manifest, frames, annotations):
         if thickness:
             name=f'replacement_{i+1}.stl';mesh.export(output_dir/name);exports.append(name)
     if all_meshes:
-        combined=trimesh.util.concatenate(all_meshes);save('counterpart_preview.json',preview(combined))
+        combined=trimesh.util.concatenate(all_meshes)
+        colors=[piece_color(i) for i,m in enumerate(all_meshes) for _ in m.vertices]
+        save('counterpart_preview.json',preview(combined,colors))
     closed=bool(patches and thickness)
     if closed:
         import cadquery as cq
@@ -274,6 +314,7 @@ def reconstruct_planar(scan_dir, output_dir, manifest, frames, annotations):
         cq.exporters.export(cq.Compound.makeCompound(shapes),str(output_dir/'replacement.step'))
         exports+=['printable_edge.stl','printable_edge.3mf','replacement.step']
     report={'assumption':'Originally rectangular planar part','frame_id':fit['frame_id'],
+            'capture_region':fit.get('capture_region'),
             'width_mm':fit['width'],'height_mm':fit['height'],'thickness_mm':thickness,
             'thickness_source':'user_measurement' if thickness else 'unresolved',
             'scale_source':'native_depth_plane_and_calibrated_photo_rays','scale_accuracy':'uncalibrated',

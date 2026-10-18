@@ -20,14 +20,16 @@ def test_unknown_occluded_and_duplicate_views_do_not_prove_missing_material():
 
 
 @pytest.mark.parametrize('width', [.045,.075])
-def test_frame_estimates_rotated_cube_width_without_preset_dimensions(width):
+@pytest.mark.parametrize('camera_local', [[.2,.2,.2],[-.2,.2,.2]])
+def test_frame_estimates_rotated_cube_width_without_preset_dimensions(width,camera_local):
     r=Rotation.from_euler('xyz',[23,41,-17],degrees=True).as_matrix()
     center=np.array([.03,-.01,.04]);uv=np.linspace(-width/2,width/2,65)
     a,b=np.meshgrid(uv,uv);groups=[]
     for axis in range(3):
         p=np.full((a.size,3),width/2);other=[i for i in range(3) if i!=axis]
         p[:,other]=np.column_stack([a.ravel(),b.ravel()]);groups.append(p@r.T+center)
-    camera=np.array([[.2,.2,.2]])@r.T+center
+    # The mean position of a camera orbit need not face every observed plane.
+    camera=np.array([camera_local])@r.T+center
     fit=fit_cube_frame(np.concatenate(groups),camera)
     assert abs(fit['width']-width)<.001
     np.testing.assert_allclose(fit['center'],center,atol=.001)
@@ -59,5 +61,8 @@ def test_detects_only_edge_with_observed_recess_on_both_faces():
     geometry={'center':np.zeros(3),'basis':np.eye(3),'width':.06}
     found,_=locate_missing_edge(geometry,rendered_cube(True))
     assert found['target']==[1.,1.,0.]
+    diagnostics={}
     with pytest.raises(ValueError,match='No edge'):
-        locate_missing_edge(geometry,rendered_cube(False))
+        locate_missing_edge(geometry,rendered_cube(False),diagnostics)
+    assert len(diagnostics['tested_edges'])==3
+    assert max(c['score'] for c in diagnostics['tested_edges'])==0

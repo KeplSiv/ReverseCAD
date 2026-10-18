@@ -1,6 +1,29 @@
 import Foundation
 import ReverseCADCore
 
+/// A checksum proves file integrity, not that a result belongs to this capture.
+enum ReconstructionIdentity {
+    static func matches(_ result: [String: Any], scanID: String?) -> Bool {
+        let reconstruction = result["reconstruction"] as? [String: Any] ?? result
+        guard let scanID, !scanID.isEmpty else { return false }
+        return reconstruction["scan_id"] as? String == scanID
+    }
+}
+
+enum ExteriorPrintFiles {
+    /// A declared multi-piece export must be complete; never silently share a subset.
+    static func names(report: [String: Any]?, available: Set<String>) throws -> [String] {
+        let closure = report?["closure"] as? [String: Any]
+        let declared = closure?["files"] as? [String] ?? ["printable_edge.stl", "printable_edge.3mf"]
+        guard !declared.isEmpty, Set(declared).count == declared.count,
+              declared.allSatisfy({ available.contains($0) && ($0.hasSuffix(".stl") || $0.hasSuffix(".3mf") || $0.hasSuffix(".step")) }),
+              declared.contains("printable_edge.stl") else {
+            throw CoreError.integrity("Some replacement pieces are missing. Reprocess this saved scan before exporting.")
+        }
+        return declared + ["printable_edge.json", "counterpart.json"].filter { available.contains($0) }
+    }
+}
+
 /// Publishes complete, checksum-verified artifact revisions. A failed or cancelled
 /// download never changes a previously published revision or exposes a partial one.
 enum VerifiedArtifactStore {

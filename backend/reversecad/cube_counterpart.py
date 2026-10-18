@@ -109,6 +109,41 @@ def transfer_edge(mesh, geometry, missing, minimum_triangles=80):
                       'target_cell': missing, 'transform_world_m': transform.tolist(), 'triangles': len(proposal.triangles)}
 
 
+def transfer_edge_points(points, geometry, missing):
+    """Rank two-face donors from validated samples without requiring a mesh.
+
+    Returns all viable donors so closure can reject poor coverage instead of
+    allowing the largest point count to hide a better-covered counterpart.
+    """
+    center,basis,width=geometry['center'],geometry['basis'],geometry['width']
+    pitch=width/3; points=np.asarray(points); local=(points-center)@basis
+    target=np.array([missing['column']-1,missing['row']-1])
+    if tuple(target) not in [(0,-1),(-1,0),(1,0),(0,1)]:return []
+    candidates=[]
+    for source in [(0,-1),(-1,0),(1,0),(0,1)]:
+        source=np.array(source)
+        if np.array_equal(source,target):continue
+        offset=local[:,:2]-source*pitch
+        radial=offset@source; tangent=offset@np.array([-source[1],source[0]])
+        keep=(abs(tangent)<pitch*.5)&(radial>-pitch*.5)&(radial<pitch*.5+.003)
+        keep&=(local[:,2]>-pitch*.98)&(local[:,2]<.003)
+        q=local[keep]
+        top=int(np.count_nonzero(abs(q[:,2])<.0015))
+        side=int(np.count_nonzero((q[:,:2]@source>width/2-.0025)&(q[:,2]<-.003)))
+        if min(top,side)<40:continue
+        angle=np.arctan2(target[1],target[0])-np.arctan2(source[1],source[0])
+        c,s=np.cos(angle),np.sin(angle)
+        rotation=basis@np.array([[c,-s,0],[s,c,0],[0,0,1.]])@basis.T
+        transform=np.eye(4);transform[:3,:3]=rotation;transform[:3,3]=center-rotation@center
+        transferred=points[keep]@rotation.T+transform[:3,3]
+        candidates.append((min(top,side),transferred,{
+            'source_cell':{'row':int(source[1]+1),'column':int(source[0]+1),'type':'edge'},
+            'target_cell':missing,'transform_world_m':transform.tolist(),
+            'source_samples':len(q),'source_face_samples':[top,side],
+            'surface_source':'independently_cross_validated_photo_points'}))
+    return [(points,report) for _,points,report in sorted(candidates,key=lambda x:-x[0])]
+
+
 def propose_counterpart(frames, scan_dir, mesh, output_dir, scale=1):
     import open3d as o3d
     report = {'status': 'needs_more_evidence', 'method': 'observed_intact_edge_rotated_by_cube_symmetry',
@@ -124,9 +159,9 @@ def propose_counterpart(frames, scan_dir, mesh, output_dir, scale=1):
             continue
         factor = min(1, 1200/max(image.shape[:2]))
         image = cv2.resize(image, None, fx=factor, fy=factor)
-        _, encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 65])
         try:
-            analysis = analyze_cube_face(encoded.tobytes())
+            from .photo_cube import analyze_guided_face
+            analysis = analyze_guided_face(image,frame.get('capture_region'))
         except CubeInputError:
             continue
         if analysis['confidence'] == 'needs_review' or analysis['missing_cell']['type'] != 'edge':

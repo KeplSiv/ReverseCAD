@@ -5,7 +5,7 @@ import ImageIO
 struct ContentView: View {
     var body: some View {
         if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
-        else { PlanarRepairView() }
+        else { UnifiedRepairView() }
     }
 }
 
@@ -138,7 +138,7 @@ struct ProjectView:View {
                     .font(.subheadline).foregroundStyle(.secondary)
             }.card()
             if capture.isCapturing {
-                CapturePreview(session:capture.session,onSelect:{capture.selectObject(normalizedRawImagePoint:$0)}).frame(height:280).clipShape(RoundedRectangle(cornerRadius:18)).overlay(alignment:.center){Image(systemName:"scope").font(.system(size:70,weight:.ultraLight)).foregroundStyle(.white).allowsHitTesting(false)}
+                CapturePreview(session:capture.session,onSelect:{capture.selectObject(normalizedRawImagePoint:$0)},onGuide:{rect,size,orientation in capture.updateGuide(rect:rect,viewport:size,orientation:orientation)}).frame(height:280).clipShape(RoundedRectangle(cornerRadius:18)).overlay(alignment:.center){Image(systemName:"scope").font(.system(size:70,weight:.ultraLight)).foregroundStyle(.white).allowsHitTesting(false)}
                 Text(capture.guidance).font(.headline)
                 Text("\(capture.status) · \(capture.coverageViews) view bins · \(capture.rejectedFrames) rejected").font(.caption)
                 HStack {metric("Frames",String(capture.frameCount));metric("Dropped",String(capture.droppedFrames));metric("MiB",String(format:"%.1f",Double(capture.bytesWritten)/1048576))}

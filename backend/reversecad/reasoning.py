@@ -140,6 +140,9 @@ def _image_content(scan_dir: Path):
         if candidate.stat().st_size > 16 * 1024 * 1024:
             raise ReasoningError("image_too_large", "Selected image exceeds provider evidence limit.")
         with Image.open(candidate) as im:
+            if frame.get('capture_region') is not None:
+                from .capture_region import capture_bounds
+                im=im.crop(capture_bounds(frame['capture_region'],(im.height,im.width)))
             im.thumbnail((768, 768))
             out = io.BytesIO()
             im.convert("RGB").save(out, "JPEG", quality=80)

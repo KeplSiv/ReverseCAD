@@ -6,15 +6,50 @@ Native iPhone RGB-D capture and a local Mac processing service for a two-mount b
 
 ## Missing cubie exterior demo
 
-The app opens as a camera. On a LiDAR device, tap **Start 3D scan**, keep the object stationary and centered, and move the phone around it at overlapping angles and heights. Tap to finish. The phone saves calibrated original-resolution RGB, native depth/confidence and camera poses; the paired Mac fuses accepted views with Open3D TSDF. The result is a rotatable observed surface, with full integrated mesh exports in millimeters (`observed_surface.stl`, `observed_surface_mm.ply`) and a quality/provenance report. Only the display mesh is simplified. This produces an observed mesh, not completed missing geometry or editable parametric CAD. Hold the object still: turning it in your hand is not supported by world-pose fusion.
+The camera saves calibrated RGB, native depth/confidence and camera poses. Keep the object stationary and fully inside the capture guide while moving the phone. The guide bounds apply to reconstruction and uploaded visual evidence.
 
-Fine detail uses an experimental calibrated OpenCV stereo pass on original camera photos (up to 1280 px): rectification, bidirectional matching, local subpixel photometric alignment, texture/appearance checks and native-depth agreement. Where supported photo detail exists, it replaces coarse pixels only in the derived surface integration; the native measurement evidence stays unchanged. Weak matches fall back to LiDAR. `photo_detail.json` records accepted pairs and support. Minute-feature accuracy remains uncalibrated; a textured synthetic 2 mm step is a regression check, not a phone accuracy claim. No new dependency is required.
+The current 3×3 exterior workflow tracks grayscale repeated outlines, verifies candidate face geometry across views, and transfers a same-type intact donor’s observed front contour. Corners and multiple missing locations on one supported face can produce separate closed STL/3MF pieces. Native camera poses are checked against intact depth samples; photo alignment remains a fallback. No depth inside a missing gap is required. **Original / Repair / Pieces** shows the source image, proposed front profiles, and separate solids. Review every ghost before exporting.
 
-For a mostly solved Rubik’s cube with one missing edge, reconstruction also tries to find a clear face grid, fit its metric plane, select an intact edge with both exterior faces observed, and rotate that actual scanned surface into the gap. **Preview missing edge** shows the inferred patch in orange; export includes `counterpart_surface.stl` and `counterpart.json` when supported. This preserves observed donor details rather than substituting a box. It assumes matching edge exteriors and needs user review. With enough donor coverage, the service interpolates the two exposed surfaces and adds explicitly inferred flat caps to form a closed exterior prototype. It validates one connected watertight mesh, winding, positive volume, self-intersections and STL reimport before offering **Export printable piece** (STL and 3MF in millimeters). Closure sampling is 0.25 mm, not a sensor accuracy claim. Hidden connectors, mechanical clearance/fit and parametric CAD fitting remain unfinished. Insufficient coverage retains the open patch and a reason to rescan. The camera framing box is a positioning guide; foreground selection and depth masks determine geometry inclusion.
+Side shape and depth remain inferred. Hidden connectors, fine relief, exact metric accuracy and physical fit are unresolved. Only supported faces are assessed; unobserved regions are not established damage. The shared camera and result UI selects between the paper/rectangle and 3×3 cube workflows, with a manual choice when the evidence is ambiguous. Saved-scan validation is in `reports/cube-mixed-real/validation.json`.
 
-The photo-library button retains the separate **photo prototype** path: automatic detection of a mostly same-colored 3×3 face with one missing edge. Multiple missing pieces and scrambled faces are not supported yet.
+### Reference-shaped edge and corner prototypes
 
-Enter only the independently measured width of the full cube face. The app estimates visible outline spacing from consistent intact pieces; when that cannot be resolved it uses a labeled cube prior. Three-dimensional rounding remains a labeled prior. These estimates are not mechanical fit tolerances. The Mac makes an exterior-envelope STEP solid, STL mesh, editable CadQuery source and dimension record. **The photo does not establish millimeter scale or hidden locking geometry. This first model is an exterior prototype, not a fitted working cubie.** The cube analysis is deterministic computer vision; it does not call a model provider. The app renders the exported STL and shares five files, including a replayable `repair_plan.json` with detection provenance and per-operation CAD checks.
+Explicitly associated same-cube scans can use image-guided CAD donors with rounded bodies, inner relief, retaining bands, a rounded edge tab, and a corner's triangular channel and recessed center. Revision 5 uses smooth traced profiles, drafted blind recess walls, and a flat-sided rounded corner neck. CAD solids and exported meshes are checked for closure; proposed pieces are checked for mutual intersection. These checks do not establish mechanical fit or exact cavity depth.
+
+`fixtures/reference_pieces/cube_profile_v5.json` records the current estimated geometry without enabling it for arbitrary scans. For a local reference trial, copy it to `var/reference-pieces/cube.json` and explicitly populate `scan_ids` with captures of the matching physical design. Reference images and video remain local. Other cube designs need their own reviewed profiles; scaling this connector is not a general compatibility solution.
+
+Neural reconstruction experiments are paused and excluded from the active comparison path. No dirt filter is applied. See `reports/reference-v5/validation.json` for the current CAD check and `reports/unified-ui/` for the unified screen validation.
+
+### Optional Grok visual adviser
+
+Currently paused in the local demo: calls are disabled in `.env`, and the `grokAdvice` view invocation is commented out. Saved-scan trials did not establish a reliable improvement. The adapter, tests, and feedback view remain available for later evaluation. The configuration below is for explicitly re-enabling experiments.
+
+The Mac reads these server-only settings from the repository `.env` (excluded from Git):
+
+```dotenv
+XAI_API_KEY=your_xai_api_key
+REVERSECAD_GROK_ENABLED=true
+REVERSECAD_GROK_MODEL=grok-4.20-0309-non-reasoning
+REVERSECAD_GROK_TIMEOUT=20
+REVERSECAD_GROK_REASONING=low
+REVERSECAD_GROK_APPLY_SELECTIONS=false
+```
+
+Obtain the key from [xAI Console](https://console.x.ai). The model is configurable; the default is [Grok 4.20 Non-Reasoning](https://docs.x.ai/developers/models/grok-4.20-0309-non-reasoning), which supports images and structured output. Grok 4.7 exceeded the 20-second budget in local trials, including with low reasoning effort. `.env.example` contains blank credentials and a disabled default. Real keys stay on the Mac and are never packaged in the iPhone app.
+
+For completed cube scans, the adviser sees up to three supported face candidates, two guide-cropped grayscale views each (one rectified to the front plane), and numbered features. It can suggest a supported candidate and compatible donor IDs. Automatic model selections are disabled by default: a real two-piece scan showed Grok selecting an incomplete one-piece face, and the visual reviewer also produced false alarms. Set `REVERSECAD_GROK_APPLY_SELECTIONS=true` only for comparison experiments; coverage, concerns, solid and review guards still apply. The geometry engine computes placement/dimensions and validates solids. A second request reviews the original/ghost pair and may suggest a next viewpoint. This is post-scan advice; continuous live LLM guidance and general-object completion are not implemented.
+
+Requests use structured JSON through `https://api.x.ai/v1/responses`, with `store=false`, at most two calls, bounded images/output and 2–30 second request timeouts. Invalid IDs, incompatible donors, unresolved model concerns, reduced repair coverage, a model selection rejected by its overlay review, failed solid checks, authentication errors and unavailable APIs preserve the geometry baseline. No model-generated code or dimensions are executed. Grok’s review is advisory, not a physical-fit certification; it does not remove the user’s ghost-review requirement.
+
+To compare the exact same saved input locally (the `--live` option makes paid API calls):
+
+```sh
+PYTHONPATH=backend .venv/bin/python scripts/benchmark_grok.py \
+  --scan-dir var/service/scans/SCAN_ID/capture \
+  --output work/grok-comparison-01 --live
+```
+
+The output includes both sets of ghosts, closed exports when available, model status/feedback and a comparison JSON. Judge correctness against the actual missing pieces; a model response is not evidence of improved reliability.
 
 Open **`ios/ReverseCAD.xcodeproj`**, scheme **ReverseCAD**, development team **Sivasaran Babu**, bundle **com.sivasaran.reversecad.trial**, deployment target **iOS17.0**. Signing and actual phone capture are separate from unsigned compilation.
 

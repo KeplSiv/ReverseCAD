@@ -13,7 +13,7 @@ class ClosureUnavailable(ValueError):
     pass
 
 
-def close_edge(surface, geometry, missing, output_dir, scale=1, *, inferred_points=None):
+def close_edge(surface, geometry, missing, output_dir, scale=1, *, inferred_points=None, observed_points=None):
     pitch = geometry['width']/3*1000*scale
     half = pitch/2
     target = np.array([missing['column']-1, missing['row']-1, 0.])
@@ -24,7 +24,10 @@ def close_edge(surface, geometry, missing, output_dir, scale=1, *, inferred_poin
     center = geometry['center'] + geometry['basis'] @ (target*geometry['width']/3) - up*geometry['width']/6
     import open3d as o3d
     o3d.utility.random.seed(19)
-    observed = np.vstack([np.asarray(surface.vertices), np.asarray(surface.sample_points_uniformly(12000).points)])
+    # Validated stereo samples remain useful even when sparse connectivity
+    # prevents TSDF from producing a complete donor triangle patch.
+    observed = (np.asarray(observed_points).reshape(-1,3) if observed_points is not None else
+                np.vstack([np.asarray(surface.vertices), np.asarray(surface.sample_points_uniformly(12000).points)]))
     local = dot(observed-center, basis)*1000*scale
     inferred_local = (dot(np.asarray(inferred_points).reshape(-1,3)-center,basis)*1000*scale
                       if inferred_points is not None else np.empty((0,3)))
@@ -78,10 +81,16 @@ def close_edge(surface, geometry, missing, output_dir, scale=1, *, inferred_poin
     # A single radial surface prevents separate top/side interpolants from
     # crossing at the shared crease. Each positive radius belongs to one ray
     # from the cubie's interior; the closed cube triangulation supplies topology.
+    # Only exterior samples may displace the exterior. Interior/recess samples
+    # inside the donor's selection volume are not surface relief on these faces.
+    local = np.vstack([top,side])
     observed_radii = np.linalg.norm(local, axis=1)
     directions = local / observed_radii[:, None]
+    observed_offsets = observed_radii - half/np.max(abs(directions),axis=1)
     tree = cKDTree(directions)
     inferred_radii = np.linalg.norm(inferred_local, axis=1)
+    inferred_offsets = (inferred_radii-half/np.max(abs(inferred_local/inferred_radii[:,None]),axis=1)
+                        if len(inferred_local) else np.empty(0))
     inferred_tree = cKDTree(inferred_local / inferred_radii[:, None]) if len(inferred_local) else None
     count = int(np.ceil(pitch/step))
     vertices, triangles, indices = [], [], {}
@@ -108,12 +117,14 @@ def close_edge(surface, geometry, missing, output_dir, scale=1, *, inferred_poin
     ids=np.flatnonzero(exterior);q=vertices[ids];r=np.linalg.norm(q,axis=1);direction=q/r[:,None]
     distance,neighbors=tree.query(direction,k=min(6,len(local)))
     weights=1/np.maximum(distance,.001)**2
-    radius=(observed_radii[neighbors]*weights).sum(1)/weights.sum(1)
+    # Interpolate displacement from the nominal envelope, not absolute radius:
+    # cube radius changes with angle even for a perfectly flat face.
+    radius=r+(observed_offsets[neighbors]*weights).sum(1)/weights.sum(1)
     nearest=distance[:,0]*half
     if inferred_tree is not None:
         d,near=inferred_tree.query(direction)
         fill=(nearest>=1.5)&(d*half<1.5)
-        radius[fill]=inferred_radii[near[fill]]
+        radius[fill]=r[fill]+inferred_offsets[near[fill]]
         nearest=np.minimum(nearest,d*half)
     radius[nearest>=1.5]=r[nearest>=1.5]
     rim=np.minimum.reduce([q[:,0]+half,half-abs(q[:,1]),q[:,2]+half])

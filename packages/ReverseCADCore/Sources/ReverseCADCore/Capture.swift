@@ -37,6 +37,10 @@ public struct CaptureFrame: Codable, Sendable, Equatable {
     public var depthCalibrationMode: String? = nil
     public var confidencePath: String?
     public var maskPath: String?
+    /// User's visible guide box in normalized raw-image coordinates: x, y, width, height.
+    public var captureRegion: [Double]? = nil
+    /// Clockwise display rotation only. RGB/depth/intrinsics stay raw and calibrated.
+    public var displayRotationCW: Int? = nil
     public var intrinsics: [Double]
     public var intrinsicsWidth: Int
     public var intrinsicsHeight: Int
@@ -49,11 +53,22 @@ public struct CaptureFrame: Codable, Sendable, Equatable {
         case depthPath = "depth_path", depthWidth = "depth_width", depthHeight = "depth_height", depthRowBytes = "depth_row_bytes", depthByteOrder = "depth_byte_order", confidencePath = "confidence_path", maskPath = "mask_path"
         case intrinsics, intrinsicsWidth = "intrinsics_width", intrinsicsHeight = "intrinsics_height", worldCamera = "T_world_camera", trackingState = "tracking_state", quality
         case depthCalibrationMode = "depth_calibration_mode"
+        case captureRegion = "capture_region"
+        case displayRotationCW = "display_rotation_cw_deg"
     }
     public init(schemaVersion: Int = 1, scanID: String, segmentID: String, frameID: String, timestampS: Double, rgbPath: String, rgbWidth: Int, rgbHeight: Int, orientation: String = "up", depthPath: String? = nil, depthWidth: Int = 0, depthHeight: Int = 0, depthRowBytes: Int = 0, depthByteOrder: String = "little", confidencePath: String? = nil, maskPath: String? = nil, intrinsics: [Double], intrinsicsWidth: Int, intrinsicsHeight: Int, worldCamera: [Double], trackingState: String, quality: CaptureQuality) {
         self.schemaVersion = schemaVersion; self.scanID = scanID; self.segmentID = segmentID; self.frameID = frameID; self.timestampS = timestampS; self.rgbPath = rgbPath; self.rgbWidth = rgbWidth; self.rgbHeight = rgbHeight; self.orientation = orientation; self.depthPath = depthPath; self.depthWidth = depthWidth; self.depthHeight = depthHeight; self.depthRowBytes = depthRowBytes; self.depthByteOrder = depthByteOrder; self.confidencePath = confidencePath; self.maskPath = maskPath; self.intrinsics = intrinsics; self.intrinsicsWidth = intrinsicsWidth; self.intrinsicsHeight = intrinsicsHeight; self.worldCamera = worldCamera; self.trackingState = trackingState; self.quality = quality
     }
     public func validate() throws {
+        if let displayRotationCW, ![0,90,180,270].contains(displayRotationCW) {
+            throw CoreError.invalid("Invalid display rotation")
+        }
+        if let r = captureRegion {
+            guard r.count == 4, r.allSatisfy(\.isFinite), r[0] >= 0, r[1] >= 0,
+                  r[2] > 0, r[3] > 0, r[0]+r[2] <= 1.000001, r[1]+r[3] <= 1.000001 else {
+                throw CoreError.invalid("Capture guide region is invalid.")
+            }
+        }
         guard schemaVersion == 1, !scanID.isEmpty, !segmentID.isEmpty, !frameID.isEmpty else { throw CoreError.invalid("Capture identifiers or schema version are invalid.") }
         guard timestampS.isFinite, timestampS >= 0, quality.blurScore.isFinite else { throw CoreError.invalid("Capture time and quality must be finite.") }
         guard (1...16384).contains(rgbWidth), (1...16384).contains(rgbHeight), (1...16384).contains(intrinsicsWidth), (1...16384).contains(intrinsicsHeight) else { throw CoreError.invalid("RGB/calibration dimensions are invalid.") }

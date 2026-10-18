@@ -1,5 +1,7 @@
 # Reconstruction options — evaluated 2026-10-17
 
+**18 October update:** Neural reconstruction is paused. App comparisons no longer launch or offer learned RGB / RGB + depth models. MASt3R and Pi3X reference experiments did not produce a usable detailed donor; offline research code and reports are retained. The paper and current cube donor workflows continue without these models.
+
 ## Real failed-scan benchmark and automatic exterior fallback (2026-10-17)
 
 The phone capture with 25 RGB frames (23 accepted native-depth frames) failed native fusion: median visible depth disagreement 10.94 mm, free-space violations 67.2%. All-pairs Open3D colored ICP on its largest 21-frame connected component reduced depth disagreement to 5.56 mm but made image reprojection worse (about 36 px at 640 px feature resolution). It was rejected. COLMAP's initial diagnostic camera alignment improved RGB reprojection to 3.64 px but did not rescue native-depth fusion (8.17 mm residual). These residuals use different matched/visible samples, so they are diagnostics, not a ground-truth accuracy leaderboard.

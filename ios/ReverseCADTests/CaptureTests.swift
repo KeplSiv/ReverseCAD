@@ -1,4 +1,5 @@
 import XCTest
+import SceneKit
 import CoreVideo
 import AVFoundation
 import ARKit
@@ -6,6 +7,120 @@ import ReverseCADCore
 @testable import ReverseCAD
 
 final class CaptureTests: XCTestCase {
+    @MainActor
+    func testPieceIdentityColorsReachSceneKitWithoutOrangeTint() throws {
+        let part = MeshPreview(vertices: [[0,0,0],[10,0,0],[0,10,0]], triangles: [[0,1,2]],
+                               colors: [[0.12,0.72,1],[0.12,0.72,1],[0.12,0.72,1]])
+        let preview = GeometryPreview(scan: nil, part: part, selectionMode: "none")
+        let coordinator = preview.makeCoordinator()
+        let view = GeometrySceneView(frame: CGRect(x:0,y:0,width:300,height:400));view.scene = SCNScene()
+        coordinator.view = view;coordinator.update(preview)
+        let node = try XCTUnwrap(view.scene?.rootNode.childNode(withName:"Inferred replacement", recursively:true))
+        let source = try XCTUnwrap(node.geometry?.sources(for:.color).first)
+        XCTAssertEqual(source.vectorCount,3)
+        XCTAssertEqual(node.geometry?.firstMaterial?.diffuse.contents as? UIColor,UIColor.white)
+        var malformed=part;malformed.colors=[[Double.nan,0,0]]
+        XCTAssertNil(malformed.validatedColors)
+    }
+    @MainActor
+    func testPreviewRendersOnlyWhileAttachedAndRefitsAfterResize() throws {
+        let part = MeshPreview(vertices: [[-34,-70,-152],[-12,-70,-152],[-34,-49,-152],[-34,-70,-132]],
+                               triangles: [[0,2,1],[0,1,3],[0,3,2],[1,2,3]])
+        let preview = GeometryPreview(scan: nil, part: part, selectionMode: "none")
+        let coordinator = preview.makeCoordinator()
+        let view = GeometrySceneView(frame: .zero)
+        view.scene = SCNScene()
+        coordinator.view = view
+        view.onViewportChange = { coordinator.fitCamera() }
+        coordinator.update(preview)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let controller = UIViewController()
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+        controller.view.addSubview(view)
+        XCTAssertTrue(view.rendersContinuously)
+        XCTAssertTrue(view.isPlaying)
+        view.frame = CGRect(x: 20, y: 140, width: 350, height: 400)
+        view.layoutIfNeeded()
+        for vertex in part.vertices {
+            let p = view.projectPoint(SCNVector3(vertex[0]/1000, vertex[1]/1000, vertex[2]/1000))
+            XCTAssertTrue(p.x > 0 && p.x < 350 && p.y > 0 && p.y < 400 && p.z > 0 && p.z < 1)
+        }
+        view.removeFromSuperview()
+        XCTAssertFalse(view.rendersContinuously)
+        XCTAssertFalse(view.isPlaying)
+        controller.view.addSubview(view)
+        XCTAssertTrue(view.rendersContinuously)
+        XCTAssertTrue(view.isPlaying)
+    }
+
+    @MainActor
+    func testPreviewFitsVisiblePieceAcrossViewportShapes() throws {
+        let part = MeshPreview(vertices: [[0,0,0],[18,0,0],[0,18,0],[0,0,18]],
+                               triangles: [[0,2,1],[0,1,3],[0,3,2],[1,2,3]])
+        let distantScan = MeshPreview(vertices: [[1000,1000,1000],[1500,1500,1500]])
+        var preview = GeometryPreview(scan: distantScan, part: part, showScan: false, selectionMode: "none")
+        let coordinator = preview.makeCoordinator()
+        let view = GeometrySceneView(frame: .zero)
+        view.scene = SCNScene()
+        coordinator.view = view
+        view.onViewportChange = { coordinator.fitCamera() }
+        coordinator.update(preview)
+        for size in [CGSize(width: 300, height: 500), CGSize(width: 500, height: 180)] {
+            view.frame = CGRect(origin: .zero, size: size)
+            view.layoutSubviews()
+            let target = view.defaultCameraController.target
+            XCTAssertEqual(target.x, 0.009, accuracy: 0.0001)
+            XCTAssertEqual(target.y, 0.009, accuracy: 0.0001)
+            for vertex in part.vertices {
+                let p = view.projectPoint(SCNVector3(vertex[0]/1000, vertex[1]/1000, vertex[2]/1000))
+                XCTAssertGreaterThan(p.x, 0)
+                XCTAssertLessThan(p.x, Float(size.width))
+                XCTAssertGreaterThan(p.y, 0)
+                XCTAssertLessThan(p.y, Float(size.height))
+                XCTAssertGreaterThan(p.z, 0)
+                XCTAssertLessThan(p.z, 1)
+            }
+        }
+        preview.showScan = true
+        coordinator.update(preview)
+        XCTAssertGreaterThan(view.defaultCameraController.target.x, 0.5)
+        preview.showScan = false
+        coordinator.update(preview)
+        XCTAssertEqual(view.defaultCameraController.target.x, 0.009, accuracy: 0.0001)
+    }
+
+    @MainActor
+    func testExplicitDiagnosticsCleanupPreservesScanAssetsAndHashes() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let scan = root.appendingPathComponent("project/scan")
+        try FileManager.default.createDirectory(at: scan, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let photo = Data("saved photograph".utf8)
+        try photo.write(to: scan.appendingPathComponent("frame.jpg"))
+        try Data("old diagnostics".utf8).write(to: scan.appendingPathComponent("capture_diagnostics.json"))
+        let hashes = ["frame.jpg": "preserved", "capture_diagnostics.json": "removed"]
+        try JSONEncoder().encode(hashes).write(to: scan.appendingPathComponent("checksums.json"))
+        XCTAssertEqual(try AppModel.removeSavedCaptureDiagnostics(root: root), 1)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: scan.appendingPathComponent("capture_diagnostics.json").path))
+        XCTAssertEqual(try Data(contentsOf: scan.appendingPathComponent("frame.jpg")), photo)
+        XCTAssertEqual(try JSONDecoder().decode([String:String].self, from: Data(contentsOf: scan.appendingPathComponent("checksums.json"))), ["frame.jpg": "preserved"])
+        XCTAssertEqual(try AppModel.removeSavedCaptureDiagnostics(root: root), 0)
+    }
+    func testGuideStaysCenteredInsideAvailableCameraViewport() {
+        // Portrait sheet, small phone, landscape, and embedded legacy preview.
+        for size in [CGSize(width: 390, height: 400), CGSize(width: 320, height: 180),
+                     CGSize(width: 700, height: 110), CGSize(width: 360, height: 280)] {
+            let bounds = CGRect(origin: .zero, size: size)
+            let guide = GuidedARView.guideRect(in: bounds)
+            XCTAssertTrue(bounds.contains(guide))
+            XCTAssertEqual(guide.midX, bounds.midX, accuracy: 0.01)
+            XCTAssertEqual(guide.midY, bounds.midY, accuracy: 0.01)
+            XCTAssertGreaterThan(guide.minY, 0)
+            XCTAssertLessThan(guide.maxY, bounds.maxY)
+        }
+    }
     func testCaptureTimelinePreservesSynchronizationWithoutExportingBootOffset() throws {
         var first = CaptureTimeline(), shifted = CaptureTimeline()
         first.begin(at: 12_000); shifted.begin(at: 62_000)
