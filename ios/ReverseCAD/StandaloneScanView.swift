@@ -19,17 +19,26 @@ struct StandaloneScanView: View {
                     if let project = model.project {
                         Text(project.name).font(.largeTitle.bold())
                         if flow == .repair, project.repairScope != "standalone_scan" {
-                            Button("Review repair") { repairPresented=true }.buttonStyle(.borderedProminent)
+                            Button("Review repair") { repairPresented=true }.buttonStyle(RepairButtonStyle())
                         }
                         if model.busy || workflow.working {
-                            ProgressView(workflow.working ? workflow.message : "Building your 3D model…\n" + model.progress)
-                            Button("Cancel") { workflow.cancel(); if model.busy { model.cancel() } }
+                            VStack(spacing: 16) {
+                                ProgressView().controlSize(.large).tint(RepairStyle.accent)
+                                Text(workflow.phase == "finding" ? "Finding your object…" : "Building your 3D model…").font(.title2.bold())
+                                Text(workflow.working ? workflow.message : model.progress)
+                                    .font(.subheadline).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
+                                Button("Cancel") { workflow.cancel(); if model.busy { model.cancel() } }
+                                    .buttonStyle(RepairButtonStyle(secondary: true))
+                            }.frame(maxWidth: .infinity).padding(20)
+                                .background(RepairStyle.surface, in: RoundedRectangle(cornerRadius: 22))
                         }
                         if let failure = workflow.failure { Text(failure).foregroundStyle(.orange) }
                         if let mesh = model.scanMesh, !mesh.vertices.isEmpty, workflow.phase != "ambiguous" {
                             Text("Preview and export").font(.title2.bold())
-                            GeometryPreview(scan: mesh, part: nil, showPart: false).frame(height: 350)
-                            Text("Drag to rotate. Pinch to zoom. Holes and unseen surfaces remain open.").foregroundStyle(.secondary)
+                            GeometryPreview(scan: mesh, part: nil, showPart: false, backgroundColor: UIColor(RepairStyle.surface)).frame(height: 350)
+                                .clipShape(RoundedRectangle(cornerRadius: 22))
+                                .accessibilityLabel("Your scanned object. Drag to rotate and pinch to zoom.")
+                            Text("Drag to rotate. Pinch to zoom. Holes and unseen surfaces remain open.").foregroundStyle(RepairStyle.secondary)
                             ForEach(Array(model.measurements.enumerated()), id: \.offset) { _, measurement in
                                 if let name = measurement["name"] as? String, let value = measurement["value"] as? Double {
                                     HStack { Text(name); Spacer(); Text(String(format: "%.2f mm", value)).monospacedDigit() }
@@ -37,10 +46,10 @@ struct StandaloneScanView: View {
                             }
                             if let dimensions = meshDimensions(mesh) { Text(dimensions).font(.headline) }
                             ForEach(model.standaloneExportFormats, id: \.self) { format in
-                                Button("Export " + format) { model.exportStandaloneScan(format: format) }.buttonStyle(.bordered).disabled(model.busy || workflow.working)
+                                Button("Export " + format) { model.exportStandaloneScan(format: format) }.buttonStyle(RepairButtonStyle(secondary: true)).disabled(model.busy || workflow.working)
                             }
-                            if !model.standaloneExportFormats.contains("STEP") { Text("STEP is unavailable for this reconstruction. The supported exports appear above.").font(.caption).foregroundStyle(.secondary) }
-                            Text("STEP, when available, is a faceted observed surface. Dimensions are estimates, not independently validated measurements.").font(.caption).foregroundStyle(.secondary)
+                            if !model.standaloneExportFormats.contains("STEP") { Text("STEP is unavailable for this reconstruction. The supported exports appear above.").font(.caption).foregroundStyle(RepairStyle.secondary) }
+                            Text("STEP, when available, is a faceted observed surface. Dimensions are estimates, not independently validated measurements.").font(.caption).foregroundStyle(RepairStyle.secondary)
                         } else if workflow.phase == "ambiguous", let image = workflow.referenceImage {
                             Text("Identify object").font(.title2.bold())
                             Text(workflow.message)
@@ -50,32 +59,46 @@ struct StandaloneScanView: View {
                             Text("Identified: \(workflow.identity?.category.replacingOccurrences(of: "_", with: " ") ?? "object")")
                         } else if !workflow.working {
                             Text(workflow.message.isEmpty ? "Your scan is saved on this phone." : workflow.message)
-                            Button("Find object in saved scan") { identify() }.buttonStyle(.borderedProminent)
+                            Button("Find object in saved scan") { identify() }.buttonStyle(RepairButtonStyle())
                         }
                         if workflow.identity?.confirmedIndices.isEmpty == false && !workflow.working {
-                            Text("Reconstruction runs on your Mac. Connect to the Mac service in Connection settings before building. Capture and identification work without it.").font(.subheadline).foregroundStyle(.secondary)
-                            Button(model.scanMesh == nil ? "Build 3D model" : "Rebuild from saved scan") { build() }.buttonStyle(.borderedProminent).disabled(model.busy)
+                            Text("Reconstruction runs on your Mac. Connect to the Mac service in Connection settings before building. Capture and identification work without it.").font(.subheadline).foregroundStyle(RepairStyle.secondary)
+                            Button(model.scanMesh == nil ? "Build 3D model" : "Rebuild from saved scan") { build() }.buttonStyle(RepairButtonStyle()).disabled(model.busy)
                             if model.standaloneExportFormats.isEmpty {
-                                Button("Choose a different object") { workflow.phase = "ambiguous"; workflow.message = "Tap the intended object in the saved image." }.disabled(model.busy)
+                                Button("Choose a different object") { workflow.phase = "ambiguous"; workflow.message = "Tap the intended object in the saved image." }.buttonStyle(RepairButtonStyle(secondary: true)).disabled(model.busy)
                             }
                         }
                         if !model.warnings.isEmpty { DisclosureGroup("Capture quality and missing views") { ForEach(model.warnings, id: \.self) { Text($0).font(.caption) } } }
-                        if project.jobID != nil { Button("Resume processing") { model.resumeJob() }.disabled(model.busy) }
-                        Button("Export original capture") { model.exportScan() }.disabled(model.busy || workflow.working)
-                        Button("Back to scans") { workflow.cancel(); model.selectedID = nil }.disabled(model.busy)
+                        if project.jobID != nil { Button("Resume processing") { model.resumeJob() }.buttonStyle(RepairButtonStyle(secondary: true)).disabled(model.busy) }
+                        Button("Export original capture") { model.exportScan() }.buttonStyle(RepairButtonStyle(secondary: true)).disabled(model.busy || workflow.working)
+                        Button("Back to scans") { workflow.cancel(); model.selectedID = nil }.buttonStyle(RepairButtonStyle(secondary: true)).disabled(model.busy)
                     } else {
                         Text(flow.title).font(.largeTitle.bold())
                         Text("Adjust the box around one object.").font(.title3)
-                        TextField("Description (optional)", text: $description, axis: .vertical).textFieldStyle(.roundedBorder).lineLimit(1...3).accessibilityIdentifier("scanObjectDescription")
-                        Button { camera = true } label: { Label("Open camera", systemImage: "camera").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("findScanObject")
-                        Text(flow == .scan ? "Adjust box → Identify → Scan → Preview and export" : "Adjust box → Identify → Scan → Find damage → Review CAD").font(.caption).foregroundStyle(.secondary)
+                        TextField("Description (optional)", text: $description, axis: .vertical).textFieldStyle(.plain).lineLimit(1...3)
+                            .padding(16).background(RepairStyle.surface, in: RoundedRectangle(cornerRadius: 18))
+                            .accessibilityIdentifier("scanObjectDescription")
+                        Button { camera = true } label: { Label("Open camera", systemImage: "camera").frame(maxWidth: .infinity) }.buttonStyle(RepairButtonStyle()).controlSize(.large).accessibilityIdentifier("findScanObject")
+                        Text(flow == .scan ? "Adjust box → Identify → Scan → Preview and export" : "Adjust box → Identify → Scan → Find damage → Review CAD").font(.caption).foregroundStyle(RepairStyle.secondary)
                         if !model.projects.filter({ flow.includes($0) }).isEmpty { Text("Saved scans").font(.title2.bold()) }
                         ForEach(model.projects.filter { flow.includes($0) }) { project in
-                            Button { model.select(project) } label: { HStack { VStack(alignment: .leading) { Text(project.name).font(.headline); Text(project.stage).font(.caption) }; Spacer(); Image(systemName: "chevron.right") } }.buttonStyle(.plain)
+                            Button { model.select(project) } label: {
+                                HStack(spacing: 14) {
+                                    ProjectThumbnail(directory: model.directory(project.id).appendingPathComponent("scan/rgb"), family: project.family)
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text(project.name).font(.headline).foregroundStyle(RepairStyle.text)
+                                        Text(project.stage).font(.caption).foregroundStyle(RepairStyle.secondary)
+                                    }
+                                    Spacer(); Image(systemName: "chevron.right").font(.caption).foregroundStyle(RepairStyle.accent)
+                                }.padding(16).background(RepairStyle.surface, in: RoundedRectangle(cornerRadius: 18))
+                            }.buttonStyle(.plain)
                         }
                     }
-                }.padding(22)
-            }.navigationTitle("Prelude").navigationBarTitleDisplayMode(.inline)
+                }.padding(20).foregroundStyle(RepairStyle.text)
+            }.background(RepairStyle.background.ignoresSafeArea())
+                .navigationTitle("Prelude").navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(RepairStyle.background, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
                 .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Home") { workflow.cancel();model.selectedID=nil;dismiss() }.disabled(model.busy || model.captureActive) }; ToolbarItem(placement: .topBarTrailing) { Button { settings = true } label: { Image(systemName: "network") }.accessibilityLabel("Connection").disabled(model.busy || model.captureActive || workflow.working) } }
                 .sheet(isPresented: $settings) { SettingsView() }
                 .fullScreenCover(isPresented: $camera, onDismiss: { resumeSaved() }) { StandaloneCameraView(objectDescription: description, flow: flow) }
@@ -84,7 +107,7 @@ struct StandaloneScanView: View {
                 .sheet(isPresented: $model.showingShare) { ShareSheet(urls: model.shareURLs) }
                 .task(id: model.selectedID) { if !camera { resumeSaved() } }
                 .alert("Needs attention", isPresented: Binding(get: { model.error != nil && !camera && !settings }, set: { if !$0 { model.error = nil } })) { Button("OK") { model.error = nil } } message: { Text(model.error ?? "") }
-        }
+        }.preferredColorScheme(.dark).tint(RepairStyle.accent)
     }
     private func resumeSaved() {
         guard let project = model.projectDirectory, let capture = model.scanDirectory, model.project?.scanID != nil else { return }
@@ -131,7 +154,7 @@ struct StandaloneCameraView: View {
     @State private var delivered = false
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
+            VStack(spacing: 0) {
                 ZStack {
                     CapturePreview(session: capture.session, showsGuide: false, onGuide: { _, size, value in
                         if viewport != size { viewport=size }
@@ -140,35 +163,64 @@ struct StandaloneCameraView: View {
                     })
                     AdjustableObjectBox(box:$box,editable:!capture.isCapturing && !identifier.running)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
-                    .onChange(of:box) { _, _ in identifier.cancel(clear:true) }
-                VStack(spacing: 12) {
-                    Text(capture.isCapturing ? "Keep the object still. Walk slowly around it, keeping it inside the box." : "Adjust the box around one object.").font(.headline).multilineTextAlignment(.center)
-                    if let failure { Text(failure).foregroundStyle(.orange) }
-                    if let failure=identifier.failure {Text(failure).foregroundStyle(.orange)}
-                    if identifier.running {
-                        ProgressView(identifier.message)
-                        Button("Cancel identification") {identifier.cancel()}
+                    .overlay(alignment: .top) {
+                        Text(capture.isCapturing ? "SCANNING" : (identifier.running ? "IDENTIFYING" : "FRAME YOUR OBJECT"))
+                            .font(.caption2.weight(.semibold)).tracking(2)
+                            .padding(.horizontal, 16).padding(.vertical, 10)
+                            .background(RepairStyle.background.opacity(0.9), in: Capsule())
+                            .padding(.top, 16).allowsHitTesting(false)
                     }
-                    if capture.isCapturing {
-                        Text(capture.guidance).font(.subheadline).multilineTextAlignment(.center)
-                        Text("\(capture.frameCount) accepted views · \(capture.coverageViews) observed directions").font(.caption)
-                        Button("Finish") { Task { await finish() } }.buttonStyle(.borderedProminent).disabled(pending)
+                    .onChange(of:box) { _, _ in identifier.cancel(clear:true) }
+                VStack(spacing: 14) {
+                    Text(capture.isCapturing ? "Keep the object still. Walk slowly around it, keeping it inside the box." : "Place one object inside the box.")
+                        .font(.subheadline).multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("scanGuidance")
+                    if let failure { Text(failure).font(.footnote).foregroundStyle(.orange) }
+                    if let failure=identifier.failure { Text(failure).font(.footnote).foregroundStyle(.orange) }
+                    if identifier.running {
+                        ProgressView(identifier.message).tint(RepairStyle.accent)
+                        Button("Cancel identification") { identifier.cancel() }.buttonStyle(RepairButtonStyle(secondary: true))
+                    } else if capture.isCapturing {
+                        Text(capture.guidance).font(.subheadline).multilineTextAlignment(.center).foregroundStyle(RepairStyle.secondary)
+                        cameraAction("Finish", icon: "checkmark", accessibilityID: "finishObjectScan") { Task { await finish() } }
+                        Text("\(capture.frameCount) accepted views · \(capture.coverageViews) observed directions")
+                            .font(.caption).foregroundStyle(RepairStyle.secondary)
                     } else {
                         if identifier.reference != nil {
-                            Text(identifier.message).font(.subheadline)
-                            Button("Start scan") { Task { await begin() } }.buttonStyle(.borderedProminent).disabled(pending || identifier.running).accessibilityIdentifier("startObjectScan")
+                            Text(identifier.message).font(.subheadline).foregroundStyle(RepairStyle.secondary)
+                            cameraAction("Start scan", icon: "viewfinder", accessibilityID: "startObjectScan") { Task { await begin() } }
                         } else {
-                            Button("Identify object in box") {identifyBox()}.buttonStyle(.borderedProminent).disabled(pending || identifier.running).accessibilityIdentifier("identifyObjectBox")
+                            cameraAction("Identify object in box", icon: "viewfinder", accessibilityID: "identifyObjectBox", action: identifyBox)
                         }
-                        Text("Drag the corners to resize, or drag inside to move. Full images are retained.").font(.caption).foregroundStyle(.secondary)
+                        Text("Drag the corners to resize, or drag inside to move. Full images are retained.")
+                            .font(.caption).foregroundStyle(RepairStyle.secondary).multilineTextAlignment(.center)
                     }
-                }.padding(.horizontal, 20).padding(.bottom, 16)
-            }.navigationTitle(capture.isCapturing ? "Scan around it" : "Frame object").navigationBarTitleDisplayMode(.inline)
+                }.padding(.horizontal, 24).padding(.vertical, 20).background(RepairStyle.background)
+            }.foregroundStyle(RepairStyle.text)
+                .background(RepairStyle.background.ignoresSafeArea())
+                .navigationTitle(capture.isCapturing ? "Scan around it" : "Frame object").navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(RepairStyle.background, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
                 .toolbar { ToolbarItem(placement: .topBarLeading) { Button(capture.isCapturing ? "Save & close" : "Close") { Task { if capture.isCapturing { await finish() } else { identifier.cancel();dismiss() } } }.disabled(pending) } }
                 .task { do { try await capture.startPreview() } catch { failure = error.localizedDescription } }
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
                 .onDisappear { identifier.cancel();capture.session.pause() }
-        }.interactiveDismissDisabled(capture.isCapturing || pending)
+        }.preferredColorScheme(.dark).tint(RepairStyle.accent)
+            .interactiveDismissDisabled(capture.isCapturing || pending)
+    }
+    private func cameraAction(_ title: String, icon: String, accessibilityID: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle().stroke(RepairStyle.accent, lineWidth: 3).frame(width: 80, height: 80)
+                    Circle().fill(RepairStyle.accent).frame(width: 66, height: 66)
+                    if pending { ProgressView().tint(RepairStyle.background) }
+                    else { Image(systemName: icon).font(.system(size: 27, weight: .semibold)).foregroundStyle(RepairStyle.background) }
+                }
+                Text(title).font(.caption.weight(.semibold)).foregroundStyle(RepairStyle.text)
+            }.frame(minWidth: 160)
+        }.buttonStyle(.plain).disabled(pending || identifier.running)
+            .accessibilityLabel(title).accessibilityIdentifier(accessibilityID)
     }
     private func identifyBox() {
         guard let frame=capture.session.currentFrame,viewport.width>0,viewport.height>0 else {failure="Wait for the camera to be ready.";return}

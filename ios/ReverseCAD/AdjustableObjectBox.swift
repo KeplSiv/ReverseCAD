@@ -10,7 +10,7 @@ struct AdjustableObjectBox: View {
             let size = geometry.size
             let rect = CGRect(x: box.minX*size.width, y: box.minY*size.height, width: box.width*size.width, height: box.height*size.height)
             ZStack {
-                Rectangle().stroke(.white,lineWidth:2)
+                Rectangle().stroke(.white.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [18, 8]))
                     .frame(width:rect.width,height:rect.height).position(x:rect.midX,y:rect.midY)
                     .allowsHitTesting(false)
                 if editable {
@@ -34,7 +34,8 @@ private struct BoxDragHandle: View {
     var body: some View {
         ZStack {
             Color.white.opacity(0.001)
-            if corner != .move { Circle().fill(.white).frame(width:15,height:15).shadow(radius:2) }
+            if corner != .move { Circle().fill(RepairStyle.accent).frame(width:15,height:15)
+                .overlay(Circle().stroke(.white, lineWidth: 1.5)).shadow(color: .black.opacity(0.5), radius: 2) }
         }.contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance:0).onChanged { value in
                 if initial == nil { initial=box }

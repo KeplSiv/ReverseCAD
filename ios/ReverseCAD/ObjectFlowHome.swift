@@ -15,15 +15,21 @@ struct ObjectFlowHome: View {
     @State private var flow: ObjectFlow?
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 24) {
-                Text("What would you like to do?").font(.largeTitle.bold())
-                flowButton(.scan, icon: "viewfinder", detail: "Choose an object, scan it, then preview and export its 3D shape.")
-                flowButton(.repair, icon: "wrench.and.screwdriver", detail: "Scan the damaged object, find supported missing regions, then review and export a proposed CAD repair.")
-                Text("Capture stays on your phone. Identification uses Jev. 3D processing and repair use your connected Mac.")
-                    .font(.footnote).foregroundStyle(.secondary)
-                Spacer()
-            }.padding(24).navigationTitle("Prelude")
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("What would you like to do?").font(.largeTitle.bold()).padding(.bottom, 8)
+                    flowButton(.scan, icon: "viewfinder", detail: "Choose an object, scan it, then preview and export its 3D shape.")
+                    flowButton(.repair, icon: "wrench.and.screwdriver", detail: "Scan a damaged object, then review and export a proposed CAD repair.")
+                    Text("Capture stays on your phone. Jev identifies your object. Building the model and finding damage require your connected Mac.")
+                        .font(.footnote).foregroundStyle(RepairStyle.secondary).padding(.top, 4)
+                }.padding(20).foregroundStyle(RepairStyle.text)
+            }
+            .background(RepairStyle.background.ignoresSafeArea())
+            .navigationTitle("Prelude").navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(RepairStyle.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
+        .preferredColorScheme(.dark).tint(RepairStyle.accent)
         .fullScreenCover(item: $flow) { selected in StandaloneScanView(flow: selected) }
     }
     private func flowButton(_ selected: ObjectFlow, icon: String, detail: String) -> some View {
@@ -31,11 +37,20 @@ struct ObjectFlowHome: View {
             guard !model.busy, !model.captureActive else { return }
             model.selectedID = nil; flow = selected
         } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                Label(selected.title, systemImage: icon).font(.title2.bold())
-                Text(detail).font(.body).foregroundStyle(.secondary)
-            }.frame(maxWidth: .infinity, alignment: .leading).padding(20)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+            VStack(alignment: .leading, spacing: 18) {
+                HStack {
+                    Image(systemName: icon).font(.system(size: 30, weight: .light)).foregroundStyle(RepairStyle.accent)
+                    Spacer()
+                    Image(systemName: "arrow.up.right").font(.body.weight(.medium)).foregroundStyle(RepairStyle.secondary)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(selected.title).font(.title2.bold()).foregroundStyle(RepairStyle.text)
+                    Text(detail).font(.subheadline).foregroundStyle(RepairStyle.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(22)
+                .background(RepairStyle.surface, in: RoundedRectangle(cornerRadius: 22))
+                .contentShape(RoundedRectangle(cornerRadius: 22))
         }.buttonStyle(.plain).accessibilityIdentifier("flow_" + selected.rawValue)
+            .disabled(model.busy || model.captureActive)
     }
 }

@@ -6,9 +6,11 @@ final class ConsolidatedFlowTests: XCTestCase {
     func testSeparateFlowsAndResizableBoxWithoutCompanion() {
         XCTAssertTrue(app.buttons["flow_scan"].waitForExistence(timeout:15))
         XCTAssertTrue(app.buttons["flow_repair"].exists)
+        capture("consolidated-home")
         app.buttons["flow_scan"].tap()
         XCTAssertTrue(app.textFields["scanObjectDescription"].waitForExistence(timeout:5))
         XCTAssertTrue(app.buttons["findScanObject"].isEnabled)
+        capture("scan-flow")
         app.buttons["findScanObject"].tap()
         let identify=app.buttons["identifyObjectBox"]
         XCTAssertTrue(identify.waitForExistence(timeout:5))
@@ -25,5 +27,9 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["flow_repair"].waitForExistence(timeout:5));app.buttons["flow_repair"].tap()
         XCTAssertTrue(app.staticTexts["Repair damage"].waitForExistence(timeout:5))
         XCTAssertTrue(app.buttons["findScanObject"].isEnabled)
+        capture("repair-flow")
+    }
+    private func capture(_ name: String) {
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)
     }
 }

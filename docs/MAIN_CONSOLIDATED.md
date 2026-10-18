@@ -9,6 +9,8 @@ Branch: `main-consolidated`. Base: `pranav-dev` including current `main` (`754c0
 
 Both flows reuse the public-API scanner, saved sessions, refined masks, reconstruction, preview and export code. Saved projects retain their flow, so a repair remains in the repair list even while its initial object model is being built.
 
+Both flows use the original main-branch visual system: plum backgrounds, copper accents, rounded surfaces and the same primary/secondary controls. Home, selection, capture, saved scans, preview and repair review share this styling.
+
 ## Adjustable selection
 
 The initial guide is the center rule-of-thirds cell. Drag any corner to resize, or drag inside to move it. Keep bounds within the preview and a minimum usable size. Map the user's edited rectangle through the inverse camera display transform. Jev receives that raw-image rectangle explicitly with the full reference image, not a destructive crop. Identification runs only when the user taps **Identify object in box**. Moving or resizing the box invalidates the previous identity. **Start scan** becomes available when one object is identified.

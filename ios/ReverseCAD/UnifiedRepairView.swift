@@ -55,7 +55,7 @@ struct UnifiedRepairView: View {
                 }
             }
             .background(RepairStyle.background.ignoresSafeArea())
-            .navigationTitle(result ? "Your repair" : "ReverseCAD")
+            .navigationTitle(result || savedScanMode ? "Your repair" : "ReverseCAD")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(RepairStyle.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -65,7 +65,7 @@ struct UnifiedRepairView: View {
                         .accessibilityLabel("Scanning tips")
                         .disabled(model.captureActive)
                 }
-                if result {
+                if result || savedScanMode {
                     ToolbarItem(placement: .topBarTrailing) { cameraHomeButton }
                 }
                 ToolbarItemGroup(placement: .keyboard) {
@@ -243,9 +243,9 @@ struct UnifiedRepairView: View {
             if savedScanMode { dismiss(); return }
             library = false; help = false; result = false
         } label: {
-            Image(systemName: "camera").frame(width: 44, height: 44)
+            Image(systemName: savedScanMode ? "arrow.left" : "camera").frame(width: 44, height: 44)
         }
-        .accessibilityLabel("Back to camera")
+        .accessibilityLabel(savedScanMode ? "Back to object scan" : "Back to camera")
         .accessibilityIdentifier("backToCamera")
         .disabled(model.busy)
     }
