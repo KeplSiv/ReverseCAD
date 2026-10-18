@@ -14,6 +14,8 @@ This is a smoother rendered preview, not a claim that a lower-rate sensor sudden
 
 Opening the front-reference flow starts the selfie camera automatically. The primary action stays at the top, followed by a short instruction, a flexible full-image preview and a short status. The screen has no scroll view. Saved-reference review and retake use the same layout.
 
+The native preview layer is attached immediately. While the camera starts, a themed “Opening selfie camera…” cover stays visible until AVFoundation reports that the layer is ready to display its first frame. Startup does not wait for the depth-quality or exposure checks. Camera permission and hardware startup can still take time; the screen does not present that delay as an empty black preview.
+
 The front camera stays open until the user presses **Save scan**, presses a volume button, or closes it. The former eight-frame auto-finish and 20-second timeout are removed. A bounded rolling window retains eight recent sharp, synchronized RGB/TrueDepth samples in memory. Save freezes that window, preserving the original image/depth buffers and metadata. Existing numerical stability and scene-suitability checks still apply. A failed stability check retains its evidence and leaves the camera open for another Save attempt.
 
 The rolling window owns independent copies of the image/depth planes, including original row padding, timing and calibration attachments. It does not retain camera-pool buffers that could starve capture and freeze the live view. Display processing also renders to owned proxy buffers.

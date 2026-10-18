@@ -286,6 +286,7 @@ struct PhoneReferenceSetup: View {
     @StateObject private var review = FrontReferenceReviewModel()
     @State private var box = SelectionBox.initial
     @State private var saveError: String?
+    @State private var previewReady = false
     @AppStorage("reversecad.referenceArchive.v1") private var referenceArchive = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -298,13 +299,14 @@ struct PhoneReferenceSetup: View {
                     .accessibilityIdentifier("frontReferenceInstructions")
                 ZStack {
                     if capture.running {
-                        ReferenceCameraPreview(session:capture.session)
+                        ReferenceCameraPreview(session:capture.session,ready:$previewReady)
+                        if !previewReady { openingCamera }
                     } else if let image=review.image {
                         Image(uiImage:image).resizable().scaledToFit()
                             .overlay {AdjustableObjectBox(box:$box,editable:!review.working)}
                             .onChange(of:box) {_,_ in review.review=nil}
                     } else {
-                        Color.clear.overlay {ProgressView("Opening selfie camera…")}
+                        openingCamera
                     }
                     if capture.saving {ProgressView("Saving reference…").padding().background(.regularMaterial,in:RoundedRectangle(cornerRadius:12))}
                 }
@@ -334,8 +336,16 @@ struct PhoneReferenceSetup: View {
         .cameraCaptureButton(enabled:capture.running && !capture.saving) {capture.saveScan(trigger:"volume")}
         .onAppear {capture.start()}
         .onDisappear {review.cancel();capture.stop()}
+        .onChange(of:capture.running) {_,running in if !running {previewReady=false}}
         .onChange(of:capture.saved) {_,saved in
             if saved != nil,let root=capture.originalDirectory {review.check(root:root,box:box)}
+        }
+    }
+    private var openingCamera:some View {
+        RepairStyle.background.overlay {
+            ProgressView("Opening selfie camera…")
+                .tint(RepairStyle.accent)
+                .accessibilityIdentifier("frontCameraOpening")
         }
     }
     private var statusText:String {
@@ -372,7 +382,10 @@ struct PhoneReferenceSetup: View {
 
 private struct ReferenceCameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
+    @Binding var ready: Bool
     final class Preview: UIView {
+        var readyObservation: NSKeyValueObservation?
+        var readinessChanged: ((Bool)->Void)?
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         override func layoutSubviews() {
             super.layoutSubviews()
@@ -386,13 +399,26 @@ private struct ReferenceCameraPreview: UIViewRepresentable {
         let view = Preview()
         let layer = view.layer as! AVCaptureVideoPreviewLayer
         layer.session = session; layer.videoGravity = .resizeAspect
+        view.readinessChanged = {ready=$0}
+        // Keep the native layer attached during startup. Only remove the loading
+        // cover once AVFoundation confirms that it can display a live frame.
+        view.readyObservation = layer.observe(\.isPreviewing,options:[.initial,.new]) { [weak view] layer,_ in
+            let ready=layer.isPreviewing
+            DispatchQueue.main.async {view?.readinessChanged?(ready)}
+        }
         return view
     }
     func updateUIView(_ view:Preview, context:Context) {
+        view.readinessChanged = {ready=$0}
         if let connection = (view.layer as? AVCaptureVideoPreviewLayer)?.connection,
            connection.isVideoMirroringSupported {
             connection.automaticallyAdjustsVideoMirroring = false
             connection.isVideoMirrored = false
         }
+    }
+    static func dismantleUIView(_ view:Preview,coordinator:()) {
+        view.readyObservation?.invalidate()
+        view.readinessChanged=nil
+        (view.layer as? AVCaptureVideoPreviewLayer)?.session=nil
     }
 }
