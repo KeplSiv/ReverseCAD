@@ -87,7 +87,7 @@ def identify(body: dict) -> dict:
         def redirect_request(self, *args, **kwargs):
             return None
     try:
-        with urllib.request.build_opener(NoRedirect).open(request, timeout=25) as reply:
+        with urllib.request.build_opener(NoRedirect).open(request, timeout=2.5) as reply:
             raw = reply.read(1_000_001)
             if len(raw) > 1_000_000:
                 raise ValueError()

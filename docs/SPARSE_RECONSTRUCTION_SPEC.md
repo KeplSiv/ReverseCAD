@@ -10,7 +10,7 @@ This component does not propose a repair, invent a missing part, generate a repl
 
 The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, Jev HTTP integration and confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Jev credentials and a live fixture request are verified; a fresh physical scan remains unverified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
+**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, automatic live Jev checks targeting 200 ms with category/box overlays and tap-to-scan confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Jev credentials and a live fixture request are verified; a fresh physical scan remains unverified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
 
 ## 2. User journey
 
@@ -22,7 +22,7 @@ Object description directs identification and foreground selection. It is not ev
 
 ### B. Identify it in the camera view
 
-Open the physical rear 1× camera and use **TypeSafe Jev** for category recognition and the initial object bounding box. The prototype requests `jev-preview` and records the returned model `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
+Open the physical rear 1× camera and use **TypeSafe Jev** for live category recognition and object bounding boxes, requesting a fresh frame approximately every 200 ms while the camera screen is active. The prototype requests `jev-preview` and records the returned model `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
 
 Show the proposed target with a visible box and, when supported, a foreground outline. Let the user confirm the correct object or tap a different one. If several objects match, ask which one. If none matches reliably, ask the user to reframe, improve lighting or refine the description. Manual target selection must remain available if identification is unavailable.
 
@@ -110,9 +110,9 @@ The following is an adapter request template, with an image reference generated 
 
 Convert normalized box edges to request-image pixels, undo any resize/padding/crop, then apply the recorded camera-to-screen transform for the visible overlay. Keep those transforms and detection provenance. A category/box result must not replace the object with a category-shaped primitive.
 
-The Jev box initializes local foreground segmentation and tracking. The rectangle itself is not a pixel mask or a 3D boundary. Produce per-view masks and check instance continuity as the camera moves. Re-query Jev on deliberate target selection, tracking loss or an unresolved scene change; avoid sending every camera frame. Bound request queues, cache same-frame results and record latency/token usage. Actual cost and accuracy on this workflow remain to be measured.
+The Jev box initializes local foreground segmentation and tracking. The rectangle itself is not a pixel mask or a 3D boundary. Produce per-view masks and check instance continuity as the camera moves. Run Jev repeatedly at a target 200 ms dispatch interval, including during capture. Display the latest fresh eligible label and box over the live camera. Allow at most four concurrent requests, skip opportunities when full, and do not queue old frames or replay catch-up requests. Discard out-of-order, expired and pose-stale replies; stop requests when the screen closes or the app backgrounds. Measurement tracking stays on the user-confirmed instance even as Jev refreshes the overlay. Actual displayed rate depends on inference/network latency and motion. The 12-request integration check measured a 185.8 ms median and 839.1 ms maximum on a synthetic image; live-phone behavior and physical accuracy remain to be verified.
 
-Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. No live Jev request or credentials have been used merely to prepare this specification.
+Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. The private key is configured only on the Mac; live fixture API checks have succeeded. No key is embedded in the app or repository.
 
 ## 4. Module architecture
 

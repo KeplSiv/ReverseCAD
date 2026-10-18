@@ -1,0 +1,103 @@
+{
+  "input_kind": "synthetic calibration fixture, 640x480 JPEG",
+  "requested_interval_ms": 200,
+  "results": [
+    {
+      "index": 0,
+      "elapsed_ms": 194.0,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 1,
+      "elapsed_ms": 171.1,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 2,
+      "elapsed_ms": 137.6,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 3,
+      "elapsed_ms": 165.8,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 4,
+      "elapsed_ms": 144.0,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 5,
+      "elapsed_ms": 179.2,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 6,
+      "elapsed_ms": 153.5,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 7,
+      "elapsed_ms": 192.4,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 8,
+      "elapsed_ms": 839.1,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 9,
+      "elapsed_ms": 648.2,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 10,
+      "elapsed_ms": 416.9,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    },
+    {
+      "index": 11,
+      "elapsed_ms": 207.2,
+      "status": "confirm_target",
+      "category": "container",
+      "has_box": true,
+      "model": "jev-1.14.0"
+    }
+  ],
+  "median_latency_ms": 185.8
+}

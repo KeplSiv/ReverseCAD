@@ -209,12 +209,14 @@ enum CaptureFailure: LocalizedError {
 /// Live display uses the same ARSession as acquisition; no competing camera session.
 struct CapturePreview: UIViewRepresentable {
     let session: ARSession
+    var showsGuide = true
     var onSelect: ((CGPoint) -> Void)? = nil
     var ghost: LiveGhostResponse.Candidate? = nil
     var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)? = nil
     func makeCoordinator() -> Coordinator { Coordinator(session: session, onSelect: onSelect) }
     func makeUIView(context: Context) -> ARView {
         let view = GuidedARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        view.showsGuide = showsGuide
         view.onGuide = onGuide
         view.session = session
         view.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:))))
@@ -222,6 +224,7 @@ struct CapturePreview: UIViewRepresentable {
         return view
     }
     func updateUIView(_ view: ARView, context: Context) {
+        (view as? GuidedARView)?.showsGuide = showsGuide
         (view as? GuidedARView)?.onGuide = onGuide
         view.setNeedsLayout()
         context.coordinator.onSelect = onSelect
@@ -264,6 +267,7 @@ struct CapturePreview: UIViewRepresentable {
 
 /// Draw and measure the guide in the same view that displays the AR image.
 final class GuidedARView: ARView {
+    var showsGuide = true
     var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)?
     private let guide = CAShapeLayer()
     static func guideRect(in bounds: CGRect) -> CGRect {
@@ -274,7 +278,8 @@ final class GuidedARView: ARView {
         super.layoutSubviews()
         guard let onGuide, bounds.width > 0, bounds.height > 0 else { guide.removeFromSuperlayer(); return }
         let rect = Self.guideRect(in: bounds)
-        if guide.superlayer == nil { layer.addSublayer(guide) }
+        if showsGuide && guide.superlayer == nil { layer.addSublayer(guide) }
+        if !showsGuide { guide.removeFromSuperlayer() }
         guide.path = UIBezierPath(rect: rect).cgPath
         guide.fillColor = UIColor.clear.cgColor; guide.strokeColor = UIColor.white.withAlphaComponent(0.85).cgColor
         guide.lineWidth = 2; guide.lineDashPattern = [18, 8]

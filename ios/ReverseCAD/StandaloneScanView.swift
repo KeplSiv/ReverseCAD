@@ -43,7 +43,7 @@ struct StandaloneScanView: View {
                     } else {
                         Image(systemName: "viewfinder").font(.system(size: 40)).foregroundStyle(.teal)
                         Text("What are you about to scan?").font(.largeTitle.bold())
-                        Text("Describe one object. Confirm its box, move around it, then export its measured 3D shape.").foregroundStyle(.secondary)
+                        Text("Describe one object. Jev outlines it live; tap Scan, move around it, then export its measured 3D shape.").foregroundStyle(.secondary)
                         TextField("For example: the black camera bracket", text: $description, axis: .vertical).textFieldStyle(.roundedBorder).lineLimit(2...4).accessibilityIdentifier("scanObjectDescription")
                         Button { camera = true } label: { Label("Find my object", systemImage: "camera").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent).controlSize(.large).disabled(description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("findScanObject")
                         if !model.projects.filter({ $0.repairScope == "standalone_scan" }).isEmpty { Text("Saved scans").font(.title2.bold()) }
@@ -66,104 +66,120 @@ struct StandaloneScanView: View {
 struct StandaloneCameraView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var capture = CaptureController()
+    @StateObject private var live = LiveObjectIdentifier()
     let objectDescription: String
-    @State private var still: UIImage?
-    @State private var originalJPEG: Data?
-    @State private var snapshotPose: simd_float4x4?
-    @State private var box: CGRect?
-    @State private var target: [String: Any]?
+    @State private var manualSnapshot: ObjectCameraSnapshot?
+    @State private var manualBox: CGRect?
+    @State private var manualMode = false
     @State private var pending = false
     @State private var failure: String?
     @State private var delivered = false
-    @State private var requestID: String?
-    @State private var snapshotTime = Date.distantPast
+    @State private var visible = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
                 ZStack {
-                    CapturePreview(session: capture.session, onGuide: { rect, size, orientation in capture.updateGuide(rect: rect, viewport: size, orientation: orientation) })
-                    if let still { TargetStillView(image: still, box: box, onDraw: target?["selection_method"] as? String == "manual_box" ? { self.box = $0 } : nil) }
+                    CapturePreview(session: capture.session, showsGuide: false, onGuide: { rect, size, orientation in capture.updateGuide(rect: rect, viewport: size, orientation: orientation) })
+                    if let manualSnapshot, let image = UIImage(data: manualSnapshot.jpeg) {
+                        TargetStillView(image: image, box: manualBox, onDraw: { manualBox = $0 })
+                    } else {
+                        LiveObjectOverlay(identifier: live, session: capture.session)
+                    }
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
-                VStack(spacing: 14) {
+                VStack(spacing: 12) {
                     Text(objectDescription).font(.headline)
-                    if pending { ProgressView("Jev is finding your object…") }
                     if let failure { Text(failure).font(.subheadline).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true) }
                     if capture.isCapturing {
                         Text(capture.guidance).font(.subheadline).multilineTextAlignment(.center)
                         Text("\(capture.frameCount) saved views").font(.caption)
-                        Button("Finish scan") { Task { await finish() } }.buttonStyle(.borderedProminent)
-                    } else if box != nil {
-                        Text(target?["selection_method"] as? String == "manual_box" ? "Drag across the image to box the whole object. Keep the phone still, then confirm." : "Is this the whole object? Keep the phone in this position, then confirm.").font(.subheadline).multilineTextAlignment(.center)
-                        Button("Yes, scan this object") { Task { await begin() } }.buttonStyle(.borderedProminent).disabled(pending)
-                        Button("Try another view") { clearTarget() }.disabled(pending)
+                        Button("Finish scan") { Task { await finish() } }.buttonStyle(.borderedProminent).disabled(pending)
+                    } else if manualSnapshot != nil {
+                        Text("Drag a box around the whole object. Keep the phone still, then scan.").font(.subheadline).multilineTextAlignment(.center)
+                        Button("Scan this object") { Task { await begin() } }.buttonStyle(.borderedProminent).disabled(pending)
+                        Button("Use live Jev detection") { resumeLive() }.disabled(pending)
                     } else {
-                        Text("Keep one whole object in view. Jev checks its category and bounding box.").font(.subheadline).multilineTextAlignment(.center)
-                        Button("Identify with Jev") { Task { await identify() } }.buttonStyle(.borderedProminent).disabled(pending)
-                        Button("Choose the box myself") { Task { await identify(manual: true) } }.disabled(pending)
-                        Text("Jev sends this camera image to TypeSafe through your paired Mac. Manual selection stays on this phone.").font(.caption).foregroundStyle(.secondary)
-                        if still != nil { Button("Retake view") { clearTarget() }.disabled(pending) }
+                        Label(live.message, systemImage: "viewfinder").font(.subheadline).multilineTextAlignment(.center)
+                        Button("Scan outlined object") { Task { await begin() } }.buttonStyle(.borderedProminent)
+                            .disabled(pending || live.candidate == nil).accessibilityIdentifier("scanLiveObject")
+                        Text("Jev checks the camera about five times a second. Tap Scan when the outline covers your object.").font(.caption).foregroundStyle(.secondary)
+                        Button("Choose the box myself") { chooseManualBox() }.font(.subheadline).disabled(pending)
+                        Text("Live camera images go to TypeSafe through your paired Mac while this screen is open.").font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(.horizontal, 20).padding(.bottom, 16)
             }.navigationTitle("Scan object").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .topBarLeading) { Button(capture.isCapturing ? "Save & close" : "Close") { Task { if capture.isCapturing { await finish() } else { dismiss() } } }.disabled(pending) } }
-                .task { do { try await capture.startPreview() } catch { failure = error.localizedDescription } }
+                .toolbar { ToolbarItem(placement: .topBarLeading) { Button(capture.isCapturing ? "Save & close" : "Close") { Task { if capture.isCapturing { await finish() } else { live.stop(); dismiss() } } }.disabled(pending) } }
+                .onAppear { visible = true }
+                .task {
+                    do { try await capture.startPreview(); if visible && scenePhase == .active { resumeLive() } }
+                    catch { failure = error.localizedDescription }
+                }
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
-                .onDisappear { requestID = nil; capture.session.pause() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase != .active { live.stop() }
+                    else if visible && !manualMode && !delivered { live.start(session: capture.session, description: objectDescription, model: model) }
+                }
+                .onDisappear { visible = false; live.stop(); capture.session.pause() }
         }.interactiveDismissDisabled(capture.isCapturing || pending)
     }
-    private func clearTarget() { still = nil; originalJPEG = nil; box = nil; target = nil; failure = nil; requestID = nil }
-    private func identify(manual: Bool = false) async {
-        guard !pending, let frame = capture.session.currentFrame else { failure = "Wait for the camera to be ready."; return }
-        pending = true; failure = nil
-        defer { pending = false }
-        let id = UUID().uuidString; requestID = id; snapshotPose = frame.camera.transform; snapshotTime = Date()
+
+    private func resumeLive() {
+        manualSnapshot = nil; manualBox = nil; manualMode = false; failure = nil
+        live.start(session: capture.session, description: objectDescription, model: model)
+    }
+
+    private func chooseManualBox() {
+        guard let frame = capture.session.currentFrame else { failure = "Wait for the camera to be ready."; return }
         do {
-            let original = CIImage(cvPixelBuffer: frame.capturedImage).oriented(.right)
-            let scale = min(1, 1280 / max(original.extent.width, original.extent.height))
-            let image = original.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-            let context = CIContext()
-            guard let cg = context.createCGImage(image, from: image.extent), let jpg = UIImage(cgImage: cg).jpegData(compressionQuality: 0.9) else { throw ServiceFailure(message: "Could not read the camera image.") }
-            still = UIImage(data: jpg); originalJPEG = jpg
-            if manual {
-                box = CGRect(x: 0.15, y: 0.15, width: 0.7, height: 0.7)
-                target = ["selection_method": "manual_box", "description": objectDescription, "metric_evidence": false,
-                          "image_sha256": SHA256.hash(data: jpg).map { String(format: "%02x", $0) }.joined()]
-                return
-            }
-            let result = try await model.object("v1/objects/identify", method: "POST", json: ["description": objectDescription, "image_base64": jpg.base64EncodedString(), "request_id": id])
-            guard requestID == id, result["request_id"] as? String == id, result["image_sha256"] as? String == SHA256.hash(data: jpg).map({ String(format: "%02x", $0) }).joined() else { return }
-            guard result["status"] as? String == "confirm_target", let edges = result["box"] as? [String: Double], let top = edges["top"], let bottom = edges["bottom"], let left = edges["left"], let right = edges["right"], [top,bottom,left,right].allSatisfy({ $0.isFinite && (0...1).contains($0) }), bottom > top, right > left else { throw ServiceFailure(message: result["message"] as? String ?? "The object could not be selected.") }
-            box = CGRect(x: left, y: top, width: right-left, height: bottom-top); target = result
+            let photo = try live.snapshot(frame)
+            live.stop(); manualMode = true; failure = nil; manualSnapshot = photo
+            manualBox = CGRect(x: 0.15, y: 0.15, width: 0.7, height: 0.7)
         } catch { failure = error.localizedDescription }
     }
+
     private func begin() async {
-        guard let box, let snapshotPose, let current = capture.session.currentFrame, var target else { return }
-        let distance = simd_distance(snapshotPose.columns.3, current.camera.transform.columns.3)
-        let old = snapshotPose.columns.2, new = current.camera.transform.columns.2
-        let cosine = simd_dot(simd_normalize(SIMD3(old.x, old.y, old.z)), simd_normalize(SIMD3(new.x, new.y, new.z)))
-        guard Date().timeIntervalSince(snapshotTime) <= 60, distance < 0.025, cosine > 0.99 else { clearTarget(); failure = "The camera moved since identification. Identify this view again so the box stays on the right object."; return }
-        pending = true; defer { pending = false }
+        guard !pending, let current = capture.session.currentFrame else { return }
+        let photo: ObjectCameraSnapshot
+        let box: CGRect
+        var target: [String: Any]
+        if let manualSnapshot, let manualBox {
+            guard manualSnapshot.matches(current, maximumAge: 60) else {
+                failure = "The camera moved. Choose the box again on the current view."; chooseManualBox(); return
+            }
+            photo = manualSnapshot; box = manualBox
+            target = ["selection_method": "manual_box", "description": objectDescription, "metric_evidence": false, "image_sha256": photo.hash]
+        } else if let candidate = live.currentCandidate(session: capture.session) {
+            photo = candidate.snapshot; box = candidate.box; target = candidate.response
+            target["selection_method"] = "live_jev_box_then_user_confirmation"
+            target["requested_interval_ms"] = 200
+        } else {
+            failure = "Wait for Jev's fresh outline, then tap Scan."; return
+        }
+        pending = true; failure = nil; defer { pending = false }
         do {
             model.create(name: objectDescription, synthetic: false)
-            target["user_confirmed"] = true; target["image_orientation"] = "portrait_clockwise_from_raw"; if target["selection_method"] == nil { target["selection_method"] = "jev_box_then_user_confirmation" }
+            target["user_confirmed"] = true; target["image_orientation"] = "portrait_clockwise_from_raw"
+            target["source_frame_timestamp"] = photo.frameTimestamp
             target["confirmed_box"] = ["left": box.minX, "right": box.maxX, "top": box.minY, "bottom": box.maxY]
             let rawBox = CGRect(x: box.minY, y: 1-box.maxX, width: box.height, height: box.width)
             model.update { $0.repairScope = "standalone_scan"; $0.scanTarget = try? JSONSerialization.data(withJSONObject: target) }
             guard let directory = model.scanDirectory else { return }
-            if let projectDirectory = model.projectDirectory, let jpg = originalJPEG { try jpg.write(to: projectDirectory.appendingPathComponent("target-preview.jpg")) }
+            if let projectDirectory = model.projectDirectory { try photo.jpeg.write(to: projectDirectory.appendingPathComponent("target-preview.jpg")) }
             capture.setConfirmedTarget(rawBox)
             try await capture.start(directory: directory, scanID: UUID().uuidString)
-            model.captureActive = true; still = nil; self.box = nil
+            model.captureActive = true; manualSnapshot = nil; manualBox = nil
         } catch { failure = error.localizedDescription; model.captureActive = false }
     }
+
     private func finish() async {
-        pending = true; defer { pending = false }
+        live.stop(); pending = true; defer { pending = false }
         do { _ = try await capture.stop(); deliver() } catch { failure = error.localizedDescription }
     }
     private func deliver() {
         guard !delivered, let url = capture.packageURL, capture.savedRevision > 0 else { return }
-        delivered = true; model.captureActive = false; model.didCapture(url); dismiss()
+        delivered = true; live.stop(); model.captureActive = false; model.didCapture(url); dismiss()
     }
 }
 
