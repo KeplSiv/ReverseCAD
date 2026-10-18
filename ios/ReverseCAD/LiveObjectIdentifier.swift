@@ -40,6 +40,8 @@ struct IdentifiedObject {
     @Published private(set) var message = "Jev is looking for your object…"
     @Published private(set) var running = false
     private let context = CIContext()
+    private let client = JevClient()
+    private var apiKey = ""
     private var schedule = LiveIdentificationSchedule()
     private var loop: Task<Void, Never>?
     private var requests: [UUID: Task<Void, Never>] = [:]
@@ -58,15 +60,17 @@ struct IdentifiedObject {
                                     capturedAt: ProcessInfo.processInfo.systemUptime)
     }
 
-    func start(session: ARSession, description: String, model: AppModel) {
+    func start(session: ARSession, description: String) {
         stop(); running = true; message = "Jev is looking for your object…"
+        do { apiKey = try PreludeJevConfiguration.apiKey() }
+        catch { running = false; message = error.localizedDescription; return }
         // Wait for a new frame after resuming; currentFrame can still be from before a pause.
         lastFrameTimestamp = session.currentFrame?.timestamp ?? -1
         schedule.start(at: ProcessInfo.processInfo.systemUptime)
         loop = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self, self.running else { return }
-                self.tick(session: session, description: description, model: model)
+                self.tick(session: session, description: description)
                 try? await Task.sleep(for: .milliseconds(20))
             }
         }
@@ -83,7 +87,7 @@ struct IdentifiedObject {
         return candidate
     }
 
-    private func tick(session: ARSession, description: String, model: AppModel) {
+    private func tick(session: ARSession, description: String) {
         let now = ProcessInfo.processInfo.systemUptime
         if candidate != nil && currentCandidate(session: session) == nil { candidate = nil }
         guard let frame = session.currentFrame, frame.timestamp != lastFrameTimestamp,
@@ -101,9 +105,8 @@ struct IdentifiedObject {
             var ownsLatestReply = false
             do {
                 let id = ticket.id.uuidString
-                let response = try await model.object("v1/objects/identify", method: "POST", json: [
-                    "description": description, "image_base64": photo.jpeg.base64EncodedString(), "request_id": id
-                ])
+                let response = try await self.client.identify(jpeg: photo.jpeg, description: description,
+                    requestID: ticket.id, apiKey: self.apiKey).objectRecord
                 guard !Task.isCancelled,
                       self.schedule.complete(ticket, at: ProcessInfo.processInfo.systemUptime) else { return }
                 ownsLatestReply = true
@@ -128,8 +131,11 @@ struct IdentifiedObject {
                 guard !Task.isCancelled else { return }
                 // A failed old reply must not erase a newer good detection.
                 if ownsLatestReply || self.schedule.complete(ticket, at: ProcessInfo.processInfo.systemUptime, includingExpired: true) {
-                    self.candidate = nil; self.message = "Jev is reconnecting. Check the Mac connection if this continues."
-                    self.schedule.failed(at: ProcessInfo.processInfo.systemUptime)
+                    let failure = (error as? JevClientError) ?? .invalidResponse
+                    self.candidate = nil
+                    if !failure.shouldRetry { self.stop() }
+                    self.message = failure.localizedDescription
+                    self.schedule.failed(at: ProcessInfo.processInfo.systemUptime, retryAfter: failure.retryAfter)
                 }
             }
         }

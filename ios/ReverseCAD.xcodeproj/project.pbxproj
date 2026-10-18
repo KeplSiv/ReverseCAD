@@ -15,14 +15,17 @@
 		11045D078E4A54BA03ACD609 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
 		134C9E2B4BD8A11E063E5A5F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
 		141C54F9E4710D75FE088E81 /* UnifiedRepairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89474A50E120CE9DFB8CF08A /* UnifiedRepairView.swift */; };
+		14D3106DFAA1497A257A2827 /* PreludeJevConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = 571081B7078295C20D3CE8C5 /* PreludeJevConfig.plist */; };
 		181399D14498A1B5F9D5105E /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		1A7122174FA79B19AC0F516E /* StandaloneScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */; };
 		1C9856CDBD9611662ABFE08D /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
+		2109B72EC3299C94ED70361F /* PreludeJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */; };
 		23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD62E45CC23E859803453CF8 /* CaptureController.swift */; };
 		29B3FA71D058DAA7156A20F2 /* EvidenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */; };
 		2C1E2B8A11DCE0D492E4C146 /* CubeDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EA8B882887DA468C342D7 /* CubeDemoView.swift */; };
 		2C5B5B634403165CB52A51B5 /* LiveGhost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45E261024AC9CAA356A06F1 /* LiveGhost.swift */; };
 		2F2B87BEC3C9B020523F31C9 /* SampleScan in Resources */ = {isa = PBXBuildFile; fileRef = E8925DB27A66F56068E98FE2 /* SampleScan */; };
+		312E012EFEA2D73D24AFA493 /* PreludeJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */; };
 		3595E0308D932DDDF08D2017 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
 		382B1323D6C03CCB1D864576 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */; };
 		383E6DF1C60887DDEB64353C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */; };
@@ -39,6 +42,7 @@
 		5B074FB03641B99B4ABC23DD /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 25FFCB0D865A60006FF56F0B /* ReverseCADCore */; };
 		5CD37544FC738ACE5BA72927 /* SampleScan in Resources */ = {isa = PBXBuildFile; fileRef = E8925DB27A66F56068E98FE2 /* SampleScan */; };
 		5E2719F3DCE1460641E86596 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = AAF5B179DB2F1405F35A30B3 /* README.md */; };
+		6408C0A62CE509821A5D08EA /* PreludeJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */; };
 		6F5C096E703294B30ABA0B35 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
 		6FADC732DD2EF459BEB9DD51 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */; };
 		75C2F2628FEFBB5D4D4A1BDE /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
@@ -99,6 +103,7 @@
 		44149E87E66872F41062845F /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
 		4D2E5DD8757F4C88BB6F6941 /* EvidenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceView.swift; sourceTree = "<group>"; };
 		56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePatchNormalTests.swift; sourceTree = "<group>"; };
+		571081B7078295C20D3CE8C5 /* PreludeJevConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = PreludeJevConfig.plist; sourceTree = "<group>"; };
 		5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonResults.swift; sourceTree = "<group>"; };
 		62C4B8D600B0E72F9EF6D166 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -113,6 +118,7 @@
 		84696686C7DD94C3B948F938 /* CaptureARKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureARKit.swift; sourceTree = "<group>"; };
 		89474A50E120CE9DFB8CF08A /* UnifiedRepairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedRepairView.swift; sourceTree = "<group>"; };
 		8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandaloneScanView.swift; sourceTree = "<group>"; };
+		94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreludeJevConfiguration.swift; sourceTree = "<group>"; };
 		A45E261024AC9CAA356A06F1 /* LiveGhost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveGhost.swift; sourceTree = "<group>"; };
 		AACC6703596E6A072522048B /* WorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowTests.swift; sourceTree = "<group>"; };
 		AAF5B179DB2F1405F35A30B3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -213,6 +219,7 @@
 				82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */,
 				A45E261024AC9CAA356A06F1 /* LiveGhost.swift */,
 				7E4591C1D974295CB5DFA7EC /* LiveObjectIdentifier.swift */,
+				94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */,
 				66A03EFE94F20091837196F6 /* PrivacyInfo.xcprivacy */,
 				F30484792CA155DC21C8792D /* ResultsView.swift */,
 				B9D214CCC12922586EB05086 /* ReverseCADApp.swift */,
@@ -223,11 +230,20 @@
 			path = ReverseCAD;
 			sourceTree = "<group>";
 		};
+		C64491459D4B0A81AF4622E8 /* PrivateResources */ = {
+			isa = PBXGroup;
+			children = (
+				571081B7078295C20D3CE8C5 /* PreludeJevConfig.plist */,
+			);
+			path = PrivateResources;
+			sourceTree = "<group>";
+		};
 		DABD3CE837AEEC9E14425014 = {
 			isa = PBXGroup;
 			children = (
 				E8925DB27A66F56068E98FE2 /* SampleScan */,
 				2B32A39245C83B62328434D7 /* Packages */,
+				C64491459D4B0A81AF4622E8 /* PrivateResources */,
 				C4915D5D7E645BD6A57EF676 /* ReverseCAD */,
 				F2CED649D766DE0532119BB7 /* ReverseCADTests */,
 				08E425FF1497AFE2B1AFD6FD /* ReverseCADUITests */,
@@ -432,6 +448,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				134C9E2B4BD8A11E063E5A5F /* Assets.xcassets in Resources */,
+				14D3106DFAA1497A257A2827 /* PreludeJevConfig.plist in Resources */,
 				47BC7CBFAD9884152B3C3703 /* PrivacyInfo.xcprivacy in Resources */,
 				F13D158D46B2D6293C274574 /* SampleScan in Resources */,
 			);
@@ -477,6 +494,7 @@
 				C146EE7DD6147552AC8A831C /* GeometryPreview.swift in Sources */,
 				D4006AFBE5D3E1CB14455709 /* LiveGhost.swift in Sources */,
 				7C562EBA315DCE79BBECBCF6 /* LiveObjectIdentifier.swift in Sources */,
+				6408C0A62CE509821A5D08EA /* PreludeJevConfiguration.swift in Sources */,
 				4881869DC7CB6F66BC1F7C6A /* ResultsView.swift in Sources */,
 				586004D32B2F738468EDEBD0 /* ReverseCADApp.swift in Sources */,
 				09F380E56EE14394DF694C6D /* SparseCapture.m in Sources */,
@@ -501,6 +519,7 @@
 				81CC3999103B60831E816678 /* GeometryPreview.swift in Sources */,
 				2C5B5B634403165CB52A51B5 /* LiveGhost.swift in Sources */,
 				F3553AC6C32ED9921AD7C712 /* LiveObjectIdentifier.swift in Sources */,
+				312E012EFEA2D73D24AFA493 /* PreludeJevConfiguration.swift in Sources */,
 				015E30D5BD574477EB05F6D8 /* ResultsView.swift in Sources */,
 				8DF1AE12FA9911FAAD2E0CF7 /* ReverseCADApp.swift in Sources */,
 				5130FDEC4384D8EE7DB45EFA /* StandaloneScanView.swift in Sources */,
@@ -524,6 +543,7 @@
 				919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */,
 				4E53CF9A6FF11FC2E757370D /* LiveGhost.swift in Sources */,
 				76BCAC0242AADB8F68DFFA06 /* LiveObjectIdentifier.swift in Sources */,
+				2109B72EC3299C94ED70361F /* PreludeJevConfiguration.swift in Sources */,
 				3AFED07087B23DE167770979 /* ResultsView.swift in Sources */,
 				D722D129146796AC4EB85554 /* ReverseCADApp.swift in Sources */,
 				BE5D296BD458A881500BA166 /* StandaloneScanView.swift in Sources */,
@@ -855,7 +875,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -878,7 +898,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;

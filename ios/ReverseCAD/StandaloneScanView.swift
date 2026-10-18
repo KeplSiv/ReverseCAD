@@ -106,7 +106,8 @@ struct StandaloneCameraView: View {
                             .disabled(pending || live.candidate == nil).accessibilityIdentifier("scanLiveObject")
                         Text("Jev checks the camera about five times a second. Tap Scan when the outline covers your object.").font(.caption).foregroundStyle(.secondary)
                         Button("Choose the box myself") { chooseManualBox() }.font(.subheadline).disabled(pending)
-                        Text("Live camera images go to TypeSafe through your paired Mac while this screen is open.").font(.caption).foregroundStyle(.secondary)
+                        if !live.running { Button("Retry Jev") { resumeLive() } }
+                        Text("Jev connects directly over Wi-Fi or cellular. Live camera images go to TypeSafe while this screen is open.").font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(.horizontal, 20).padding(.bottom, 16)
             }.navigationTitle("Scan object").navigationBarTitleDisplayMode(.inline)
@@ -119,7 +120,7 @@ struct StandaloneCameraView: View {
                 .onChange(of: capture.savedRevision) { _, _ in deliver() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase != .active { live.stop() }
-                    else if visible && !manualMode && !delivered { live.start(session: capture.session, description: objectDescription, model: model) }
+                    else if visible && !manualMode && !delivered { live.start(session: capture.session, description: objectDescription) }
                 }
                 .onDisappear { visible = false; live.stop(); capture.session.pause() }
         }.interactiveDismissDisabled(capture.isCapturing || pending)
@@ -127,7 +128,7 @@ struct StandaloneCameraView: View {
 
     private func resumeLive() {
         manualSnapshot = nil; manualBox = nil; manualMode = false; failure = nil
-        live.start(session: capture.session, description: objectDescription, model: model)
+        live.start(session: capture.session, description: objectDescription)
     }
 
     private func chooseManualBox() {

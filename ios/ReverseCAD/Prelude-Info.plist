@@ -32,7 +32,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Scan a stationary object to reconstruct and export its observed 3D shape.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Connect to your paired Mac to identify objects and reconstruct your scans.</string>
+	<string>Connect to your paired Mac for 3D reconstruction. Jev object detection uses the internet directly.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Optional motion diagnostics record rotation and acceleration; ARKit remains the sole pose source.</string>
 	<key>UIFileSharingEnabled</key>

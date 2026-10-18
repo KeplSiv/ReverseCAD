@@ -43,6 +43,9 @@ targets:
       - path: ReverseCAD/SampleScan
         type: folder
         optional: true
+      - path: PrivateResources/PreludeJevConfig.plist
+        buildPhase: resources
+        optional: true
     dependencies:
       - package: ReverseCADCore
     settings:
@@ -56,7 +59,7 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: '0.1.0'
-        CURRENT_PROJECT_VERSION: '28'
+        CURRENT_PROJECT_VERSION: '29'
   ReverseCADSparseResearch:
     type: application
     platform: iOS

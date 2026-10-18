@@ -48,13 +48,13 @@ Export a package containing supported observed geometry, CAD representation, dim
 
 ## 3. Jev classification and bounding-box contract
 
-**Provider resolved: TypeSafe AI’s Jev.** Use the documented HTTP endpoint `POST https://api.typesafe.ai/v1/systemone`, authenticated on the Mac service with a TypeSafe key. Keep credentials out of the phone app, capture packages and repository. The response identifies the actual model and token usage. [API reference](https://docs.typesafe.ai/api)
+**Provider resolved: TypeSafe AI’s Jev.** Use the documented HTTP endpoint `POST https://api.typesafe.ai/v1/systemone`, called directly by the iPhone with the user-authorized TypeSafe key. The personal internal TestFlight build includes a generated, Git-ignored key resource at the user's explicit request. Keep the key out of capture packages, logs and repository source. This supersedes the earlier companion-only credential design. The response identifies the actual model and token usage. [API reference](https://docs.typesafe.ai/api)
 
 The account model list exposes `jev-latest` and `jev-preview`; request `jev-preview` for Box and retain the returned concrete model (verified as `jev-1.14.0`). Check the account’s model list before integration and retain the returned model ID. Image-bearing calls need `TypeSafe-Danger-Zone-Images: true`. Send JPEG/PNG through documented assets, preserving the original-to-request image transform. These image capabilities are experimental. [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images)
 
 One request can ask for category, target presence, instance count and location. `choice` supplies a selected label, option probabilities and confidence; include an explicit fallback category. [Choice](https://docs.typesafe.ai/primitives/choice)
 
-`box` supplies normalized `top`, `bottom`, `left`, `right` edges and confidence, one target per question. It takes no `criteria` and **always returns a rectangle, including when the target is absent**. Gate use of the box on the companion presence/instance decisions and user confirmation. [Box](https://docs.typesafe.ai/primitives/box)
+`box` supplies normalized `top`, `bottom`, `left`, `right` edges and confidence, one target per question. It takes no `criteria` and **always returns a rectangle, including when the target is absent**. Gate use of the box on the local presence/instance decisions and user confirmation. [Box](https://docs.typesafe.ai/primitives/box)
 
 The following is an adapter request template, with an image reference generated uniquely for each real request. Replace `BASE64_JPEG_BYTES` with actual encoded data. The question wording and categories are application choices to evaluate on scan scenes, not a provider guarantee:
 
@@ -112,7 +112,7 @@ Convert normalized box edges to request-image pixels, undo any resize/padding/cr
 
 The Jev box initializes local foreground segmentation and tracking. The rectangle itself is not a pixel mask or a 3D boundary. Produce per-view masks and check instance continuity as the camera moves. Run Jev repeatedly at a target 200 ms dispatch interval, including during capture. Display the latest fresh eligible label and box over the live camera. Allow at most four concurrent requests, skip opportunities when full, and do not queue old frames or replay catch-up requests. Discard out-of-order, expired and pose-stale replies; stop requests when the screen closes or the app backgrounds. Measurement tracking stays on the user-confirmed instance even as Jev refreshes the overlay. Actual displayed rate depends on inference/network latency and motion. The 12-request integration check measured a 185.8 ms median and 839.1 ms maximum on a synthetic image; live-phone behavior and physical accuracy remain to be verified.
 
-Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. The private key is configured only on the Mac; live fixture API checks have succeeded. No key is embedded in the app or repository.
+Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. The user explicitly authorized including the private key in their personal internal app, so Jev calls no longer depend on the Mac. Live Swift-client fixture checks have succeeded. The key remains excluded from source control and capture exports.
 
 ## 4. Module architecture
 

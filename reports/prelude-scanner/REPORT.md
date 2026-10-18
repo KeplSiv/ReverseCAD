@@ -1,6 +1,6 @@
 # Prelude standalone scan update
 
-Prelude's `PreludeScanner` target starts with an object description, automatically calls Jev through the paired companion approximately every 200 ms, and displays fresh category/box results over the moving camera preview. Tap **Scan outlined object** to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens the observed 3D preview, measurements and exports. It does not continue into repair generation.
+Prelude's `PreludeScanner` target starts with an object description, automatically calls TypeSafe directly from the iPhone approximately every 200 ms, and displays fresh category/box results over the moving camera preview. Tap **Scan outlined object** to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens the observed 3D preview, measurements and exports. It does not continue into repair generation.
 
 TestFlight uses public ARKit processed scene depth and the physical rear wide camera. It contains no private sparse capture sources. The separate sparse Debug target and its archive/distribution guards remain intact. The code and specification are published only to `pranav-dev`; no merge into `main` is part of this release.
 
@@ -10,9 +10,19 @@ The live loop replaces the earlier tap-to-identify/frozen-image Jev flow. It tar
 
 Results are bound to the request UUID and JPEG hash. Out-of-order, expired (>1.2 seconds), absent, ambiguous and pose-stale detections cannot confirm a scan. Boxes disappear if camera translation exceeds 2.5 cm or any camera-axis cosine drops below 0.995 relative to the source frame. The overlay uses the AR frame's display transform. Confirmation saves the source JPEG, frame timestamp, response and box. Later Jev overlays do not switch the measurement tracker to a different object.
 
-Failures back off for 2, 4, then 8 seconds. Client requests time out after 3 seconds, and the companion's upstream socket timeout is 2.5 seconds. Actual displayed update rate depends on network latency, model latency, camera motion and available frames; 200 ms is a dispatch target, not a guaranteed inference latency.
+Network/service failures back off for 2, 4, then 8 seconds; rate limits honor the supplied delay up to 300 seconds. Invalid credentials, access denial and exhausted credits stop retries and show specific messages. Direct client requests time out after 3 seconds. No Mac URL or pairing token is used by Jev detection. Actual displayed update rate depends on network latency, model latency, camera motion and available frames; 200 ms is a dispatch target, not a guaranteed inference latency.
 
-## Verification
+## Direct connection correction — build 29
+
+The user reported that build 28 stayed on "Jev is reconnecting" and explicitly requested using their API key directly on the phone. Build 29 removes the companion call from `LiveObjectIdentifier`: `JevClient` uses an ephemeral HTTPS session to `api.typesafe.ai/v1/systemone`, denies redirects, and performs presence/category/instance/box validation locally. It has no AppModel, LAN service URL or pairing-token dependency.
+
+At the user's request, the personal internal build includes a generated `PreludeJevConfig.plist` containing their key. It is ignored by Git and included only in the PreludeScanner target. The original private key file remains the build input. Key contents are not printed or written to source, reports or capture exports. The IPA contains the key and is a private personal artifact; this is not a public shared-secret distribution design.
+
+Validation: 27 offline shared Swift tests passed; the opt-in live provider test also passed. The live check ran the exact Swift direct client, returned a category and box from `jev-1.14.0`, and completed in 238 ms on the synthetic calibration image. See `jev-direct-check.json`. Tests cover direct destination/authentication/schema, absence/ambiguity/invalid boxes, actionable 400/401/402/403 errors, redaction of provider response bodies, and 429 backoff. The Release simulator build passed, its bundled key resource matched the configured key, and the application launched to its home screen. Live phone detection remains to be checked on the user's device.
+
+Build 29 signing, package verification, upload and internal availability are recorded below once complete. The previous verified build 28 evidence is retained here for provenance.
+
+## Previous build 28 verification
 
 - All 23 shared Swift tests passed, including five new tests covering cadence, bounded concurrency, no catch-up bursts, reply ordering, expiry, stop/restart, timeout handling and failure recovery.
 - The existing provider absent/ambiguous/invalid-target test passed.
@@ -33,4 +43,4 @@ Build 26 was the earlier one-shot identification release, verified in internal T
 
 The API fixtures are synthetic, not a new moving-camera phone capture. Phone-to-provider cadence, live overlay alignment under real motion, dimensional accuracy and physical fit remain unverified. This prototype is ready for those checks.
 
-The paired Mac service must remain reachable on port 8769 for Jev identification and reconstruction. The Jev key is loaded from the user's private key file and is not embedded in the app, returned to the phone or committed to Git. The original phone recordings were not intentionally modified; preservation evidence remains under `reports/sparse-reconstruction/phone-recording-preservation.json`.
+The phone needs ordinary internet access for Jev detection. The existing 3D reconstruction/export pipeline still needs the paired Mac service on port 8769; this correction does not move reconstruction onto the phone. The user-authorized Jev key is embedded only in the personal internal build and excluded from Git and capture exports. The original phone recordings were not intentionally modified; preservation evidence remains under `reports/sparse-reconstruction/phone-recording-preservation.json`.

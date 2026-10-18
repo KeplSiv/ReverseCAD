@@ -38,8 +38,8 @@ public struct LiveIdentificationSchedule {
         return true
     }
     public mutating func succeeded() { failures = 0 }
-    public mutating func failed(at now: TimeInterval) {
+    public mutating func failed(at now: TimeInterval, retryAfter: TimeInterval = 0) {
         failures = min(3, failures + 1)
-        nextSend = max(nextSend, now + pow(2, Double(failures)))
+        nextSend = max(nextSend, now + max(retryAfter, pow(2, Double(failures))))
     }
 }

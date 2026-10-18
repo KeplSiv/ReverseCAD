@@ -139,6 +139,12 @@ def archive(args: argparse.Namespace) -> None:
         "distribution": "app-store-connect", "testflight_internal_only": True,
         "xcode_version": run(["xcodebuild", "-version"]).decode().strip(),
     }
+    if PRODUCT == "Prelude":
+        config = ROOT / "ios/PrivateResources/PreludeJevConfig.plist"
+        require(config.is_file(), "Prepare the personal direct-Jev resource with configure_prelude_jev.py first.")
+        key = plistlib.loads(config.read_bytes()).get("apiKey")
+        require(isinstance(key, str) and bool(key.strip()), "Personal Jev key is empty.")
+        metadata["direct_jev_config_sha256"] = digest(config)
     write_json(release / "release.json", metadata)
     run(["xcodegen", "generate", "--spec", "ios/project.yml"], reports / "xcodegen.log")
     command = [
@@ -220,6 +226,12 @@ def verify_ipa(ipa: Path, metadata: dict) -> dict:
         app = apps[0]
         info = plistlib.loads((app / "Info.plist").read_bytes())
         require(info.get("CFBundleIdentifier") == BUNDLE, "IPA bundle identifier mismatch.")
+        if metadata.get("direct_jev_config_sha256"):
+            config = app / "PreludeJevConfig.plist"
+            require(BUNDLE == "com.pranavmuralitharan.prelude" and metadata.get("testflight_internal_only") is True,
+                    "Personal Jev configuration is restricted to the internal Prelude build.")
+            require(config.is_file() and digest(config) == metadata["direct_jev_config_sha256"],
+                    "IPA is missing the configured personal Jev resource or its bytes differ.")
         require(info.get("CFBundleShortVersionString") == metadata["version"], "IPA marketing version mismatch.")
         require(info.get("CFBundleVersion") == metadata["build"], "IPA build number mismatch.")
         require(info.get("CFBundlePackageType") == "APPL", "IPA is not an application bundle.")
