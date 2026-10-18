@@ -60,6 +60,8 @@ struct IdentifiedObject {
 
     func start(session: ARSession, description: String, model: AppModel) {
         stop(); running = true; message = "Jev is looking for your object…"
+        // Wait for a new frame after resuming; currentFrame can still be from before a pause.
+        lastFrameTimestamp = session.currentFrame?.timestamp ?? -1
         schedule.start(at: ProcessInfo.processInfo.systemUptime)
         loop = Task { [weak self] in
             while !Task.isCancelled {

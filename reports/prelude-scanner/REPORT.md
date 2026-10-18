@@ -27,10 +27,12 @@ Apple upload and internal availability are recorded in `release-status.json`. Bu
 
 The same live Jev request also succeeded through the authenticated companion endpoint (HTTP 200), with the key loaded from the configured private file. The environment-parser regression check passed.
 
-## Live detection correction — build 27
+## Live detection correction — build 28
 
 The user's revised requirement replaces the tap-to-identify/frozen-image flow with continuous camera checks. The loop targets 200 ms between new JPEG requests, permits four in flight, drops opportunities under backpressure and does not queue stale images. It continues during capture, pauses in the background, and stops on close, finish or manual selection. Results carry a request ID and image hash; out-of-order, expired (>1.2 seconds), ambiguous and pose-stale boxes cannot confirm a scan. The overlay uses the AR frame's display transform. Confirmation preserves the actual detection image and does not let later overlays switch the measurement target.
 
 The authenticated companion was tested with 12 real Jev calls spaced 200 ms apart on the synthetic calibration image. All returned a category and box. Median response latency was 185.8 ms; range 137.6–839.1 ms. This is a server integration test, not proof of phone-to-provider latency or physical accuracy. Request cadence and inference completion latency are different quantities. The fresh-frame and concurrency limits prevent slow replies from accumulating.
 
-All 23 shared Swift tests passed, including five new cadence/order/expiry/backoff cases. The existing provider absent/ambiguous/invalid-target test passed. The updated Release simulator build passed. Build 27's distribution and Apple availability are verified separately before the release is declared available.
+All 23 shared Swift tests passed, including five new cadence/order/expiry/backoff cases. The existing provider absent/ambiguous/invalid-target test passed. The updated Release simulator build passed. Build 28's distribution and Apple availability are verified separately before the release is declared available.
+
+Build 27 compiled but its archive stopped at signing with `errSecInternalComponent`. The existing signing keychain was unlocked using its preconfigured private credential file. The failed release directory is preserved; build 28 is the new release attempt. The simulator interface was inspected: live-detection status and the Scan outlined object action replace Identify and frozen-image confirmation. The simulator has no LiDAR, so this was a UI check only.
