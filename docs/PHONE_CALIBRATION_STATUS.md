@@ -14,7 +14,7 @@ Still required for the complete request:
 - Feature-based front-to-rear registration and integration of the existing residual calibration solver; held-out validation, compatible-format selection, safe promotion, rollback UI and normal-scan refinement.
 - Wide/ultrawide/telephoto integration and calibrated-ray fusion; optional reference angle variation must not be combined as if camera pose were unchanged.
 - Combined reference/archive export and profile-aware backend consumption; selectable object measurement endpoints and full CSV/readback coverage.
-- New signed TestFlight release and actual phone capture/independent dimensional validation. Existing build 31 is a separate capture-first release, not this revision.
+- Apple processing/internal availability for build 32 and actual phone capture/independent dimensional validation. Existing build 31 is a separate capture-first release, not this revision.
 
 A stationary front burst cannot identify all rear-camera parameters. The app explicitly leaves factory per-frame rear calibration active. Do not interpret a successful replay or compile as calibrated accuracy.
 
@@ -23,3 +23,5 @@ Verified during this revision:
 - 34 shared tests: 32 passed, 2 skipped, 0 failed.
 - Six native TrueDepth tests passed, including real saved capture replay, per-frame calibration change, mirrored-frame rejection, LUT direction, depth discontinuities, and direct measurement/exports.
 - The replay reads the saved 2026-10-18 Frankly burst; it does not establish new physical measurement accuracy.
+
+Release: Prelude 0.1.0 (32) archived, exported, IPA-verified and uploaded. Apple upload state PROCESSING; internal availability remains unverified. SHA-256: fc86a487da72e62622791e099d4d2e9b785c81627b4a890a723680bc36b45cf3.

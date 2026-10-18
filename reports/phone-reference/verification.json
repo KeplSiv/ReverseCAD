@@ -1,0 +1,21 @@
+{
+  "source_commit": "590c32e95d9264b1d6bf6e164a0d2fd4ed1a19a2",
+  "branch": "pradev-4",
+  "ios_simulator_build": "passed",
+  "shared_tests": {
+    "executed": 34,
+    "skipped": 2,
+    "failed": 0
+  },
+  "native_reference_tests": {
+    "executed": 6,
+    "failed": 0,
+    "real_saved_capture_replay": "passed; 8 frames"
+  },
+  "physical_capture": "not performed",
+  "precision_validation": "not established",
+  "rear_calibration": "factory; front-to-rear fitting not integrated",
+  "release_build": "32",
+  "release_status": "verified IPA uploaded; Apple processing and internal availability pending",
+  "ipa_sha256": "fc86a487da72e62622791e099d4d2e9b785c81627b4a890a723680bc36b45cf3"
+}
