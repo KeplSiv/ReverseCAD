@@ -37,17 +37,18 @@ final class MultiCameraSession: NSObject, AVCaptureDataOutputSynchronizerDelegat
     override init() { super.init() }
     deinit { for observer in observers { NotificationCenter.default.removeObserver(observer) } }
 
-    func start() async throws {
+    func start(onPreview: ((AVCaptureVideoPreviewLayer)->Void)? = nil) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             queue.async {
                 do {
-                    if self.session.isRunning {continuation.resume();return}
+                    if self.session.isRunning {if let preview=self.preview {onPreview?(preview)};continuation.resume();return}
                     self.videos=[:];self.depths=[];self.delivered=[:];self.joinedCount=0
                     self.lock.lock();self.reference=nil;self.referenceDate = .distantPast;self.lock.unlock()
                     if !self.configured {
                         do {try self.configure();self.configured=true}
                         catch {self.rollbackConfiguration();throw error}
                     }
+                    if let preview=self.preview {onPreview?(preview)}
                     self.session.startRunning()
                     guard self.session.isRunning else { throw CaptureFailure.unavailable("The rear cameras could not start. Close other camera apps and try again.") }
                     self.queue.asyncAfter(deadline:.now()+3) {

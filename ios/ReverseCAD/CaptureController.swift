@@ -53,10 +53,6 @@ enum CaptureFailure: LocalizedError {
     let hasAR = ARWorldTrackingConfiguration.isSupported
     let hasLiDAR = ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
     let session = ARSession()
-    func latestPreviewFrame() -> (pixel:CVPixelBuffer,time:Double)? {
-        guard let frame=multiCamera?.latest() else{return nil}
-        return (frame.pixel,frame.time)
-    }
     @Published private(set) var cameraReady=false
     @Published private(set) var multiCameraPreview: AVCaptureVideoPreviewLayer?
     private var multiCamera: MultiCameraSession?
@@ -113,7 +109,12 @@ enum CaptureFailure: LocalizedError {
             guard epoch==previewGeneration else {throw CancellationError()}
             let camera=multiCamera ?? MultiCameraSession()
             multiCamera=camera
-            do {try await camera.start()}
+            do {try await camera.start { [weak self] layer in
+                Task { @MainActor in
+                    guard let self,epoch==self.previewGeneration else{return}
+                    self.multiCameraPreview=layer
+                }
+            }}
             catch {if epoch==previewGeneration {multiCamera=nil;multiCameraPreview=nil};camera.stop();throw error}
             guard epoch==previewGeneration else {camera.stop();throw CancellationError()}
             multiCameraPreview=camera.preview;cameraReady=true

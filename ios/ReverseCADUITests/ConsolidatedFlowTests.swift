@@ -2,7 +2,11 @@ import XCTest
 
 final class ConsolidatedFlowTests: XCTestCase {
     let app = XCUIApplication()
-    override func setUpWithError() throws { continueAfterFailure = false; app.launch() }
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        app.launchArguments=["-cameraAccessGranted"]
+        app.launch()
+    }
     private func keepScreenshot(_ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
@@ -56,7 +60,7 @@ final class ConsolidatedFlowTests: XCTestCase {
     }
 
     func testFrontReferenceFitsWithoutScrollingAndHasTopAction() {
-        app.terminate();app.launchArguments=["-frontReferenceCheck"];app.launch()
+        app.terminate();app.launchArguments=["-cameraAccessGranted","-frontReferenceCheck"];app.launch()
         XCTAssertTrue(app.navigationBars["Front reference"].waitForExistence(timeout:10))
         let instructions=app.staticTexts["frontReferenceInstructions"]
         XCTAssertTrue(instructions.waitForExistence(timeout:5))
@@ -68,5 +72,22 @@ final class ConsolidatedFlowTests: XCTestCase {
         XCTAssertLessThan(button.frame.maxY,instructions.frame.minY+2)
         XCTAssertTrue(button.isHittable)
         keepScreenshot("reversecad-front-no-scroll")
+    }
+
+    func testAppLaunchOpensRearCameraFlow() {
+        app.terminate();app.launchArguments=["-cameraAccessGranted"];app.launch()
+        XCTAssertTrue(app.buttons["flow_scan"].waitForExistence(timeout:10))
+        XCTAssertTrue(app.buttons["flow_repair"].exists)
+        XCTAssertTrue(app.staticTexts["scanGuidance"].exists)
+        XCTAssertFalse(app.navigationBars["Front reference"].exists)
+        keepScreenshot("reversecad-rear-camera-launch")
+    }
+
+    func testDeniedPermissionShowsSettingsBeforeAnyCamera() {
+        app.terminate();app.launchArguments=["-cameraAccessDenied"];app.launch()
+        XCTAssertTrue(app.buttons["cameraPermissionSettings"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.otherElements["frontReferencePreview"].exists)
+        XCTAssertFalse(app.buttons["flow_scan"].exists)
+        keepScreenshot("reversecad-camera-permission")
     }
 }

@@ -6,6 +6,7 @@ final class SelectionBoxGestureTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        app.launchArguments=["-cameraAccessGranted"]
         app.launch()
         XCTAssertTrue(handle("bottomRight").waitForExistence(timeout: 15))
     }

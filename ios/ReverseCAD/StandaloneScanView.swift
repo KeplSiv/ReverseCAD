@@ -311,17 +311,13 @@ struct StandaloneCameraView: View {
                 ZStack {
                     Group {
                     if let layer=capture.multiCameraPreview {
-                        MultiCameraPreview(layer:layer,source:capture.latestPreviewFrame) { size,value in
+                        MultiCameraPreview(layer:layer) { size,value in
                             if viewport != size {viewport=size}
                             if orientation != value {orientation=value}
                             capture.updateGuide(rect:CGRect(x:box.minX*size.width,y:box.minY*size.height,width:box.width*size.width,height:box.height*size.height),viewport:size,orientation:value)
                         }
                     } else {
-                    CapturePreview(session: capture.session, showsGuide: false, onGuide: { _, size, value in
-                        if viewport != size { viewport=size }
-                        if orientation != value { orientation=value }
-                        capture.updateGuide(rect: CGRect(x:box.minX*size.width,y:box.minY*size.height,width:box.width*size.width,height:box.height*size.height),viewport:size,orientation:value)
-                    })
+                        RepairStyle.background.overlay {ProgressView("Opening camera…").tint(RepairStyle.accent)}
                     }
                     }
                     AdjustableObjectBox(box:$box,editable:!capture.isCapturing && !identifier.running)
