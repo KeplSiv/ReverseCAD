@@ -38,3 +38,16 @@ The user declined the moving-camera check. Full physical two-orbit capture, comp
 The app keeps its existing bundle identifier, scan storage and TestFlight app/tester group. Visible branding is ReverseCAD. The older listing is named ReverseCAD Legacy. Source commit `cf35fb20d4cdb04f3316f8865b86b4ff34a0cb34` was archived as 0.1.0 (36), installed for phone diagnostics, signed, exported and uploaded. The verified IPA SHA-256 is `1fefe40af21c7eadac3d2602725e95ba3b5882e2e59c8a0adc1422583b53bc35`.
 
 At 09:18:39 EDT, App Store Connect reported build 36 `VALID`, non-expired, `INTERNAL_ONLY`, and `IN_BETA_TESTING`. It belongs to the existing ReverseCAD Personal internal group, which still has its existing tester. Release notes were updated. This verifies TestFlight availability; it does not establish that the tester installed build 36. The connected phone was returned to the normal app screen after diagnostics.
+
+
+## Preview and front-reference follow-up — build 38
+
+Source commit `139f54887ecff27edd3f2788aac9bf50951f1324` was signed, exported and uploaded as ReverseCAD 0.1.0 (38). The exported IPA SHA-256 is `858992a314450074b06e7e93055a39cb2f63bb5b90c474d2659c5b9ae954fda9`. The existing bundle identifier, scan storage and tester group are retained. Build 37 was archived during development but was not uploaded.
+
+The front-reference screen starts capture on entry, keeps Save scan at the top, uses concise instructions without a scroll view, and retains the native unwarped preview. A themed loading cover remains until the native preview reports that it is rendering. Manual save, public volume-button capture and the shorter selfie exposure remain in place. Rear capture formats and reconstruction were not changed by this follow-up; the rear smoothing path is display-only. See [Preview and front reference](PREVIEW_AND_REFERENCE.md).
+
+The final source passed three camera-preview/buffer tests and two consolidated simulator UI tests. The tests cover source-buffer independence (including independent image decoding), display interpolation, the bounded fresh reference window, shutter limits, top-action layout, both flows and framing interactions. Simulator camera unavailability is not physical preview validation.
+
+A freshly installed development build 38 launched directly into front capture on the connected iPhone. Within its first recorded three seconds it delivered 83 RGB frames and 78 depth frames at 4032 × 3024 RGB resolution. A retrieved camera frame showed a lit scene rather than black output. Measured exposure changed from 0.018684 s to 0.009334 s (ratio 0.49957). These observations confirm automatic camera acquisition and the requested shutter change, not a successful saved object reference, screen-to-first-frame latency, volume-button save, sustained full-orbit tracking or dimensional accuracy. Later diagnostic launches were interrupted; no additional persistence claim is made from their stale diagnostic files.
+
+At 09:39:17 EDT on October 18, App Store Connect reported build 38 `VALID`, non-expired, `INTERNAL_ONLY`, and `IN_BETA_TESTING`, with membership in the existing ReverseCAD Personal group and its one existing tester. The upload reported no errors or warnings. This confirms internal TestFlight availability, not installation of this exact TestFlight build or external-beta availability.
