@@ -1,93 +1,128 @@
-# ReverseCAD: one-camera sparse-range reconstruction specification
+# ReverseCAD: standalone object scanning and measured 3D export
 
-Implementation snapshot: 2026-10-18. This document specifies the measurement and initial 3D reconstruction stage implemented locally on `codex/sparse-reconstruction`, starting from main revision `754c0661f97d4b4c1e74ca2cb60519113c1d6c54`.
+Scope revision: 2026-10-18. Branch: `pranav-dev`.
 
-**Publication scope:** this commit publishes the specification to `pranav-dev`. It does not publish or merge the implementation. Source paths below describe the implementation worktree and may not exist on this branch until that code is integrated. The existing dirty checkout and the Prelude source/recording directories have been preserved.
+## 1. Product boundary
 
-**Current acceptance state:** the implementation builds, passes its new backend and Swift checks, and runs through the existing reconstruction, candidate and CAD boundaries on a synthetic multi-view fixture. A fresh moving-camera phone scan is still pending. The phone is now connected and its owner has confirmed that Prelude is stopped and available. A signed Debug build is prepared; installation and a successful device scan have not yet been demonstrated. Neither physical dimensional accuracy nor printed fit is established.
+Pranav's component is a standalone **describe → identify → scan → measure → export** workflow. The user scans an existing physical object and receives an inspectable, metrically scaled 3D representation of what was observed.
 
-## 1. Owned scope and user workflow
+This component does not propose a repair, invent a missing part, generate a replacement, or enter the main application's repair workflow. Integration into `main` is deferred. Work belongs on `pranav-dev` or an isolated feature branch until separately requested.
 
-This stage owns acquisition, immutable capture packaging, observed-object geometry, metric scale, inspection artifacts and the handoff to existing repair reasoning. It uses one physical rear wide/1× camera and the intercepted computed `BackSparseTimeOfFlight` range/XYZ stream while the phone moves around a stationary object.
+The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-The intended workflow is:
+**Status distinction:** the camera/sparse acquisition and reconstruction core described below is implemented in a local prototype. The describe-object screen, “Jev” object identification, standalone scan review, dedicated export package and scanned-object STEP export are required revisions, not features already verified. Only documentation has been published by this task to `pranav-dev`; the prototype code has not been merged into `main`.
 
-1. Aim at a stationary, matte/textured object inside the capture guide.
-2. Tap Start and move sideways slowly through overlapping viewpoints.
-3. Review the reconstructed observed shape and confirm that it represents the intended object.
-4. Continue into the existing evidence/reference-photo, repair-candidate, parameter-edit and export workflow.
+## 2. User journey
 
-Ordinary scanning requires no ruler, printed board, manual object dimensions, three-camera calibration or TrueDepth calibration. Existing CAD safety and critical-dimension requirements still apply to a proposed repair: absent mounting dimensions remain questions, rather than being invented by the scanner.
+### A. Describe the object
 
-Observed geometry and inferred repair geometry remain distinct. Reference photos may inform missing-part shape but do not establish unseen metric dimensions. A preview mesh, valid CAD solid or exported STL is not proof of fit.
+The first screen asks **“What are you about to scan?”** Accept a short natural-language description such as “this small plastic box,” “a mug,” or “the metal bracket.” Store the description with the scan. Do not ask the user to choose a repair family or describe a replacement part.
 
-## 2. Architecture and source inventory
+Object description directs identification and foreground selection. It is not evidence for dimensions, hidden surfaces, material properties or a presumed complete shape.
+
+### B. Identify it in the camera view
+
+Open the physical rear 1× camera and use the requested **Jev** vision component to locate the described object in the current field of view. The exact Jev model/service identifier is awaiting clarification; do not silently substitute another provider and claim it is Jev.
+
+Show the proposed target with a visible box and, when supported, a foreground outline. Let the user confirm the correct object or tap a different one. If several objects match, ask which one. If none matches reliably, ask the user to reframe, improve lighting or refine the description. Manual target selection must remain available if identification is unavailable.
+
+The box is a **selection overlay**. It must not turn every scanned item into a cuboid. A box-shaped object should reconstruct as a box because of its observations; a mug or irregular object should retain its observed shape.
+
+### C. Scan
+
+After target confirmation, enable **Start scan**. The user keeps the object stationary and moves the phone through overlapping viewpoints. Keep the chosen object highlighted as the viewpoint changes; do not silently switch to another instance.
+
+Use short guidance: “Move sideways,” “Show the other side,” “Slow down,” “Add light,” and “Keep the object still.” Show useful coverage without implying that unseen surfaces have been captured. If the target is lost, stop accepting object measurements until it is found again; preserve already recorded originals.
+
+The existing prototype's bounded 18-second/48-stored-view pass is the initial capture budget. A further pass may add missing views only when registration to the same stationary object is verified. Do not fuse an unrelated second scan simply because its object label matches.
+
+### D. Review the measured scan
+
+Show the actual reconstructed object in a 3D viewer with rotate, pan and zoom. Provide point-cloud and surface views; color is preferred where supported. Display a coordinate triad, units and measurement overlays. Offer a background-removal/crop correction and a way to capture missing views.
+
+The main action is **Export scan**. No repair recommendation, replacement-part ghost, missing-geometry proposal or “Continue to repair” action belongs in this component.
+
+### E. Export the object
+
+Export a package containing supported observed geometry, CAD representation, dimensions and provenance. If geometry is incomplete, say so and export an honest open surface or point cloud where possible. If metric scale is unsupported, do not label arbitrary units as mm or enable a measured CAD export.
+
+## 3. Vision identification contract
+
+Jev is an object-identification/selection assistant, not the metrology engine. Its proposed contract is:
+
+```json
+{
+  "request": {
+    "scan_id": "...",
+    "frame_id": "...",
+    "object_description": "small plastic box",
+    "image": "selected camera frame",
+    "image_width": 1280,
+    "image_height": 720
+  },
+  "response": {
+    "target_found": true,
+    "label": "plastic box",
+    "bounding_box_normalized_xywh": [0.2, 0.15, 0.5, 0.6],
+    "mask_reference": null,
+    "confidence": null,
+    "alternatives": [],
+    "reason": "..."
+  }
+}
+```
+
+This is a proposed interface, not a claim that Jev currently implements these fields. Responses must retain frame ID, provider/model identity and the input-to-original-image transform. A reported score is not assumed calibrated. Validate finite normalized coordinates, dimensions and mask bounds; reject malformed or stale responses.
+
+The user-confirmed target initializes per-frame tracking/segmentation. Identification can be refreshed when appearance changes or tracking is lost, but a new response cannot overwrite the target without checking instance continuity. Bounding boxes alone may contain background; combine segmentation, multi-view geometry and review rather than treating every in-box point as object evidence.
+
+Store original images and derived boxes/masks separately. Vision outputs must not supply metric scale, hidden dimensions, fabricated depth or unseen geometry. Provider failure remains distinct from sensor failure and reconstruction failure. Record provider configuration and request provenance; never export credentials.
+
+## 4. Module architecture
 
 ```mermaid
 flowchart LR
-    A[Physical rear wide RGB] --> C[Checksummed capture package]
+    P[What are you scanning?] --> V[Jev identification and user confirmation]
+    V --> T[Target box and foreground tracking]
+    A[Physical rear 1x images] --> C[Checksummed capture package]
     B[Timed sparse range packets] --> C
-    M[Labelled calibration and motion] --> C
-    C --> D[Existing authenticated upload and validation]
-    D --> E[Fixed-calibration COLMAP poses and correspondences]
-    E --> F[Timed surface associations and robust metric scale]
-    F --> G[Image stereo and observed object filtering]
-    G --> H[Point support, measurements and surface preview]
-    H --> I[Existing repair candidates and editable CAD]
+    T --> C
+    C --> S[Image poses and correspondences]
+    S --> R[Timed sparse metric constraints]
+    R --> G[Observed geometry and surface fitting]
+    G --> M[Standalone 3D review and measurements]
+    M --> E[3D CAD and measurement export]
 ```
 
-| Implementation location | Responsibility |
-| --- | --- |
-| `research/sparse-capture/SparseCapture.m`, `.h`, `Bridging.h` | Debug-only runtime hooks; packet originals, identity evidence, calibration and source diagnostics |
-| `ios/ReverseCAD/CaptureARKit.swift` | Research capture mode, exact image originals, selected RGB frames, motion, guidance and package completion |
-| `packages/ReverseCADCore/.../Capture.swift`, `Persistence.swift` | Backward-compatible metadata, asset inventory, checkpoint/recovery/import/export validation |
-| `backend/reversecad/sparse/decoder.py` | Lossless reused native packet decoder |
-| `backend/reversecad/sparse/capture.py` | Extension validation, explicit slot validity, transforms and timing report |
-| `backend/reversecad/sparse/sfm.py` | Fixed recorded intrinsics, real-image pose recovery and object-supported triangulation |
-| `backend/reversecad/sparse/registration.py` | Time interpolation, surface association, echo ambiguity and robust global scale |
-| `backend/reversecad/sparse/stereo.py` | Reused and bounded CPU rectified stereo adapter |
-| `backend/reversecad/sparse/pipeline.py` | Metric observed object, per-point provenance, fits, measurements, preview and existing result contract |
-| `backend/reversecad/sparse/import_prelude.py` | Read-only historical recording import, including separately labelled processed-depth baseline inputs |
-| `backend/reversecad/reconstruction.py`, `service.py`, `workers.py` | Existing reconstruction dispatch, package/capability validation and downstream consumption |
-| `ios/ReverseCAD/AppModel.swift`, `UnifiedRepairView.swift` | Reconstruction report loading, actual geometry review and continuation to existing repair UI |
-| `scripts/sparse_reconstruct.py` | Saved-input import, reconstruction and same-input baseline comparison |
-| `scripts/generate_sparse_fixture.py`, `evaluate_sparse_fixture.py` | Explicitly synthetic integration fixture and separate oracle evaluation |
+Reuse the existing local camera, package validation, classical geometry and renderer code where useful. Keep the scanner's public inputs/outputs independent of repair families, contacts for a replacement, candidate IDs and CAD generation requests for a missing part. Internal code reuse does not authorize a product handoff to the main repair pipeline.
 
-The existing `reconstruct(scan_dir, output_dir, annotations)` boundary is preserved. For the normal `rgb_assisted` reconstruction stage, an explicit sparse extension dispatches to the new pipeline before automatic cube/planar routing. Packages without that extension retain their previous behavior. The explicit `raw_depth_pose` stage remains available for a separately labelled baseline.
+The useful reconstruction boundary remains `reconstruct(scan_dir, output_dir, annotations)`. Scanner annotations are target selection, crop, additional confirmed observations and measurement requests. A standalone service/UI adapter consumes the reconstruction result and exposes scan exports. Existing `raw_depth_pose` remains a separately labelled development baseline; it must not masquerade as the sparse prototype.
 
-## 3. Capture source and isolation
+## 5. Implemented capture core to retain
 
-### Debug boundary
+### Source identity and originals
 
-`ReverseCADSparseResearch` is a separate scheme/target. Private interception sources are absent from the ordinary app target. Compilation requires both `DEBUG` and `SPARSE_RESEARCH`; a build guard rejects non-Debug and archive/install build actions. This target is for local device research, not Release, TestFlight or distribution.
+Use the physical built-in rear wide/1× camera. The current target requests 30 fps and selects the available format closest to 1280×720; save actual dimensions rather than assuming that preference is guaranteed.
 
-Runtime hooks check the observed method type encodings before installation and forward original callback arguments unchanged. Missing or changed classes/signatures produce unavailable diagnostics. Normal prototype acquisition does not replace RGB with black images. Historical black-input controls remain in the untouched Prelude experiment.
+Camera identity is verified from source-port/device metadata plus matching source PTS, image dimensions and hashes of both active NV12 planes at the ARFrame boundary. Require `AVCaptureDeviceTypeBuiltInWideAngleCamera`, back position and a nonempty, stable device ID. Numeric channel ordering is not camera identity.
 
-### Physical 1× identity
+Retain tightly packed active NV12 planes and full-size RGB JPEG keyframes. The current JPEG uses declared CoreImage conversion at quality 0.97, without app crop/rotation/resizing. Save per-frame intrinsics, source/arrival times, orientation and working transforms, exposure/focus/zoom/crop/stabilization metadata when available, with callback-time readback distinguished from per-sample attachments.
 
-The selected AR format requests the physical built-in rear wide camera at 30 fps, choosing the available format closest to 1280×720. This resolution is a preference, not an assumed fact: actual dimensions and calibration are stored.
+Preserve original sparse packet bytes, event offsets/lengths, sequence, source PTS, callback host time, SHA-256, source identity and available calibration. Preserve all echoes and unknown fields in derived decoding. Record gaps and drops rather than filling them with stale data.
 
-Identity evidence links source-port/device metadata to the ARFrame using source timestamp, dimensions and hashes of both original active NV12 planes. The camera must be `AVCaptureDeviceTypeBuiltInWideAngleCamera`, position `back`, have a nonempty device ID and be explicitly verified. No numeric channel-order assumption identifies a camera. All selected reconstruction frames must have the same physical camera ID.
+Raw accelerometer/gyro at a requested 60 Hz and fused CoreMotion at 30 Hz remain labelled diagnostics. Public ARKit poses are labelled estimates; the implemented reconstruction recovers poses from real images without using ARKit positions as priors.
 
-### Originals and metadata
+### Research isolation and budgets
 
-For selected frames, the package retains tightly packed active rows of both original NV12 planes and a full-size JPEG produced by declared CoreImage color conversion at quality 0.97. Padding is excluded consistently from plane files and identity hashes. Images are not silently cropped, rotated or resized before storage.
+Private hooks remain exclusive to `ReverseCADSparseResearch`, with both `DEBUG` and `SPARSE_RESEARCH` compile guards. Reject non-Debug and archive/install build actions. The ordinary app target has no private interception source. This is a local research prototype, not a TestFlight/distribution target.
 
-Recorded information includes original dimensions, pixel format, source/arrival timestamps, per-frame camera intrinsics, orientation/image transforms, source identity, focus/exposure/zoom/crop/stabilization information when available, and the supporting hook evidence. Device state read back at callback time is labelled separately from sample attachments; unavailable metadata stays unavailable.
+Hooks check observed runtime signatures and forward original callback arguments unchanged. The normal scan path does not black out RGB. Historical black-input experiments remain separate diagnostic controls.
 
-Sparse data is stored as original packet bytes plus an event journal containing byte offsets/lengths, packet sequence, source PTS, callback host time, source metadata and SHA-256. Decoding is off the acquisition callback path. The package also retains available camera-to-sparse calibration and raw calibration bytes/hash.
+Current bounds: 16 sensor-write slots, 96 image-identity entries, 32 MiB raw packet stream, 1 MiB acquisition packet, eight queued motion writes, 12,000 raw motion rows, 3,000 fused rows and 512 MiB enclosing scan package. Finish drains writes before checksums. Interrupted originals remain recoverable and explicitly incomplete.
 
-Raw accelerometer and gyro samples are requested at 60 Hz; fused CoreMotion estimates at 30 Hz. They retain source labels, timestamps and axes. ARKit poses remain separately labelled estimates. Neither motion stream nor ARKit pose is independent ground truth; the implemented reconstruction estimates motion from real images without using those poses as priors.
+## 6. Backward-compatible data contract
 
-### Bounds, recovery and guidance
-
-Research scans automatically finish at 18 seconds or 48 stored views. View selection is spaced by at least 0.35 seconds and does not require an ARKit pose change. Sharpness and physical identity gate usable RGB frames. Capture guidance includes move sideways, slow down, show another side, improve lighting and keep the object still; it uses the available blur/tracking/source/coverage diagnostics. Direction count is not a complete-coverage claim.
-
-Resource limits are a 16-slot sensor-write queue, 96-entry image identity ring, 32 MiB raw packet cap, 1 MiB acquisition packet cap, 8-slot motion queue, 12,000 raw motion rows, 3,000 fused motion rows and an enclosing 512 MiB package budget. Drops and gaps are recorded. Finish drains pending acquisition work before final checksums. Checkpoints preserve interrupted originals; an incomplete capture is not promoted to successful measurement evidence.
-
-## 4. Capture contract
-
-The outer capture schema remains version 1. A typed optional `sparse_capture` extension is added to the manifest; an optional `sensor_observation` object is added to each frame. Existing RGB/depth assets keep their meanings. Sparse bytes are never disguised as processed depth images.
+The outer capture schema stays version 1. Sparse observations use a separate optional versioned extension:
 
 ```json
 {
@@ -104,189 +139,127 @@ The outer capture schema remains version 1. A typed optional `sparse_capture` ex
 }
 ```
 
-Status is `capturing`, `available` or `unavailable`. `available` means packets were observed; it does not certify valid returns, successful reconstruction or accuracy. Missing packets/calibration cause an explicit insufficient-data result, not a hidden processed-depth fallback.
+Status is `capturing`, `available` or `unavailable`. Available means packets were observed, not that accuracy or reconstruction passed. Per-frame `sensor_observation` holds absolute monotonic source time, nullable arrival time, camera identity, pixel hashes and original-plane paths. Existing `timestamp_s` remains capture-relative. Sparse packets are not stored as ordinary ARKit depth images.
 
-Per-frame `sensor_observation` contains the absolute monotonic `source_timestamp_s`, nullable `arrival_timestamp_s`, `clock`, verified `physical_camera`, pixel hashes, optional `original_plane_paths`, and diagnostic metadata. The existing frame `timestamp_s` remains capture-relative. Historical files with no arrival observation use null, not a fabricated timestamp.
+Add a separately versioned **object-selection** record for the description, user-confirmed target, frame-linked Jev detections, masks and tracking states. This record is a required new addition. It must reference immutable source frames and explicit image transforms; it does not alter original pixel or packet bytes.
 
-`checksums.json` covers capture assets except itself, including sparse originals, journals, calibration, motion and image planes. Package writer/import/recovery/export and server validation include the new asset paths. Raw image plane count, byte sizes and hashes receive additional validation. Nonfinite metadata is converted to null before serialization; original binary data remains unchanged.
+Checksums cover all assets except the checksum manifest itself. Validate versions, paths, size bounds, contiguous indexed packet intervals, per-packet hashes, source ports, unique sequences, strictly increasing source timestamps, clock relation and image-plane hashes/sizes. Reject trailing unindexed packet bytes. Serialize nonfinite metadata as null; binary originals remain unchanged.
 
-Server validation rejects unsupported versions, invalid status/source/calibration conventions, unsafe/escaping paths, stream/journal size violations, non-contiguous packet byte intervals, packet hash mismatch, repeated packet IDs, non-increasing source times, incorrect source port, unindexed trailing bytes, invalid raw plane sizes/hashes and unknown RGB clock relations. Dropped callbacks can remain in the journal without pretending that bytes were saved.
+Slot geometry validity currently requires finite positive range/XYZ norm, positive finite confidence and agreement of XYZ norm with radial range within `max(0.01 mm, range × 1e-5)`. Unknown flag bits are preserved. All 84 typical slots and all three echo candidates remain inspectable even when excluded from geometry.
 
-### Slot validity and clock semantics
+## 7. Frames, units and timing
 
-Every packet slot and echo candidate is retained in derived records. Geometry validity requires finite XYZ/range, positive range/XYZ norm, XYZ norm agreement with reported Euclidean range within `max(0.01 mm, range × 1e-5)`, and finite positive confidence. Unknown flags and other fields remain intact. These are analysis checks, not an assertion that every hardware flag is understood.
-
-Packet PTS is used for its own slots. Individual within-packet exposure offsets are unknown and explicitly reported. Bank addresses are never accumulated into a fictitious simultaneous frame or carried forward through gaps.
-
-## 5. Coordinates, calibration and units
-
-`T_sparse_camera` is the stored 4×4 column-major transform with explicit direction `camera_cv_to_sparse` and translation units **mm**. Its camera type must be the physical wide camera. Raw native affine data and its hash are retained; padded SIMD lanes are normalized into a homogeneous matrix and rigid-transform checks apply.
-
-For a column-vector sparse point, the implemented inverse is:
+`T_sparse_camera` is column-major, direction `camera_cv_to_sparse`, with translation in **mm**. Raw affine calibration bytes/hash remain alongside the normalized homogeneous matrix. For column vectors:
 
 ```text
 P_camera_m = transpose(R_sparse_camera) × (P_sparse_mm - t_sparse_camera_mm) / 1000
 ```
 
-The decoded coordinate origin is not independently established as the physical light-emitter location. Euclidean range is radial in that native coordinate system. Camera-axis Z is calculated after transformation and is not substituted for radial range.
+This decoded origin is not an independently verified physical emitter location. Euclidean range is radial in the native frame; camera-axis Z is calculated separately. Recorded pinhole calibration is fixed. CV-to-COLMAP pixel-center conversion adds 0.5 to principal-point coordinates and is reversed on return.
 
-COLMAP uses each recorded pinhole calibration without fitting focal length, principal point or distortion. The adapter converts CV pixel-center convention to COLMAP with `cx + 0.5`, `cy + 0.5`; the inverse adapter restores CV convention. Calibration dimensions must match the preserved RGB dimensions.
+The current output frame is the first registered camera's right-handed CV frame: x right, y down, z forward. Point clouds and camera transforms use **m**; preview vertices, displayed dimensions and CAD exports use **mm**. A later convenient display orientation must be an explicit saved rigid transform, never an undocumented geometry/scale change.
 
-The final object frame is the **first registered camera CV frame**, right-handed, x right, y down, z forward. It is not an estimated canonical object orientation. Metric point assets are in **m**; result measurements, preview vertices and CAD dimensions are in **mm**. `T_object_camera_cv` maps a camera-local metric point into this object frame.
+Each packet uses its own PTS. Within-packet spot exposure offsets are unknown. Interpolate only between registered image poses with brackets at most 0.55 seconds; no extrapolation or stale bank accumulation. ARKit motion and camera timestamps are not independent ground truth.
 
-## 6. Reconstruction algorithm and actual thresholds
+## 8. Implemented reconstruction core
 
-### A. Real-image motion and triangulation
+### Image geometry
 
-- Keep sharp (`blur_score >= 7`), identity-verified rear wide frames; deterministically subsample at most 48 views. Require at least three.
-- Copy original RGB files into the reconstruction workspace. Use recorded per-frame PINHOLE calibration; share cameras only when dimensions and calibration match.
-- Run CPU SIFT/exhaustive guided matching with at most 4,096 features/matches and internal feature image width bounded by 1,600 pixels. Preserve original-coordinate correspondences and record working transforms.
-- Run one COLMAP model with seed 17, one worker thread, at least 40 initialization inliers, 2° initial triangulation and 1.5° filtering angles. Mapper runtime limit is 90 seconds. Do not use ARKit position priors or refine intrinsic parameters.
-- Require at least three registered views and finite mean image reprojection error no greater than 2.5 pixels.
-- Object selection intersects the capture guide and any supplied foreground mask, eroded with a 5×5 kernel. Image tracking may use the full scene, but retained object points need at least three inside-mask observations, outside observations no more than 25% of inside observations and point reprojection error at most 2.5 pixels. Require at least 30 retained object points.
+Use at least three sharp, verified same-camera frames (`blur_score >= 7`), at most 48 views. Reuse CPU COLMAP SIFT/exhaustive guided matching with fixed recorded PINHOLE intrinsics, at most 4,096 features/matches, internal feature width at most 1,600 pixels, seed 17 and one worker thread. Keep original images and record working transformations.
 
-### B. Time-resolved sparse association
+The mapper uses at least 40 initialization inliers, 2° initial and 1.5° filtering triangulation angles, one model and a 90-second mapper budget. Require at least three registered views and mean reprojection error at most 2.5 pixels. Do not refine focal length, principal point, distortion, range bias or timing offset.
 
-- Interpolate camera translation linearly and rotation with Slerp between registered image poses. No extrapolation is allowed; brackets longer than 0.55 seconds are rejected. An exact registered timestamp can use its pose directly.
-- Transform each valid echo's XYZ into the camera frame and require positive camera Z and an interior object-mask projection.
-- Project triangulated image geometry into the interpolated camera. Within a 25-pixel neighborhood require at least six points whose 2D convex hull surrounds the sparse projection.
-- Fit a local plane; reject slivers, ambiguous depth edges and poor planarity. The second singular value must be at least 3% of the first; local Z span at most 18% of median depth; median plane residual at most 0.8% of median depth.
-- Reject grazing associations with absolute normal/range-direction dot product below 0.3. Retain each plausible echo as its own candidate, with packet, address, time, frames, plane and range provenance.
+Current foreground selection intersects the guide and any available mask, with 5×5 erosion. The revised product must feed the confirmed target masks into this stage. Retain triangulated object points with at least three inside-mask observations, outside observations at most 25% of inside support and point error at most 2.5 pixels. Require at least 30 object points.
 
-For a plane `n · X = d` in unscaled SfM camera coordinates and measured metric camera point `p`, each candidate proposes scale `s = (n · p) / d`. The stored transformed native origin is retained when evaluating radial residuals. Quality score affects weighting only after geometric selection; neither highest confidence nor nearest return is a universal echo rule.
+### Sparse metric scale
 
-### C. Global scale and ambiguity
+At each packet time, transform every valid echo into the interpolated camera and require a forward, interior object projection. A local 25-pixel neighborhood needs at least six triangulated points whose projected hull surrounds the observation. Reject slivers, large depth edges, poor planarity and grazing incidence.
 
-Fit **one positive global scale**, holding intrinsics, image poses, extrinsics and range bias fixed. Approximately the final quarter of distinct candidate times is withheld from fitting. Consensus evaluates quantile scale hypotheses with a 6% logarithmic scale neighborhood, counting each packet/bank/spot group once.
+Current gates: second plane singular value at least 3% of first; local Z spread at most 18% of median depth; median plane residual at most 0.8% of depth; absolute normal/range-direction dot product at least 0.3.
 
-Competing models more than 15% apart with at least 80% of leading support (and the minimum support) cause abstention. A group with multiple surviving echoes is excluded rather than counted twice. Five Huber reweighting iterations refine scale using a 2% relative scale transition and bounded confidence/timing/local-plane weights.
+Fit one positive global metric scale. Geometric consensus uses a 6% logarithmic scale neighborhood and counts each packet/bank/spot group once. Competing hypotheses over 15% apart with at least 80% of leading support cause abstention. Multiple surviving echoes for one group are excluded. Five Huber iterations use a 2% relative transition; confidence only weights geometrically supported candidates.
 
-Require at least 12 training constraints, four distinct bank/spot addresses and three supporting views. Require at least four held-out selected constraints and at least 40% coverage of held-out candidate groups. Report training and held-out radial residuals separately; there is no independent absolute-accuracy bound derived from these checks.
+Require at least 12 training constraints, four bank/spot addresses, three supporting views and a final-time held-out block with at least four constraints and 40% candidate-group coverage. Report train/held-out radial residuals separately from absolute accuracy. The current `camera_baseline_m` gate is a scaled camera-center bounding-box diagonal of at least 10 mm, not a particular pairwise baseline.
 
-Recovered camera-center bounding-box diagonal after scaling must be at least 10 mm. The current output key is `camera_baseline_m`; its definition is this diagonal, **not** the maximum distance of a particular camera pair.
+### Additional surface detail
 
-### D. Additional observed geometry
+Reuse rectified CPU SGBM: up to 16 pairs, derived image width at most 640, output stride 2, rectification `alpha=1`, disparity search up to half width capped at 384. Skip unsupported vertical rectified baselines with a reason. Require left/right consistency within 1 pixel and three-view relative Z agreement within 2%.
 
-The dense adapter reuses the existing classical CPU stereo implementation. It uses rectified SGBM, at most 16 pairs, derived image width at most 640 pixels and output stride 2. Rectification uses `alpha=1` to retain field of view; disparity search extends up to half the derived image width, capped at 384. Unsupported vertical rectified baselines are skipped with a recorded reason.
+Require dense points inside the target in at least three views, outside count at most `max(1, 0.15 × inside count)`, and proximity to retained triangulation. The proximity threshold is three times median nearest-neighbor spacing, clamped to 3–10 mm. Reject points rather than snapping them to a fit.
 
-Left/right consistency is bounded by 1 pixel. Cross-view consistency requires at least three distinct supporting views and relative Z disagreement at most 2%. Additional filters require projection inside the object in at least three views, outside count no greater than `max(1, 0.15 × inside count)`, and proximity to retained triangulation. The latter threshold is three times median nearest-neighbor triangulation spacing, clamped to 3–10 mm. Points are rejected, never snapped onto a fitted surface.
+Combine image triangulation, stereo and direct sparse observations with separate provenance. A 0.7 mm voxel selects existing rows rather than averaging. Preserve selected direct constraints separately. Support explicit object-frame cropping; fewer than 30 points or any extent over 1.5 m produces an insufficient-data result.
 
-Metric triangulation, accepted stereo and selected direct sparse XYZ observations are combined with distinct source classes. A 0.7 mm voxel selects existing rows without averaging away provenance. Optional annotation bounds crop in object-frame meters. Fewer than 30 retained points or any observed extent over 1.5 m causes insufficient-data status. These are prototype gates, not universal object-size support.
+Local ball-pivot preview triangles require bounded edges and at least two common support views across their vertices. No smoothing, hole filling or generative depth supplies authoritative observed geometry. Open/unseen regions stay unknown.
 
-### E. Fits and preview
+## 9. Measurements and scanned-object CAD export
 
-The pipeline reuses existing plane/cylinder/contact feature fitting on the observed metric points. It labels those measurements `multiview`, links sparse scale and point-support artifacts, and reports observed axis extents. An observed extent is not necessarily a full-object dimension; unseen regions remain unknown.
+### Measurements
 
-Correlated point-subset fit variation is renamed `support_subset_variation_mm`, with `repeatability_mm` left null. It is not independent temporal repeatability.
+Expose observed bounds, point-to-point distances and supported fitted primitives/surfaces. Auto-dimensions must identify their frame and definition. A camera-frame bounding-box extent is not automatically the object's semantic width/height/depth. Object-aligned or fitted box dimensions require sufficient observed surfaces and a recorded fitting method.
 
-The preview uses local ball-pivot triangulation. Radius derives from twice median nearest-neighbor spacing, clamped to 0.5–8 mm, with a second radius twice as large. Triangle edges must not exceed the smaller of 15 mm and four times radius; all three vertices must share at least two supporting views. No hole filling, Poisson closure, smoothing or generative depth completion supplies engineering evidence. A point-only result is allowed when triangles are unsupported.
+Each dimension carries value, unit, supporting point/frame/range IDs, method, coverage and uncertainty status. Unknown absolute uncertainty is null/unknown. Fit residual, image reprojection residual, correlated subset variation and physical repeatability are distinct quantities. A model label such as “box” must never fill in an unseen side's location or a standard product dimension.
 
-## 7. Outputs and downstream contract
+### Required exports
 
-| Artifact | Meaning and units |
+| Output | Requirement |
 | --- | --- |
-| `reconstruction.json` | Existing result envelope plus `source=sparse_range_rgb`, `algorithm_version=sparse-rgb-1`, bounds, primitives, measurements, warnings, coverage/support and explicit uncertainty |
-| `points_measurement.npz` | Authoritative observed points in m, RGB colors, observation IDs and source classes; consumed by existing fit/collision/CAD paths |
-| `observed_points_m.ply` | Inspectable colored observed cloud in m |
-| `observed_surface_m.ply` | Optional locally supported display mesh in m |
-| `scan_preview.json` | Existing renderer-compatible vertices in mm, triangles and colors |
-| `point_support.json` | Per-output-row observation IDs, source classes and supporting frame IDs |
-| `direct_range_points.npz` | Selected directly measured sparse points and observation IDs, retained separately even if combined voxel selection omits some rows |
-| `camera_poses.json` | Metric camera poses in the declared object frame, timestamps, calibration and source |
-| `decoded_sparse.jsonl` | All original slots/echoes as derived records, original fields, hashes, times, validity and reasons |
-| `sparse_associations.json` | Candidate geometric associations and rejection counts |
-| `selected_sparse_support.json` | Selected metric constraints, global scale and train/held-out diagnostics |
-| `sfm/` | Database, image copies, model, camera inputs, method report and stereo working-transform evidence |
+| PLY | Colored observed point cloud, declared units and frame |
+| OBJ or STL | Supported observed surface; explicit open/incomplete status; no automatic watertight completion |
+| STEP | Importable CAD surface/shell of the scanned object, or a supported fitted solid only when the observations justify closure |
+| Measurements JSON and CSV | Named dimensions, units, support references, method and uncertainty/coverage status |
+| Scan manifest | Source/coordinate/scale provenance, file hashes, export settings and validation results |
+| Original capture archive | Original images, packets, calibration and journals available separately for inspection/reprocessing |
 
-`observations.accepted_frames` and unregistered frame IDs preserve the existing candidate engine's observation interface. Measurement support and metric constraints are linked rather than reduced to a single confidence number. `absolute_accuracy_mm` and uncalibrated uncertainty components remain null; `coverage_is_complete` is false; `physical_fit` is `not_tested`.
+Scanned-object STEP export is required new work. It must export the **observed object**, not route through a bracket/handle replacement template. Where appropriate, fit planes/cylinders and preserve their parameters. For arbitrary observed surfaces, a faceted or fitted surface shell is acceptable if labelled accurately; do not call a triangulated shell a fully parametric feature-history model. Partial data may export an open shell. A closed solid requires justified topology and explicit validation.
 
-The authenticated service retains scan creation/upload/commit, reconstruction jobs and artifact download. `/v1/capabilities` advertises the sparse research mode and separate `raw_depth_pose` baseline. The existing worker publishes the actual result artifacts. Downstream proposals use the measured point asset for collision/fit checks and preserve unresolved critical dimensions.
+Validate exported units, finite coordinates, face indices/topology and readback in an independent CAD/mesh reader. Compare exported bounds/dimensions with reconstruction and verify file hashes after transfer. Mesh validity is not physical fit. The existing repair STEP/STL/3MF test does **not** validate this new scanned-object STEP exporter.
 
-The iOS review loads the actual `scan_preview.json`, displays source/support limitations in diagnostics and requires confirmation that the preview shows the intended object and relevant surfaces before Continue to repair. It enters the existing project view instead of a disconnected viewer. The research mode does not request the previous processed-depth live repair ghost.
+## 10. Core evidence and current limits
 
-## 8. Evidence obtained so far
+Untouched real fixture `2026-10-18T09-43-59Z_arRulerBlack_B3C530` has packet SHA-256 `3ffa40811f65fa2037a37e76b1dae773461b726a6ca1689831bbf430862875f2`. All 118 packets round-trip byte-for-byte: 9,912 slots, 2,210 passing analysis validity, 112 bank/spot addresses and maximum gap approximately 49.966 ms. No positive third echo is observed. The nine-frame stationary real-image import yields no translated multi-view model; it is not a completed object scan.
 
-### Untouched real packet fixture
+An explicit synthetic 100×60×40 mm textured block supplies 24 views, with the oracle outside reconstruction inputs. The new core registers 22 views and produces 41,388 points and 8,856 preview triangles in 8.737 s. Mean image residual is 0.644 pixels. Scale uses 29 training and nine held-out constraints from 14 addresses; median absolute radial residuals are 1.010 and 0.545 mm respectively.
 
-Historical source: `2026-10-18T09-43-59Z_arRulerBlack_B3C530` under Prelude's local research recordings. Original `origin-packets.bin` SHA-256:
+Independent oracle-frame extents are **104.397×60.868×45.294 mm**, errors **+4.397, +0.868, +5.294 mm**. The max(0.5 mm, 1%) dimensional gate **fails**. Median absolute surface distance is 0.556 mm and the 95th percentile is 1.734 mm; these do not override extent failure. The same-input ideal rendered-depth/pose baseline produces 73,908 points in 0.781 s with essentially exact dimensions; it does not forecast real ARKit accuracy.
 
-```text
-3ffa40811f65fa2037a37e76b1dae773461b726a6ca1689831bbf430862875f2
-```
+Two single-thread runs reproduce point/color/ID/source arrays on this machine. Latest selected backend checks: 183 pass, two existing cube API failures also reproduced against untouched starting main. Ten new sparse tests and 18 Swift core tests pass. Signed research Debug and ordinary Release build checks pass; research Release is rejected, with private markers absent from the ordinary Release binary.
 
-All 118 packets round-trip byte-for-byte through the decoder, with 84 slots each and 9,912 total slots. There are 2,210 slots passing the declared analysis validity checks and 112 bank/spot addresses. Positive-range echo counts are 2,074 for echo 0, 179 for echo 1 and zero for echo 2; positive range alone is not full validity. Maximum recorded packet gap is approximately 49.966 ms.
+These tests validate portions of the reused core. They do not certify the new object-description/Jev/export flow. The old repair-handoff test is outside this revised component's acceptance criteria.
 
-The imported historical recording contains nine real wide-camera frames plus retained original processed-depth/confidence planes and separately labelled limited-tracking black-input AR poses. The new method correctly returns insufficient data because it cannot recover a translated multi-view model. The same-input baseline also produces no accepted geometry from its limited-tracking poses. This stationary diagnostic fixture does not establish moving-object-scan feasibility or a fair accuracy/runtime win.
+Fresh physical scanning, object-dominated reconstruction, independent dimensional accuracy and scanned-object CAD readback remain to be demonstrated. No part has been printed and fit-tested. The phone prototype test was stopped for this scope revision.
 
-### Synthetic same-input algorithm comparison
+The sparse stream contains computed range/XYZ and quality fields, not recovered raw photon histograms. Complete independence from upstream Apple processing is unproven. Historical +1.21 mm point-pair, +6.70 mm camera-axis and +9.713 mm camera-derived-plane errors and 0.34–0.57 mm static temporal MAD measure different things and must not be collapsed into one accuracy claim.
 
-An explicit synthetic 100×60×40 mm textured block supplies 24 rendered views and synthetic sparse packets. Ground-truth evaluation is outside the capture package and is not provided to reconstruction. Comparison uses the same saved input package; the baseline receives its exact rendered depth/poses, while the new method recovers image motion and sparse metric scale. This favors the idealized baseline and does not predict physical ARKit performance.
+## 11. Acceptance for this component
 
-| Measurement | New image + sparse method | Existing processed-depth baseline |
-| --- | ---: | ---: |
-| Output observed points | 41,388 | 73,908 |
-| Preview triangles | 8,856 | 0 |
-| Runtime in recorded local run | 8.737 s | 0.781 s |
-| Extents in oracle frame, mm | 104.397 × 60.868 × 45.294 | 100.00003 × 59.99419 × 40.00003 |
-| Signed extent errors, mm | +4.397, +0.868, +5.294 | +0.00003, −0.00581, +0.00003 |
-| Median absolute distance to oracle surface | 0.556 mm | approximately 0.000005 mm |
-| 95th percentile absolute surface distance | 1.734 mm | approximately 0.000012 mm |
-| Dimension gate: max(0.5 mm, 1% of dimension) | **Fail** | Pass |
+1. Ask what the user will scan and retain the answer.
+2. Identify the intended instance in the actual camera view with Jev, present the box/outline and get confirmation or correction.
+3. Record real physical 1× images and genuine timed sparse packets while moving around a stationary object.
+4. Recover image-supported translation and object geometry with recorded sparse metric support; reject background/other instances and flag target loss.
+5. Display the scanned object in a standalone viewer with dimensions, coverage and inspectable source/uncertainty.
+6. Export the scanned point cloud, surface, scanned-object STEP and measurement package; reopen and verify geometry, units and dimensions.
+7. Compare the new core and baseline on identical real inputs, and check independent known dimensions separately from internal residuals.
+8. Keep all work isolated from `main`; no repair proposal or missing-part generation in this product flow.
 
-The new run registers 22/24 views, retains 715 SfM points before later filtering and reports mean image reprojection error 0.644 pixels. Metric scale is 0.0595182 m per SfM unit, supported by 38 selected constraints from 14 addresses: 29 training and nine held out. Median absolute radial residual is 1.010 mm in training and 0.545 mm held out; held-out 90th percentile is 1.525 mm. These internal residuals do not override the failed independent extent check.
+Until these checks pass, report which stage is incomplete rather than claiming a complete measured CAD scanner.
 
-After filtering/voxel selection, output source classes are 40,940 image-stereo rows, 434 triangulated rows and 14 direct sparse rows. All 38 selected direct constraints remain separately inspectable. Two single-thread runs produced exactly equal point/color/ID/source arrays on this machine. No cross-platform determinism or independent physical repeatability is claimed.
+## 12. Core reproduction and implementation locations
 
-### Automated and build verification
+Implemented local core resides in `backend/reversecad/sparse/` (`capture`, `decoder`, `sfm`, `registration`, `stereo`, `pipeline`, `import_prelude`), `research/sparse-capture/`, the research branches of `ios/ReverseCAD/CaptureARKit.swift`, and shared package/schema validation. Existing core result artifacts include `points_measurement.npz`, `observed_points_m.ply`, optional `observed_surface_m.ply`, `scan_preview.json`, `point_support.json`, `direct_range_points.npz`, `camera_poses.json`, `decoded_sparse.jsonl`, `sparse_associations.json` and `selected_sparse_support.json`.
 
-- Latest selected backend regression run: **183 passed, two failed**. The two failures are existing cube photo API tests (`test_cube_routes_require_pairing_and_report_scope` and `test_automatic_api_accepts_photo_without_corners`) that expect 200 but receive insufficient-evidence 422 responses. Both reproduce against an untouched archive of the starting main revision using the same environment; they are not presented as passing.
-- All ten new sparse tests pass within that run: original bytes/invalid echoes, radial versus Z, transform direction/units, stale timing, robust echo selection, competing-model abstention, object masks, schema/backward compatibility, package corruption and actual service-to-CAD integration.
-- Swift core suite: **18 passed**, including original image/sparse asset commit, recovery/import round trip and missing/corrupt/nonfinite metadata rejection.
-- Signed research Debug build and code-signature verification pass. Ordinary Release build passes. Research Release fails at its required guard.
-- Three private-hook marker checks are present in research Debug binaries and absent from the ordinary Release executable. Archive rejection is configured; no distribution archive was produced.
+The standalone prompt/selection/review/export adapters still need implementation. Do not expose the previous prototype's “Continue to repair” screen as this component's finished UI. Do not publish private capture code through a distribution target.
 
-The integration test reconstructs the synthetic fixture through real service workers, downloads the actual preview, selects an actual fitted plane for a repair contact and invokes the existing bracket candidate path. Missing mounting dimensions remain questions. A separately confirmed **test-only** 4 mm hole dimension and explicit uncertainty acknowledgement permit a manual CAD prototype; STEP/STL/3MF downloads are hash-verified and the fit check consumes more than 100 actual observed points. This verifies the handoff, not automatic completion of all missing geometry or real printed fit.
-
-## 9. Remaining validation and limitations
-
-The next acceptance run must use a fresh moving-camera capture of a stationary matte/textured object. Verify original physical 1× identity evidence and genuine sparse packets on the current OS, usable calibration, recovered translation and overlapping image geometry, selected timed metric support, an object-dominated preview, and continuation through the existing repair flow. Independent known dimensions should then be evaluated separately from image-fit residuals and internal range consistency.
-
-The current phone is connected and the owner has released the stopped Prelude session for use. The available local development profile uses Prelude's app identity, so deployment replaces/restarts that app after its data is preserved. The independent capture/install/scan acceptance steps were paused to publish this specification first.
-
-Known limits include unverified live hook availability on this OS build, unknown within-packet exposure timing, factory-calibration uncertainty, unverified physical emitter origin, no fitted range bias/time offset/distortion, fixed-scale rather than jointly optimized sensor bundle adjustment, texture/overlap dependence, conservative local-plane association, foreground-mask errors and remaining possible background contamination. Some views may have only the capture guide; the required visual review is material. The synthetic extent failure already prevents any claim of validated engineering accuracy.
-
-Historical sparse ruler separation error (+1.21 mm median signed), camera-axis disagreement (+6.70 mm), later camera-derived ruler-plane disagreement (+9.713 mm median), and selected static-range temporal MAD (about 0.34–0.57 mm) describe different experiments/quantities. They are not collapsed into one accuracy specification. The camera-derived reference also has uncertainty.
-
-The intercepted stream contains computed range candidates, calibrated XYZ, bank/spot/echo IDs, quality, intensity/SNR and flags. It is observed before particular app-side wrappers and responds to physical scene motion. Raw photon histograms have not been recovered and independence from upstream Apple processing is not established. Black imagery at an observed hook does not prove all upstream RGB influence is absent.
-
-Printed fit remains **untested**. Fresh physical dimensional accuracy remains **unvalidated**. Hidden/unobserved surfaces remain **unknown**.
-
-## 10. Reproduction after implementation integration
-
-Use the implementation worktree or a future branch containing its source files. Outputs below must be fresh paths; the importer never modifies its historical source directory.
+Core-only reproduction from a worktree containing the implementation:
 
 ```sh
 uv sync --frozen
-PYTHONPATH=backend .venv/bin/python scripts/sparse_reconstruct.py import-prelude \
-  /path/to/2026-10-18T09-43-59Z_arRulerBlack_B3C530 work/ruler-import
-PYTHONPATH=backend .venv/bin/python scripts/sparse_reconstruct.py run \
-  work/ruler-import work/ruler-result --compare
-
 PYTHONPATH=backend .venv/bin/python scripts/generate_sparse_fixture.py work/example-synthetic
 PYTHONPATH=backend .venv/bin/python scripts/sparse_reconstruct.py run \
   work/example-synthetic work/example-result --compare
 PYTHONPATH=backend .venv/bin/python scripts/evaluate_sparse_fixture.py \
   work/example-synthetic work/example-result work/example-evaluation.json
-
 PYTHONPATH=backend .venv/bin/python -m pytest -q backend/tests/test_sparse_reconstruction.py
 swift test --package-path packages/ReverseCADCore
-
-PYTHONPATH=backend .venv/bin/python scripts/serve.py --lan --port 8769 \
-  --data-dir work/sparse-service
 ```
 
-The service creates a private pairing token under its data directory. Configure the app with the reachable Mac service URL and that token; do not publish the token. Reconstruction and deterministic candidate paths do not need a live vision-model key.
-
-Generate/build the `ReverseCADSparseResearch` Debug scheme using a valid local development identity/profile. Coordinate with the device owner and preserve the existing app data before any same-identity install. The prepared prototype uses the established local signing arrangement; no profile secret or pairing credential is included here.
-
-For implementation provenance, the lossless decoder was selectively reused from the existing sparse-native-byte-forensics lab, the stereo adapter from the existing metrology COLMAP adapter, and interception/identity patterns from Prelude's `OriginProbe.m`, `InputGate.m` and `RealImageRecorder.m`. Source hashes and selection notes are stored with the implementation in `docs/sparse-reconstruction/reuse.json`; original source hashes were rechecked unchanged. Detailed capture/reconstruction notes and measured artifacts remain in that worktree's `docs/sparse-reconstruction/` and `reports/sparse-reconstruction/` directories.
+Use fresh output paths and preserve source recordings. These commands exercise the implemented geometry core, not the pending Jev and scanned-object STEP workflow. No live provider key is required for the core; the Jev adapter's configuration is a separate pending integration detail.
