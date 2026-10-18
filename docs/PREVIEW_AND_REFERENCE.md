@@ -27,3 +27,9 @@ System capture-button APIs handle volume-button release. They are enabled only w
 ## Verification
 
 Simulator tests cover permission decisions, returning from Settings, app launch, preservation of source images, fresh-window requirements, shutter limits and framing gestures. Phone checks must separately confirm display cadence, persistent front preview, measured shutter ratio and a real volume-button save. Passing these checks does not establish dimensional accuracy or resolve the previously recorded full-orbit tracking limitations.
+
+## Build identity and diagnostic cleanup
+
+On October 18, the connected iPhone still had version 0.1.0 (38) installed and running after build 39 became available in TestFlight. Build 38 contains the rear optical-flow renderer; TestFlight availability alone does not establish that its replacement is running. Check the installed bundle version and the running executable before interpreting a preview test. Associate saved sensor evidence with a newly created capture ID, rather than reusing an old diagnostic file.
+
+Build 40 retains build 39's native rear preview and permission handling. It removes the unused selfie preview-buffer cache and the ad hoc front-camera JSON/JPEG diagnostic writes. The native selfie layer never consumed that cache. This cleanup does not change the saved reference's original RGB/depth planes, calibration, timestamps, exposure settings, capture ID or user-selected shutter trigger. The original buffer-copy regression checks remain.

@@ -32,21 +32,7 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
         let settings: [String: Any]
     }
     private var samples = [Sample]()
-    private let previewLock=NSLock()
-    private var previewFrame:(pixel:CVPixelBuffer,time:Double)?
-    private var deliveredFrames=0,saveRequests=0
-    private var firstFrameTime:Double?,lastDiagnostic = -Double.infinity
     private var lastSaveTrigger="none"
-    private var lastSharpness=0.0
-    private var depthFrames=0,depthDrops=0
-    private var lastDepthOffset=0.0
-    #if DEBUG
-    private let debugContext=CIContext(options:[.cacheIntermediates:false])
-    private var lastDebugImage = -Double.infinity
-    #endif
-    func latestPreviewFrame() -> (pixel:CVPixelBuffer,time:Double)? {
-        previewLock.lock();defer{previewLock.unlock()};return previewFrame
-    }
 
     func start() {
         guard !running else { return }
@@ -56,8 +42,7 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
         let requestID = UUID()
         queue.async {
             self.captureID=requestID;self.writer=nil;self.finishing=false;self.samples=[];self.exposureReady=false
-            self.deliveredFrames=0;self.firstFrameTime=nil;self.lastDiagnostic = -.infinity
-            self.saveRequests=0;self.lastSaveTrigger="none"
+            self.lastSaveTrigger="none"
         }
         AVCaptureDevice.requestAccess(for: .video) { allowed in
             self.queue.async {
@@ -144,29 +129,6 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
         } catch {fail(error)}
     }
     func dataOutputSynchronizer(_ synchronizer: AVCaptureDataOutputSynchronizer, didOutput collection: AVCaptureSynchronizedDataCollection) {
-        if let depth=collection.synchronizedData(for:depth) as? AVCaptureSynchronizedDepthData {
-            if depth.depthDataWasDropped {depthDrops+=1} else {
-                depthFrames+=1
-                if let colour=collection.synchronizedData(for:video) as? AVCaptureSynchronizedSampleBufferData {lastDepthOffset=CMTimeGetSeconds(depth.timestamp)-CMTimeGetSeconds(colour.timestamp)}
-            }
-        }
-        if let colour=collection.synchronizedData(for:video) as? AVCaptureSynchronizedSampleBufferData,!colour.sampleBufferWasDropped,
-           let image=CMSampleBufferGetImageBuffer(colour.sampleBuffer) {
-            let time=CMTimeGetSeconds(colour.timestamp)
-            previewLock.lock();previewFrame=(image,time);previewLock.unlock()
-            deliveredFrames+=1;firstFrameTime=firstFrameTime ?? time
-            #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("-frontReferenceCheck"),time-lastDiagnostic>1 {
-                lastDiagnostic=time
-                let exposure=device.map{CMTimeGetSeconds($0.exposureDuration)} ?? 0
-                try? cameraJSONWrite(["capture_id":captureID.uuidString,"running":session.isRunning,"delivered_frames":deliveredFrames,"depth_frames":depthFrames,"depth_drops":depthDrops,"rgb_depth_offset_s":lastDepthOffset,"elapsed_s":time-(firstFrameTime ?? time),"buffered_sharp_frames":samples.count,"sharpness":lastSharpness,"save_requests":saveRequests,"last_save_trigger":lastSaveTrigger,"exposure_ready":exposureReady,"exposure_s":exposure,"baseline_exposure_s":baselineExposure,"exposure_ratio":baselineExposure>0 ? exposure/baselineExposure:0,"source_width":CVPixelBufferGetWidth(image),"source_height":CVPixelBufferGetHeight(image),"preview_mode":"native_unwarped","capture_is_interpolated":false],FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-live.json"))
-                let scale=640.0/Double(CVPixelBufferGetWidth(image))
-                if let data=debugContext.jpegRepresentation(of:CIImage(cvPixelBuffer:image).transformed(by:CGAffineTransform(scaleX:scale,y:scale)),colorSpace:CGColorSpaceCreateDeviceRGB()) {
-                    try? data.write(to:FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-preview.jpg"),options:.atomic)
-                }
-            }
-            #endif
-        }
         guard !finishing,exposureReady else { return }
         guard let colour = collection.synchronizedData(for: video) as? AVCaptureSynchronizedSampleBufferData,
               let sample = collection.synchronizedData(for: depth) as? AVCaptureSynchronizedDepthData,
@@ -176,16 +138,6 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
               let image=CMSampleBufferGetImageBuffer(colour.sampleBuffer) else{return}
         lastTime=time
         let blur=ARKitCaptureProvider.blurScore(image,region:[0,0,1,1])
-        lastSharpness=blur
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-frontReferenceCheck"),time-lastDebugImage>2 {
-            lastDebugImage=time
-            let scale=640.0/Double(CVPixelBufferGetWidth(image))
-            if let data=debugContext.jpegRepresentation(of:CIImage(cvPixelBuffer:image).transformed(by:CGAffineTransform(scaleX:scale,y:scale)),colorSpace:CGColorSpaceCreateDeviceRGB()) {
-                try? data.write(to:FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("front-reference-preview.jpg"),options:.atomic)
-            }
-        }
-        #endif
         guard blur>=7 else {
             samples=[]
             DispatchQueue.main.async {self.canSave=false;self.message="The image is blurred. Hold still or add light before saving."}
@@ -205,7 +157,7 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
     func saveScan(trigger:String = "button") {
         guard running,!saving else{return}
         queue.async {
-            self.saveRequests+=1;self.lastSaveTrigger=trigger
+            self.lastSaveTrigger=trigger
             guard !self.finishing,FrontReferencePolicy.ready(timestamps:self.samples.map(\.time),now:ProcessInfo.processInfo.systemUptime) else{
                 DispatchQueue.main.async{self.message="Wait for a clear, steady image before saving."};return
             }
