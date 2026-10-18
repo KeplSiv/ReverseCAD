@@ -1,14 +1,4 @@
-# ReverseCAD on TestFlight
-
-## Current scanner release
-
-The current app is **ReverseCAD**, using the public-API `ReverseCADScanner` scheme and product `ReverseCAD.app`. Pass **`--scanner`** to every phase of `scripts/testflight_release.py` and `scripts/testflight_api_upload.py`. Its immutable release/report prefix is `reversecad-scanner-release-VERSION-BUILD`. The installed app's existing bundle identity is retained so the update preserves scans and existing tester access. It is not a display name.
-
-Prepare the ignored personal Jev resource with `scripts/configure_reversecad_jev.py --key-file PATH_TO_EXISTING_PRIVATE_KEY`. The scanner target alone includes `ReverseCADJevConfig.plist`; the exported IPA verifier checks its hash, display/product names, signature and absence of private research symbols. Keep the key outside Git, logs and capture exports.
-
-Verify the App Store Connect app name, the processed build's `VALID` state and internal tester/group availability before saying the update is ready. A signing/upload key can have upload access without permission to rename app information; that metadata change then requires an authorized App Store Connect sign-in.
-
-The generic commands and original app ID below describe the separate original `ReverseCAD` target. Use `--scanner` for the current consolidated scanner.
+# Reverse CAD on TestFlight
 
 TestFlight distributes the native iPhone app. The Python companion service still runs on your Mac: start it with `./scripts/start_service.sh --lan`, keep the Mac awake, and pair the app with `http://48.local:8767` and the private token in `var/service/pairing-token`. Phone and Mac need a mutually reachable network. TestFlight does not host that service, and it does not validate sensing accuracy or printed fit.
 

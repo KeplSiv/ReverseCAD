@@ -1,8 +1,0 @@
-......                                                                   [100%]
-=============================== warnings summary ===============================
-backend/tests/test_capture_first.py::test_capture_first_package_upload_reconstruction_and_exports
-  /Users/pranav/.codex/worktrees/sparse-reconstruction/reverse-cad/.venv/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
-    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-6 passed, 1 warning in 9.93s

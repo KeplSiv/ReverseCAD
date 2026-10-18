@@ -29,51 +29,6 @@ final class PersistenceTests: XCTestCase {
         value.confidencePath = "confidence/0001.u8"
         XCTAssertThrowsError(try value.validate())
     }
-    func testSparseOriginalsSurviveCommitRecoveryAndImport() throws {
-        let source = try temporaryDirectory(), destination = try temporaryDirectory().appendingPathComponent("imported")
-        let writer = try writer(at: source)
-        let ext: JSONValue = .object(["schema_version": .number(1), "mode": .string("sparse_range_rgb"),
-            "status": .string("available"), "packet_path": .string("sparse/origin-packets.bin"),
-            "event_path": .string("sparse/origin-events.jsonl"), "calibration_path": .string("sparse/calibration.json")])
-        try writer.updateSparseCapture(ext)
-        try FileManager.default.createDirectory(at: source.appendingPathComponent("sparse"), withIntermediateDirectories: true)
-        for name in ["origin-packets.bin", "origin-events.jsonl", "calibration.json"] {
-            try Data().write(to: source.appendingPathComponent("sparse/" + name))
-        }
-        var value = frame()
-        let y = Data([1,2,3,4]), uv = Data([5,6])
-        value.sensorObservation = .object(["source_timestamp_s": .number(123.5), "arrival_timestamp_s": .null,
-            "clock": .string("host_monotonic_seconds"),
-            "original_plane_paths": .array([.string("sparse/rgb/y.bin"), .string("sparse/rgb/uv.bin")]),
-            "pixel_sha256": .array([.string(CaptureIO.sha256(y)), .string(CaptureIO.sha256(uv))])])
-        var data = assets(for: value); data["sparse/rgb/y.bin"] = y; data["sparse/rgb/uv.bin"] = uv
-        XCTAssertThrowsError(try writer.append(frame: value, assets: assets(for: value)))
-        try writer.append(frame: value, assets: data)
-        let recovered = try ScanPackageWriter.recover(directory: source)
-        XCTAssertEqual(recovered.manifest.sparseCapture, ext)
-        try recovered.finish()
-        XCTAssertEqual(try CaptureIO.importPackage(from: source, to: destination).sparseCapture, ext)
-        XCTAssertEqual(try CaptureIO.readFrames(directory: destination), [value])
-        try Data([0,0,0,0]).write(to: destination.appendingPathComponent("sparse/rgb/y.bin"))
-        XCTAssertThrowsError(try ScanPackageWriter.validate(directory: destination))
-        var invalid = value; invalid.sensorObservation = .object(["source_timestamp_s": .number(.nan)])
-        XCTAssertThrowsError(try invalid.validate())
-        XCTAssertThrowsError(try writer.updateSparseCapture(.object(["schema_version": .number(2)])))
-    }
-    func testAdditionalCameraOriginalsSurviveRecoveryAndImport() throws {
-        let root=try temporaryDirectory(),destination=try temporaryDirectory().appendingPathComponent("copy")
-        let writer=try writer(at:root);var value=frame()
-        value.additionalAssets=["sensors/wide.bin","sensors/ultra.bin","sensors/tele.bin"]
-        var data=assets(for:value)
-        for path in value.additionalAssets! {data[path]=Data([1,2,3,4])}
-        XCTAssertThrowsError(try writer.append(frame:value,assets:assets(for:value)))
-        try writer.append(frame:value,assets:data)
-        try ScanPackageWriter.recover(directory:root).finish()
-        _=try CaptureIO.importPackage(from:root,to:destination)
-        XCTAssertEqual(try CaptureIO.readFrames(directory:destination).first?.additionalAssets,value.additionalAssets)
-        try FileManager.default.removeItem(at:destination.appendingPathComponent("sensors/tele.bin"))
-        XCTAssertThrowsError(try ScanPackageWriter.validate(directory:destination))
-    }
     func testFrameCommitAndChecksumCorruption() throws {
         let root=try temporaryDirectory(); let writer=try writer(at:root); let value=frame()
         try writer.append(frame:value,assets:assets(for:value)); try writer.finish()

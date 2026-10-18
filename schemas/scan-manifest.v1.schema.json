@@ -28,53 +28,6 @@
       ],
       "title": "Segment",
       "type": "object"
-    },
-    "SparseCapture": {
-      "additionalProperties": true,
-      "description": "Independent packet stream; never represented as a processed depth plane.",
-      "properties": {
-        "schema_version": {
-          "const": 1,
-          "title": "Schema Version",
-          "type": "integer"
-        },
-        "mode": {
-          "const": "sparse_range_rgb",
-          "title": "Mode",
-          "type": "string"
-        },
-        "status": {
-          "enum": [
-            "capturing",
-            "available",
-            "unavailable"
-          ],
-          "title": "Status",
-          "type": "string"
-        },
-        "packet_path": {
-          "title": "Packet Path",
-          "type": "string"
-        },
-        "event_path": {
-          "title": "Event Path",
-          "type": "string"
-        },
-        "calibration_path": {
-          "title": "Calibration Path",
-          "type": "string"
-        }
-      },
-      "required": [
-        "schema_version",
-        "mode",
-        "status",
-        "packet_path",
-        "event_path",
-        "calibration_path"
-      ],
-      "title": "SparseCapture",
-      "type": "object"
     }
   },
   "additionalProperties": true,
@@ -125,17 +78,6 @@
       "minimum": 1,
       "title": "Frame Count",
       "type": "integer"
-    },
-    "sparse_capture": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SparseCapture"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
     }
   },
   "required": [

@@ -26,8 +26,7 @@ final class ScanGuidanceTests: XCTestCase {
             let angle = Float(step) * 0.06
             last = guide.update(camera: [sin(angle)*0.3,0,cos(angle)*0.3], target: .zero, screenPoint: [0.5,0.5], sharp: true, tracking: true, reliableDepth: true, accepted: true)
         }
-        XCTAssertTrue(last.contains("short higher pass"))
+        XCTAssertTrue(last.contains("Raise"))
         XCTAssertGreaterThanOrEqual(guide.covered.count, 9)
-        XCTAssertFalse(last.contains("Circle again"))
     }
 }

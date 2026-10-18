@@ -1,9 +1,0 @@
-..........                                                               [100%]
-=============================== warnings summary ===============================
-backend/tests/test_sparse_reconstruction.py::test_sparse_real_algorithms_through_service_and_cad
-  /Users/pranav/Desktop/hack-harvard/reverse-cad/.venv/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
-    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-- generated xml file: /Users/pranav/.codex/worktrees/sparse-reconstruction/reverse-cad/reports/sparse-reconstruction/sparse-tests.xml -
-10 passed, 1 warning in 14.80s

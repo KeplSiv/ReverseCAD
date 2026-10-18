@@ -102,11 +102,6 @@ public final class ScanPackageWriter: @unchecked Sendable {
         try checkpoint()
     }
     private init(directory: URL, manifest: CaptureManifest, frames: [CaptureFrame], maxBytes: Int) { self.directory = directory; self.manifest = manifest; self.frames = frames; self.maxBytes = maxBytes }
-    public func updateSparseCapture(_ extensionValue: JSONValue) throws {
-        guard !closed else { throw CoreError.invalid("Capture is closed") }
-        var next = manifest; next.sparseCapture = extensionValue; try next.validate()
-        manifest = next; try checkpoint()
-    }
     public func updateSegments(_ segments: [CaptureSegment]) throws {
         var next = manifest; next.segments = segments; try next.validate()
         guard Set(frames.map(\.segmentID)).isSubset(of: Set(segments.map(\.segmentID))) else { throw CoreError.invalid("Cannot remove a segment referenced by committed frames.") }
@@ -192,11 +187,6 @@ public final class ScanPackageWriter: @unchecked Sendable {
         let manifest = try JSONDecoder().decode(CaptureManifest.self, from: Data(contentsOf: CaptureIO.safeURL(directory: directory, path: "manifest.json")))
         try manifest.validate()
         guard allowIncomplete || manifest.complete else { throw CoreError.invalid("Scan is incomplete; recover or explicitly review it before processing.") }
-        if let ext = manifest.sparseCapture {
-            for key in ["packet_path", "event_path", "calibration_path"] {
-                guard let path = ext[key]?.string, hashes[path] != nil else { throw CoreError.integrity("Missing checksummed sparse capture asset.") }
-            }
-        }
         let frames = try CaptureIO.readFrames(directory: directory)
         guard frames.count == manifest.frameCount else { throw CoreError.integrity("Manifest frame count does not match committed frames.") }
         for frame in frames {
@@ -209,14 +199,6 @@ public final class ScanPackageWriter: @unchecked Sendable {
         guard let rgbSize = size(frame.rgbPath), rgbSize > 0 else { throw CoreError.integrity("Missing RGB keyframe.") }
         if let path = frame.depthPath, size(path) != frame.depthRowBytes * frame.depthHeight { throw CoreError.integrity("Depth file size does not match calibrated dimensions and stride.") }
         for path in [frame.confidencePath,frame.maskPath].compactMap({$0}) { guard size(path) == frame.depthWidth * frame.depthHeight else { throw CoreError.integrity("Confidence/mask dimensions do not match native depth.") } }
-        for path in frame.additionalAssets ?? [] {
-            guard let count=size(path),count>0 else {throw CoreError.integrity("Missing original sensor asset.")}
-        }
-        for (index, path) in frame.originalPlanePaths.enumerated() {
-            guard size(path) == frame.rgbWidth * frame.rgbHeight / (index == 0 ? 1 : 2) else {
-                throw CoreError.integrity("Original NV12 plane size does not match image dimensions.")
-            }
-        }
     }
 }
 

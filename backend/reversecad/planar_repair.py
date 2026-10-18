@@ -149,16 +149,11 @@ def analyze_frame(scan_dir, frame):
     plane_candidates=0
     region = frame.get('capture_region')
     for contour in candidate_contours(image, region):
-        from .object_selection import supports_repair_region
-        if not supports_repair_region(scan_dir,frame,contour,image.shape):continue
         mask=np.zeros(depth.shape,np.uint8)
         dc=contour*[depth.shape[1]/image.shape[1],depth.shape[0]/image.shape[0]]
         cv2.fillPoly(mask,[np.rint(dc).astype(np.int32)],1)
         mask=cv2.erode(mask,np.ones((5,5),np.uint8))>0
         valid=mask&np.isfinite(depth)&(depth>.08)&(depth<2)
-        if frame.get('selection_source') == 'confirmed_same_instance':
-            foreground=np.fromfile(scan_dir/frame['mask_path'],dtype=np.uint8).reshape(depth.shape)>0
-            valid &= foreground
         if frame.get('confidence_path'):
             confidence=np.fromfile(scan_dir/frame['confidence_path'],dtype=np.uint8).reshape(depth.shape)
             valid &= confidence>=1

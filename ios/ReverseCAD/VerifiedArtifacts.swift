@@ -44,25 +44,6 @@ enum VerifiedArtifactStore {
         let artifacts: [Entry]
     }
 
-    /// Local reconstruction uses the same immutable, verified revision format.
-    /// A cancelled or failed computation cannot replace the last usable model.
-    static func publishLocal(stage:URL,baseDirectory:URL,revisionKey:String) throws -> (URL,[ArtifactInfo]) {
-        try validateComponent(revisionKey,label:"Revision identifier")
-        let files=try FileManager.default.contentsOfDirectory(at:stage,includingPropertiesForKeys:nil).sorted{$0.lastPathComponent<$1.lastPathComponent}
-        let infos=try files.map {url -> ArtifactInfo in
-            let attrs=try FileManager.default.attributesOfItem(atPath:url.path)
-            guard attrs[.type] as? FileAttributeType == .typeRegular,let size=attrs[.size] as? Int else {throw CoreError.integrity("A local model artifact is invalid.")}
-            return ArtifactInfo(id:UUID().uuidString,name:url.lastPathComponent,sha256:try CaptureIO.sha256(file:url),size:size)
-        }
-        let entries=try validatedEntries(infos)
-        try CaptureIO.atomicWrite(Manifest(version:1,revisionKey:revisionKey,artifacts:entries),to:stage.appendingPathComponent(manifestName))
-        try verify(infos:infos,directory:stage);try Task.checkCancellation()
-        try FileManager.default.createDirectory(at:baseDirectory,withIntermediateDirectories:true)
-        let destination=baseDirectory.appendingPathComponent(revisionKey)
-        try FileManager.default.moveItem(at:stage,to:destination)
-        return (destination,infos)
-    }
-
     static func download(infos: [ArtifactInfo], baseDirectory: URL, revisionKey: String,
                          client: ServiceClient) async throws -> URL {
         let entries = try validatedEntries(infos)

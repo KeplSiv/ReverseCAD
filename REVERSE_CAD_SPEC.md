@@ -1,12 +1,4 @@
-# ReverseCAD iPhone application specification
-
-## Current architecture — October 18, 2026
-
-[On-device reconstruction](docs/ON_DEVICE_RECONSTRUCTION.md) is normative for the current release on `main`. Both Scan object and Repair damage require the shared first-use front reference, adjustable framing, first orbit, direct-phone Jev identification, second detail orbit with live observed preview, and finished on-device model/export. Geometry and supported repair CAD do not require a Mac, service URL, pairing token or cloud reconstruction. Computers are optional export destinations. The existing app identity, saved projects, testers and restored main UI are retained.
-
-[Consolidation and release evidence](docs/MAIN_CONSOLIDATED.md) records implementation and validation boundaries. The following original specification is retained as historical design context; companion-service, broad CAD-generator and older ARKit acquisition requirements below are superseded by the current architecture.
-
-## Historical specification
+# Reverse CAD iPhone application specification
 
 Version 1.0 · October 16, 2026 · Implementation brief for Codex
 

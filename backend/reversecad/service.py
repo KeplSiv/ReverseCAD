@@ -96,11 +96,6 @@ def validate_capture(root: Path, scan: dict, max_bytes: int):
             if image.format not in {"JPEG","PNG"}:
                 raise ValueError("RGB image must be JPEG or PNG")
             image.verify()
-        if any(path not in actual for path in frame.additional_assets):
-            raise ValueError("Missing original sensor asset")
-        if frame.multi_camera is not None:
-            from .multicamera import validate_frame
-            validate_frame(root, frame.model_dump(), actual)
         if frame.depth_path:
             if frame.depth_path not in actual or actual[frame.depth_path].stat().st_size != frame.depth_row_bytes*frame.depth_height:
                 raise ValueError("Depth payload does not match dimensions/stride")
@@ -121,8 +116,6 @@ def validate_capture(root: Path, scan: dict, max_bytes: int):
             raise ValueError("Capture diagnostics must be a JSON object")
     if "annotations.json" in actual:
         Annotations.model_validate_json(actual["annotations.json"].read_text())
-    from .sparse.capture import validate_extension
-    validate_extension(root, manifest.model_dump(), frames)
     return manifest.model_dump()
 
 
@@ -308,7 +301,7 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
         if workers_enabled:
             runner.shutdown()
 
-    app = FastAPI(title="ReverseCAD companion",version="1.0.0",lifespan=lifespan)
+    app = FastAPI(title="Reverse CAD companion",version="1.0.0",lifespan=lifespan)
     app.state.store,app.state.runner = store,runner
 
     @app.middleware("http")
@@ -317,10 +310,9 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
         try:
             if request.method in {"POST","PUT","PATCH"} and "/assets/" not in request.url.path:
                 body = bytearray()
-                body_limit = 4_100_000 if request.url.path == "/v1/objects/identify" else 1024*1024
                 async for chunk in request.stream():
-                    if len(body) + len(chunk) > body_limit:
-                        response = JSONResponse({"error":{"code":"request_too_large","message":"JSON request exceeds its bounded metadata budget"},"request_id":request.state.request_id},status_code=413)
+                    if len(body) + len(chunk) > 1024*1024:
+                        response = JSONResponse({"error":{"code":"request_too_large","message":"JSON request exceeds the 1 MiB metadata budget"},"request_id":request.state.request_id},status_code=413)
                         response.headers["X-Request-ID"] = request.state.request_id
                         return response
                     body.extend(chunk)
@@ -373,12 +365,12 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
 
     @app.get("/v1/health")
     def health():
-        return {"status":"ok","api_version":1,"service":"ReverseCAD","physical_fit_validated":False}
+        return {"status":"ok","api_version":1,"service":"Reverse CAD","physical_fit_validated":False}
 
     @app.get("/v1/capabilities",dependencies=[Depends(authorize)])
     def capabilities():
         from .cad import template_catalog
-        return {"consolidated_object_repair":True,"capture_first_masks":True,"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"sparse_range_rgb":{"schema_version":1,"capture_requires":"Debug research target with observed BackSparseTimeOfFlight packets","reconstruction":"COLMAP fixed calibration plus timed sparse scale","fallback":"separately labelled raw_depth_pose diagnostic"},"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
+        return {"schema_version":1,"families":["bridge_handle","cup_handle","bracket"],"cube_face_exterior_demo":True,"templates":template_catalog(),"limits":{"scan_bytes":max_scan_bytes,"asset_bytes":max_asset_bytes,"frames":240,"worker_seconds":worker_timeout_s,"worker_memory_bytes":max_memory_bytes},"provider":{"live_configured":bool(os.getenv("OPENAI_API_KEY")),"modes":["manual","fixture","live"]},"units":{"capture":"m","cad":"mm"}}
 
     @app.post("/v1/geometry/live",dependencies=[Depends(authorize)])
     def live_geometry(body: LiveGeometryRequest):
@@ -402,14 +394,6 @@ def create_app(data_dir: str | Path | None = None, pairing_token: str | None = N
                     error(422,"live_geometry_unresolved","Live geometry could not be evaluated; capture more views")
                 return json.loads(target.read_text())
         finally: live_geometry_lock.release()
-
-    @app.post("/v1/objects/identify",dependencies=[Depends(authorize)])
-    def identify_object(body: dict[str, Any]):
-        from .jev import identify, JevError
-        try:
-            return identify(body)
-        except JevError as exc:
-            error(422, "object_identification_unavailable", str(exc))
 
     @app.post("/v1/cube/analyze",dependencies=[Depends(authorize)])
     def analyze_cube(body: dict[str, Any]):

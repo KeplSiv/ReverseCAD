@@ -10,19 +10,6 @@ Annotations: {crop_min_m:[3]?,crop_max_m:[3]?,contacts:[{id,point_m:[3],normal:[
 
 Reconstruction callable: reconstruct(scan_dir: Path, output_dir: Path, annotations: dict|None=None) -> dict; writes scan_preview.json and reconstruction.json. Result contains status (ready|needs_input), measurements, warnings, bounds_mm, point_count, primitives, metrics. scan_preview.json {vertices:[[x,y,z]...],triangles:[[i,j,k]...],colors:[[r,g,b]...]?,normals:[],unit:"mm"}; point cloud allowed empty triangles. Returned measurements follow annotations contract. Reject unregistered segments.
 
-Sparse research extension: optional manifest `sparse_capture` version 1 with mode
-`sparse_range_rgb`, explicit status, and checksummed packet/event/calibration paths;
-per-frame `sensor_observation` carries physical camera identity, absolute source
-clock, nullable arrival time and original image planes. The outer schema stays
-at version 1. See [the extension contract](sparse-reconstruction/schema.md) and
-[full specification](SPARSE_RECONSTRUCTION_SPEC.md). The normal `rgb_assisted`
-stage dispatches this extension before automatic shape routing; `raw_depth_pose`
-remains a separate baseline. Its first-registered-camera CV object frame uses m
-for `points_measurement.npz` and camera poses, and mm for previews/measurements.
-Measurements may use source `multiview`; support and sparse scale artifacts are
-linked explicitly. `observations.accepted_frames` supplies existing candidate
-evidence. Display mesh triangles do not replace observed points in CAD checks.
-
 CAD callable: generate(family:str, parameters:dict, output_dir:Path, context:dict|None=None)->dict; generates all part artifacts, coupon, validation.json, manifest.json; throws actionable ValueError for invalid params. Families: bridge_handle,cup_handle,bracket. All use mm. Bridge params span,standoff,grip_width,grip_depth,pad_width,pad_length,pad_thickness,hole_diameter (0=no holes). Cup params cup_radius,contact_spacing,standoff,grip_width,grip_depth,pad_height,pad_thickness,contact_gap; attachment saddle requires explicit approval. Bracket params width,length,thickness,leg_height (0=flat),hole_diameter,hole_spacing. CAD agent publishes defaults/bounds and preview mesh schema matching scan preview. context includes contacts, observed points, manufacturing, scan revision.
 
 API v1 uses Bearer pairing token. Public GET /v1/health. GET /v1/capabilities. POST /v1/scans {scan_id?,source,project_id?}-> {scan_id,assets:[]}; GET /v1/scans/{id} -> assets [{path,sha256,size}], committed, reconstruction optional. PUT /v1/scans/{id}/assets/{path:path} raw body with X-Content-SHA256. POST /v1/scans/{id}/commit validates files. POST /v1/scans/{id}/reconstruction -> job. PUT /v1/scans/{id}/annotations dict. POST /v1/repairs {scan_id,family,parameters,attachment_method,mode:"manual"|"fixture"|"live",acknowledge_uncertainty:bool,request_id?}-> job. POST /v1/repairs/{id}/revisions same fields -> job. GET /v1/jobs/{id} -> {job_id,state,progress,message,result?,error?}, result for repair {repair_id,revision,validation,artifacts:[{id,name,sha256,size}],parameters,family}; reconstruction result includes artifacts for preview. POST /v1/jobs/{id}/cancel. GET /v1/artifacts/{id}. DELETE /v1/projects/{id}. State queued,validating_input,reconstructing,needs_input,planning,generating_cad,validating_cad,complete,cancelled,failed.
