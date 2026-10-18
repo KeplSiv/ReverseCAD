@@ -23,4 +23,8 @@ Fresh phone camera/depth behavior, object-segmentation accuracy across real scan
 
 ## Release
 
-Signed archive, export, upload and Apple processing/internal-group results will be recorded after completion. TestFlight availability is a separate gate from the passing simulator/API tests.
+Prelude **0.1.0 (31)** was archived from implementation commit `ad1b2a3a64565b300fa3c038be91f48c8399f7d6`, distribution-signed, exported and verified. IPA SHA-256: `bd31230ec83f942ea826ea007439b48091b334448745d6d556953ce55533be92` (1,880,027 bytes). Verification includes bundle/team/version, distribution signature, provisioning profile, arm64, privacy declarations, private-sensor exclusion and the ignored personal Jev resource.
+
+Apple upload/build ID: `93693ac6-646d-4a4a-9f9b-1e6f8e162c34`. Apple reported **VALID**, **INTERNAL_ONLY**, **IN_BETA_TESTING**, unexpired. The **Prelude Personal** internal group contains build 31 and one existing tester. Build notes were updated. `testflight-status.json` records the direct API verification. The tester account's installed state does not establish that build 31 is installed on the physical phone.
+
+The user can open TestFlight → Prelude → Update. Final remote verification confirms `main` is unchanged; only `pranav-dev` received the implementation and this release record.
