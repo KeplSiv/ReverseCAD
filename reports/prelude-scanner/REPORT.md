@@ -1,38 +1,36 @@
 # Prelude standalone scan update
 
-Prelude's `PreludeScanner` target starts with an object description, automatically calls Jev through the paired companion approximately every 200 ms, and displays fresh category/box results over the moving camera preview. Tap Scan to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens only the observed 3D preview and exports. It does not continue into repair generation.
+Prelude's `PreludeScanner` target starts with an object description, automatically calls Jev through the paired companion approximately every 200 ms, and displays fresh category/box results over the moving camera preview. Tap **Scan outlined object** to confirm the current target. The app tracks/segments the selected object, saves the capture, and opens the observed 3D preview, measurements and exports. It does not continue into repair generation.
 
-The TestFlight target uses public ARKit processed scene depth and a physical rear wide camera. It contains no private sparse capture sources. The separate sparse Debug target and its archive/distribution guards remain intact.
+TestFlight uses public ARKit processed scene depth and the physical rear wide camera. It contains no private sparse capture sources. The separate sparse Debug target and its archive/distribution guards remain intact. The code and specification are published only to `pranav-dev`; no merge into `main` is part of this release.
 
-## Validation
+## Continuous Jev detection
 
-- Release simulator build passed; the actual running home screen was inspected.
-- The final signed Prelude 0.1.0 (26) archive, export and IPA checks passed with bundle `com.pranavmuralitharan.prelude` and team `5B3Y68ZB2Y`.
-- The final IPA SHA-256 is `ecedea28575da5e45e69bc1a8f7972e36e8145f87ee067320bc6fe0a3098955a`.
-- Apple accepted upload `8be2427a-f0d6-42c4-b923-2a680e9b1807`, completed processing (`VALID`), and reports the build as `IN_BETA_TESTING` for the existing Prelude Personal internal group.
-- Offline tests cover absent/ambiguous Jev results, invalid probabilities and boxes, millimetre STEP roundtrip, preservation of an open surface, insufficient-reconstruction export gating, authenticated service delivery and exported-asset hashes.
-- Both public RGB-D and sparse synthetic fixtures are exercised through the standalone service boundary. Large/noisy public meshes retain their full STL when a bounded STEP approximation fails its deviation gate; that is an explicit per-format limitation.
+The live loop replaces the earlier tap-to-identify/frozen-image Jev flow. It targets 200 ms between new JPEG requests, permits four in flight, drops opportunities under backpressure and never queues stale frames. It continues during capture, pauses in the background, and stops on close, finish or manual selection. Resuming waits for a new camera frame. Manual box selection remains available and uses a frozen local image.
 
-The final update adds manual box selection so scanning remains usable before Jev credentials are configured. Final build 26 supersedes the unuploaded build 25. The final release result is recorded in `release-status.json`.
+Results are bound to the request UUID and JPEG hash. Out-of-order, expired (>1.2 seconds), absent, ambiguous and pose-stale detections cannot confirm a scan. Boxes disappear if camera translation exceeds 2.5 cm or any camera-axis cosine drops below 0.995 relative to the source frame. The overlay uses the AR frame's display transform. Confirmation saves the source JPEG, frame timestamp, response and box. Later Jev overlays do not switch the measurement tracker to a different object.
 
-Backend verification: 5 standalone tests passed, including both service/export fixtures. The 21 existing service tests also passed.
+Failures back off for 2, 4, then 8 seconds. Client requests time out after 3 seconds, and the companion's upstream socket timeout is 2.5 seconds. Actual displayed update rate depends on network latency, model latency, camera motion and available frames; 200 ms is a dispatch target, not a guaranteed inference latency.
 
-## Outstanding physical/provider checks
+## Verification
 
-A live Jev request succeeded using the private key file supplied by the user. The provider returned `jev-1.14.0` through the `jev-preview` alias, classified the synthetic fixture as one container, and returned a confirmable bounding box. The fixture was enlarged from 320×240 to 640×480 to satisfy the provider minimum dimensions; this is an API integration check, not physical validation. No new moving-camera phone capture, dimensional check or physical fit test is claimed. This release is a prototype for those checks.
+- All 23 shared Swift tests passed, including five new tests covering cadence, bounded concurrency, no catch-up bursts, reply ordering, expiry, stop/restart, timeout handling and failure recovery.
+- The existing provider absent/ambiguous/invalid-target test passed.
+- The authenticated companion was exercised with 12 real Jev calls dispatched at 200 ms intervals on a synthetic calibration image. All returned a category and box from `jev-1.14.0`. Median response latency was 185.8 ms, with a range of 137.6–839.1 ms. See `jev-cadence-check.json`.
+- After the companion restart, an authenticated live Jev check returned HTTP 200 and a confirmable box in 253.6 ms. See `jev-service-restart-check.json`.
+- The Release simulator build passed. The running live-camera interface was inspected: the Scan outlined object action and continuous detection status replace Identify and frozen-image confirmation. Closing returned to the home screen. The simulator has no camera/LiDAR, so this is a UI check, not a live sensor check.
+- Prelude 0.1.0 (28) passed signed archive, export and IPA verification for bundle `com.pranavmuralitharan.prelude`, team `5B3Y68ZB2Y`, distribution signing and exclusion of the private sensor symbols.
+- Verified IPA SHA-256: `8c4dede932c6d37177202d52cfd3aa63432e4e194b6f155a6ca5efc69f053cd3`.
+- Apple accepted all 1,773,101 verified IPA bytes, upload ID `b64253bd-12a0-4b0b-bd3f-7696d68195c1`. Apple processing completed with `VALID`; the build is `IN_BETA_TESTING` and is present in the Prelude Personal internal group, which includes the existing tester. See `release-status.json`. The account-level tester state is `INSTALLED`, which does not prove this particular build is installed on the phone.
 
-The paired service is running on the Mac at port 8769 with the existing private pairing token. It must remain reachable for identification and reconstruction. The phone's original recorded sessions were not intentionally modified; the detailed inventory report is under `reports/sparse-reconstruction/phone-recording-preservation.json`.
+The earlier export verification remains applicable to the unchanged reconstruction/export code: five standalone backend tests and 21 existing service tests passed. Public RGB-D and sparse synthetic fixtures exercise standalone exports and asset hashes. Large/noisy public meshes retain their full STL if a bounded STEP approximation fails its deviation gate. STEP is a faceted observed surface, not a reconstructed parametric feature tree.
 
-Apple upload and internal availability are recorded in `release-status.json`. Build 26 is present in the Prelude Personal internal group's build list, and the group contains the existing tester. The tester's account state is `INSTALLED`; that account-level state does not prove build 26 is installed on the phone. The update is available through TestFlight, and installation of this specific build remains unverified.
+## Release history
 
-The same live Jev request also succeeded through the authenticated companion endpoint (HTTP 200), with the key loaded from the configured private file. The environment-parser regression check passed.
+Build 26 was the earlier one-shot identification release, verified in internal TestFlight. Build 27 compiled but its archive stopped at signing with `errSecInternalComponent`; it was never uploaded. The existing signing keychain was unlocked using its preconfigured private credential file, and the failed directory was preserved. Build 28 is the continuous Jev update.
 
-## Live detection correction — build 28
+## Physical checks and companion dependency
 
-The user's revised requirement replaces the tap-to-identify/frozen-image flow with continuous camera checks. The loop targets 200 ms between new JPEG requests, permits four in flight, drops opportunities under backpressure and does not queue stale images. It continues during capture, pauses in the background, and stops on close, finish or manual selection. Results carry a request ID and image hash; out-of-order, expired (>1.2 seconds), ambiguous and pose-stale boxes cannot confirm a scan. The overlay uses the AR frame's display transform. Confirmation preserves the actual detection image and does not let later overlays switch the measurement target.
+The API fixtures are synthetic, not a new moving-camera phone capture. Phone-to-provider cadence, live overlay alignment under real motion, dimensional accuracy and physical fit remain unverified. This prototype is ready for those checks.
 
-The authenticated companion was tested with 12 real Jev calls spaced 200 ms apart on the synthetic calibration image. All returned a category and box. Median response latency was 185.8 ms; range 137.6–839.1 ms. This is a server integration test, not proof of phone-to-provider latency or physical accuracy. Request cadence and inference completion latency are different quantities. The fresh-frame and concurrency limits prevent slow replies from accumulating.
-
-All 23 shared Swift tests passed, including five new cadence/order/expiry/backoff cases. The existing provider absent/ambiguous/invalid-target test passed. The updated Release simulator build passed. Build 28's distribution and Apple availability are verified separately before the release is declared available.
-
-Build 27 compiled but its archive stopped at signing with `errSecInternalComponent`. The existing signing keychain was unlocked using its preconfigured private credential file. The failed release directory is preserved; build 28 is the new release attempt. The simulator interface was inspected: live-detection status and the Scan outlined object action replace Identify and frozen-image confirmation. The simulator has no LiDAR, so this was a UI check only.
+The paired Mac service must remain reachable on port 8769 for Jev identification and reconstruction. The Jev key is loaded from the user's private key file and is not embedded in the app, returned to the phone or committed to Git. The original phone recordings were not intentionally modified; preservation evidence remains under `reports/sparse-reconstruction/phone-recording-preservation.json`.
