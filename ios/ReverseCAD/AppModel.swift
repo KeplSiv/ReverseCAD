@@ -307,7 +307,19 @@ final class AppModel: ObservableObject {
         comparison=nil;selectedComparisonID=nil;comparisonScan=nil;comparisonPart=nil;comparisonReviewed=false
         patternRepairs=[];selectedPatternID=nil;patternMesh=nil;patternReviewed=false
         automaticRoute=nil;planarRepair=nil;faceRepair=nil;counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
-        guard let dir=projectDirectory else{return}
+        guard let projectRoot=projectDirectory else{return}
+        var dir=projectRoot
+        // The immutable revision is authoritative; root files are legacy caches.
+        // A process exit after the atomic pointer write cannot mix revisions.
+        if let data=try? Data(contentsOf:projectRoot.appendingPathComponent("observed_artifacts.json")),
+           let pointer=try? JSONSerialization.jsonObject(with:data) as? [String:Any],
+           let folder=pointer["folder"] as? String,folder.hasPrefix("revisions/"),!folder.contains(".."),
+           pointer["scan_id"] as? String==savedScanID,
+           let list=pointer["artifacts"],let encoded=try? JSONSerialization.data(withJSONObject:list),
+           let infos=try? JSONDecoder().decode([ArtifactInfo].self,from:encoded) {
+            let candidate=projectRoot.appendingPathComponent(folder)
+            if (try? VerifiedArtifactStore.verify(infos:infos,directory:candidate)) != nil {dir=candidate}
+        }
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] {
             guard ReconstructionIdentity.matches(info, scanID: savedScanID) else {
                 reconstructionNeedsUpdate = true
@@ -327,7 +339,7 @@ final class AppModel: ObservableObject {
         if let data=try? Data(contentsOf:dir.appendingPathComponent("validation.json")),let d=try? JSONSerialization.jsonObject(with:data) as? [String:Any] {validation=d}
         if let data=try? Data(contentsOf:dir.appendingPathComponent("artifacts.json")) {artifacts=(try? JSONDecoder().decode([ArtifactInfo].self,from:data)) ?? []}
         if let p=project,let folder=p.exportFolder,let verified=p.verifiedArtifacts {
-            let revisionDir=dir.appendingPathComponent(folder);artifacts=verified
+            let revisionDir=projectRoot.appendingPathComponent(folder);artifacts=verified
             if let data=try? Data(contentsOf:revisionDir.appendingPathComponent("validation.json")),let d=try? JSONSerialization.jsonObject(with:data) as? [String:Any] {validation=d}
             for name in ["preview.json","part_preview.json","mesh.json"] {if let data=try? Data(contentsOf:revisionDir.appendingPathComponent(name)),let mesh=try? JSONDecoder().decode(MeshPreview.self,from:data) {partMesh=mesh;break}}
         }
@@ -379,7 +391,7 @@ final class AppModel: ObservableObject {
         guard let dir=self.scanDirectory,let sample=Bundle.main.url(forResource:"SampleScan",withExtension:nil) else{throw ServiceFailure(message:"Bundled sample is missing. Generate fixtures and rebuild the app.")}
         self.progress="Replaying calibrated synthetic frames…"
         let result=try await controller.replay(from:sample,into:dir)
-        self.didCapture(result);self.progress="Synthetic sample saved. Process it with your paired Mac."
+        self.didCapture(result);self.progress="Synthetic sample saved on this iPhone."
     }}
     func annotationJSON()->[String:Any] {
         guard let p=project else{return [:]}
@@ -443,35 +455,49 @@ final class AppModel: ObservableObject {
         update { $0.repairScope = "cube_exterior" }
         uploadAndReconstruct(compareMethods: false)
     }
+    /// Kept as an entry-point name for saved UI state; processing is entirely local.
     func uploadAndReconstruct(compareMethods: Bool = false) {perform {
-        guard let dir=self.scanDirectory,let p=self.project else{return}
-        let manifest=(try JSONSerialization.jsonObject(with:Data(contentsOf:dir.appendingPathComponent("manifest.json")))) as! [String:Any]
-        let scanID=manifest["scan_id"] as? String ?? p.id
-        self.progress="Connecting to your Mac…"
-        _ = try await self.object("v1/health")
-        if p.scanTarget != nil || p.repairScope == "standalone_scan" {
-            let capabilities = try await self.object("v1/capabilities")
-            if p.repairScope != "standalone_scan", capabilities["consolidated_object_repair"] as? Bool != true {
-                throw ServiceFailure(message: "Update the Mac service to main-consolidated to analyze this selected object's damage. Your capture is saved.")
-            }
-            guard capabilities["capture_first_masks"] as? Bool == true else {
-                throw ServiceFailure(message: "Update the Mac reconstruction service to the capture-first version on pranav-dev. This scan is saved; the older service cannot apply its object masks.")
-            }
+        guard let capture=self.scanDirectory,let project=self.projectDirectory,let saved=self.project else{return}
+        guard let targetData=saved.scanTarget,let target=try JSONSerialization.jsonObject(with:targetData) as? [String:Any] else {
+            throw ServiceFailure(message:"Identify the object in this saved scan before building its model.")
         }
-        self.progress="Checking saved scan and resuming missing uploads…"
-        self.update{$0.scanID=scanID;$0.stage="Uploading"}
-        guard let url=URL(string:self.serverURL) else{throw ServiceFailure(message:"Invalid service address")}
-        _ = try await ServiceClient(baseURL:url,token:self.token).uploadScan(directory:dir,projectID:p.id)
-        _ = try await self.object("v1/scans/\(scanID)/annotations",method:"PUT",json:self.annotationJSON())
-        let fingerprint=CaptureIO.sha256(try JSONSerialization.data(withJSONObject:["annotations":self.annotationJSON(),"compare_methods":compareMethods],options:.sortedKeys))
-        let requestID=p.pendingReconstructionFingerprint==fingerprint ? (p.pendingReconstructionID ?? UUID().uuidString) : UUID().uuidString
-        self.update{$0.pendingReconstructionID=requestID;$0.pendingReconstructionFingerprint=fingerprint}
-        let job=try await self.object("v1/scans/\(scanID)/reconstruction",method:"POST",json:["request_id":requestID,"compare_methods":compareMethods])
-        try await self.runJob(job,kind:"reconstruction")
+        self.progress="Building your 3D model on this iPhone…"
+        self.update{$0.jobID=nil;$0.jobKind=nil;$0.stage="Building on iPhone"}
+        let worker=Task.detached(priority:.userInitiated) {
+            try NativeReconstruction.run(capture:capture,project:project,target:target,
+                repair:saved.repairScope != "standalone_scan",thicknessMM:saved.planarThicknessMM) { message in
+                    Task { @MainActor [weak self] in
+                        guard self?.project?.id == saved.id else{return}
+                        self?.progress=message
+                    }
+                }
+        }
+        let result=try await withTaskCancellationHandler(operation:{try await worker.value},onCancel:{worker.cancel()})
+        try Task.checkCancellation()
+        guard self.project?.id == saved.id else{throw CancellationError()}
+        let decoder=JSONDecoder()
+        // Publish the verified revision pointer before refreshing any UI caches.
+        let list=try JSONSerialization.jsonObject(with:JSONEncoder().encode(result.infos))
+        try cameraJSONWrite(["folder":"revisions/"+result.directory.lastPathComponent,"artifacts":list,"scan_id":result.report["scan_id"] ?? ""],project.appendingPathComponent("observed_artifacts.json"))
+        for name in ["reconstruction.json","scan_preview.json","counterpart_preview.json"] {
+            let source=result.directory.appendingPathComponent(name),destination=project.appendingPathComponent(name)
+            if let data=try? Data(contentsOf:source) {try data.write(to:destination,options:.atomic)}
+            else if name == "counterpart_preview.json" {try? FileManager.default.removeItem(at:destination)}
+        }
+        if let scanID=result.report["scan_id"] as? String {
+            try PhoneSetupStore.complete(result:result.directory.appendingPathComponent("phone-calibration.json"),scanID:scanID)
+        }
+        self.scanMesh=try decoder.decode(MeshPreview.self,from:Data(contentsOf:result.directory.appendingPathComponent("scan_preview.json")))
+        self.counterpartMesh=(try? Data(contentsOf:result.directory.appendingPathComponent("counterpart_preview.json"))).flatMap{try? decoder.decode(MeshPreview.self,from:$0)}
+        self.updatePhotoDetail(result.report)
+        self.measurements=result.report["measurements"] as? [[String:Any]] ?? []
+        self.warnings=result.report["warnings"] as? [String] ?? []
+        self.reconstructionNeedsUpdate=false
+        self.progress="Model saved on this iPhone. Rotate, zoom, and share the finished files."
+        self.update{$0.jobID=nil;$0.pendingReconstructionID=nil;$0.pendingReconstructionFingerprint=nil;$0.stage="Model ready"}
     }}
     func persistAnnotations() {perform {
         guard let dir=self.projectDirectory else{return};let data=try JSONSerialization.data(withJSONObject:self.annotationJSON(),options:[.prettyPrinted,.sortedKeys]);try data.write(to:dir.appendingPathComponent("annotations.json"),options:.atomic)
-        if let id=self.project?.scanID {_ = try await self.object("v1/scans/\(id)/annotations",method:"PUT",json:self.annotationJSON())}
         self.progress="Evidence saved. Reprocess scan to apply crop or scale changes."
     }}
     func generate() {perform {
@@ -551,6 +577,9 @@ final class AppModel: ObservableObject {
         // No observable revision state changes until the complete immutable artifact set is verified.
         for artifact in infos {
             let file=published.appendingPathComponent(artifact.name)
+            if kind=="reconstruction",artifact.name=="phone-calibration.json",let scanID=savedScanID {
+                try PhoneSetupStore.complete(result:file,scanID:scanID)
+            }
             if artifact.name=="counterpart_preview.json" {let data=try Data(contentsOf:file);counterpartMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("counterpart_preview.json"),options:.atomic)}
             if artifact.name=="scan_preview.json" {let data=try Data(contentsOf:file);scanMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("scan_preview.json"),options:.atomic)}
             if kind=="repair" && ["preview.json","part_preview.json","mesh.json"].contains(artifact.name) {let data=try Data(contentsOf:file);partMesh=try decoder.decode(MeshPreview.self,from:data);try data.write(to:dir.appendingPathComponent("part_preview.json"),options:.atomic)}
@@ -708,15 +737,17 @@ final class AppModel: ObservableObject {
 
     private func observedArtifactLocation() throws -> (URL, [ArtifactInfo]) {
         guard let dir = projectDirectory else { throw ServiceFailure(message: "Open a saved scan first.") }
-        let reconstruction = try JSONSerialization.jsonObject(with: Data(contentsOf: dir.appendingPathComponent("reconstruction.json"))) as? [String: Any] ?? [:]
-        guard ReconstructionIdentity.matches(reconstruction, scanID: savedScanID) else {
-            throw ServiceFailure(message: "The saved result belongs to another scan. Reprocess this scan before opening or exporting its result.")
-        }
         let record = try JSONSerialization.jsonObject(with: Data(contentsOf: dir.appendingPathComponent("observed_artifacts.json"))) as? [String: Any]
         guard let folder = record?["folder"] as? String, folder.hasPrefix("revisions/"), !folder.contains(".."),
               let list = record?["artifacts"] as? [[String: Any]] else { throw ServiceFailure(message: "The scan's verified files are unavailable. Reprocess the scan.") }
         if let id = record?["scan_id"] as? String, id != savedScanID {
             throw ServiceFailure(message: "The saved files belong to another scan. Reprocess this scan.")
+        }
+        let published = dir.appendingPathComponent(folder).appendingPathComponent("reconstruction.json")
+        let reportURL = FileManager.default.fileExists(atPath: published.path) ? published : dir.appendingPathComponent("reconstruction.json")
+        let reconstruction = try JSONSerialization.jsonObject(with: Data(contentsOf: reportURL)) as? [String: Any] ?? [:]
+        guard ReconstructionIdentity.matches(reconstruction, scanID: savedScanID) else {
+            throw ServiceFailure(message: "The saved result belongs to another scan. Reprocess this scan before opening or exporting its result.")
         }
         let provenanceURL = dir.appendingPathComponent(folder).appendingPathComponent("input_provenance.json")
         if FileManager.default.fileExists(atPath: provenanceURL.path) {

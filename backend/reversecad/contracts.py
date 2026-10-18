@@ -23,8 +23,8 @@ def safe_asset_path(value: str) -> str:
         raise ValueError("Asset path must be a relative path without traversal")
     if any(part.startswith(".") for part in path.parts):
         raise ValueError("Hidden asset names are not permitted")
-    allowed_roots = {"rgb", "depth", "confidence", "masks", "video", "sparse"}
-    allowed_files = {"manifest.json", "frames.jsonl", "checksums.json", "annotations.json", "motion.jsonl", "capture_diagnostics.json"}
+    allowed_roots = {"rgb", "depth", "confidence", "masks", "video", "sparse", "sensors", "calibration", "identification-pass"}
+    allowed_files = {"manifest.json", "frames.jsonl", "checksums.json", "annotations.json", "motion.jsonl", "capture_diagnostics.json", "capture-hardware.json", "phone-reference-profile.json", "pass-provenance.json", "object-selection.json", "identification-identity.json"}
     if (len(path.parts) == 1 and value not in allowed_files) or (len(path.parts) > 1 and path.parts[0] not in allowed_roots):
         raise ValueError("Asset is not an allowed capture-package file")
     return value
@@ -80,7 +80,7 @@ class SparseCapture(Contract):
 class ScanManifest(Contract):
     schema_version: Literal[1]
     scan_id: str
-    source: Literal["synthetic", "arkit", "camera_manual"]
+    source: Literal["synthetic", "arkit", "camera_manual", "multicam_rgbd"]
     device: str = Field(min_length=1, max_length=200)
     created_at: str
     complete: bool
@@ -126,6 +126,15 @@ class CaptureFrame(Contract):
     tracking_state: Literal["normal", "limited", "unavailable"]
     quality: FrameQuality
     sensor_observation: dict[str, Any] | None = None
+    additional_assets: list[str] = Field(default_factory=list, max_length=32)
+    multi_camera: dict[str, Any] | None = None
+
+    @field_validator("additional_assets")
+    @classmethod
+    def valid_additional_assets(cls, value):
+        if len(value) != len(set(value)):
+            raise ValueError("Duplicate sensor assets")
+        return [safe_asset_path(path) for path in value]
 
     @field_validator("scan_id", "segment_id", "frame_id")
     @classmethod
@@ -208,7 +217,7 @@ class Annotations(Contract):
 
 class CreateScan(Contract):
     scan_id: str | None = None
-    source: Literal["synthetic", "arkit", "camera_manual"]
+    source: Literal["synthetic", "arkit", "camera_manual", "multicam_rgbd"]
     project_id: str | None = None
 
     @field_validator("scan_id", "project_id")

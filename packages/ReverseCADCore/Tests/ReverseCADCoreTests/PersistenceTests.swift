@@ -60,6 +60,20 @@ final class PersistenceTests: XCTestCase {
         XCTAssertThrowsError(try invalid.validate())
         XCTAssertThrowsError(try writer.updateSparseCapture(.object(["schema_version": .number(2)])))
     }
+    func testAdditionalCameraOriginalsSurviveRecoveryAndImport() throws {
+        let root=try temporaryDirectory(),destination=try temporaryDirectory().appendingPathComponent("copy")
+        let writer=try writer(at:root);var value=frame()
+        value.additionalAssets=["sensors/wide.bin","sensors/ultra.bin","sensors/tele.bin"]
+        var data=assets(for:value)
+        for path in value.additionalAssets! {data[path]=Data([1,2,3,4])}
+        XCTAssertThrowsError(try writer.append(frame:value,assets:assets(for:value)))
+        try writer.append(frame:value,assets:data)
+        try ScanPackageWriter.recover(directory:root).finish()
+        _=try CaptureIO.importPackage(from:root,to:destination)
+        XCTAssertEqual(try CaptureIO.readFrames(directory:destination).first?.additionalAssets,value.additionalAssets)
+        try FileManager.default.removeItem(at:destination.appendingPathComponent("sensors/tele.bin"))
+        XCTAssertThrowsError(try ScanPackageWriter.validate(directory:destination))
+    }
     func testFrameCommitAndChecksumCorruption() throws {
         let root=try temporaryDirectory(); let writer=try writer(at:root); let value=frame()
         try writer.append(frame:value,assets:assets(for:value)); try writer.finish()

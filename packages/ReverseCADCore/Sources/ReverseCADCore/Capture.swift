@@ -21,6 +21,9 @@ public struct CaptureQuality: Codable, Sendable, Equatable {
 public struct CaptureFrame: Codable, Sendable, Equatable {
     public var schemaVersion: Int
     public var sensorObservation: JSONValue? = nil
+    /// Additional original sensor planes and calibration, all checksummed with the frame.
+    public var additionalAssets: [String]? = nil
+    public var multiCamera: JSONValue? = nil
     public var scanID: String
     public var segmentID: String
     public var frameID: String
@@ -50,6 +53,7 @@ public struct CaptureFrame: Codable, Sendable, Equatable {
     public var quality: CaptureQuality
     enum CodingKeys: String, CodingKey {
         case sensorObservation = "sensor_observation"
+        case additionalAssets = "additional_assets", multiCamera = "multi_camera"
         case schemaVersion = "schema_version", scanID = "scan_id", segmentID = "segment_id", frameID = "frame_id", timestampS = "timestamp_s"
         case rgbPath = "rgb_path", rgbWidth = "rgb_width", rgbHeight = "rgb_height", orientation
         case depthPath = "depth_path", depthWidth = "depth_width", depthHeight = "depth_height", depthRowBytes = "depth_row_bytes", depthByteOrder = "depth_byte_order", confidencePath = "confidence_path", maskPath = "mask_path"
@@ -85,6 +89,8 @@ public struct CaptureFrame: Codable, Sendable, Equatable {
             guard (1...8192).contains(depthWidth), (1...8192).contains(depthHeight), depthRowBytes >= depthWidth * 4, depthRowBytes <= depthWidth * 4 + 65536, depthRowBytes % 4 == 0, depthByteOrder == "little" else { throw CoreError.invalid("Depth dimensions, stride, or byte order are invalid.") }
         } else if depthWidth != 0 || depthHeight != 0 || depthRowBytes != 0 || confidencePath != nil || maskPath != nil { throw CoreError.invalid("Missing depth must have zero dimensions and no confidence or depth mask.") }
         for path in [confidencePath, maskPath].compactMap({ $0 }) { _ = try CaptureIO.validatedRelativePath(path) }
+        guard (additionalAssets?.count ?? 0) <= 32 else { throw CoreError.invalid("Too many sensor assets.") }
+        for path in additionalAssets ?? [] { _ = try CaptureIO.validatedRelativePath(path) }
         if let sensor = sensorObservation {
             guard let time = sensor["source_timestamp_s"]?.double, time.isFinite,
                   sensor["clock"]?.string == "host_monotonic_seconds" else {
@@ -102,7 +108,7 @@ public struct CaptureFrame: Codable, Sendable, Equatable {
         guard Set(assetPaths).count == assetPaths.count else { throw CoreError.invalid("Frame asset paths must be distinct.") }
     }
     public var originalPlanePaths: [String] { sensorObservation?["original_plane_paths"]?.array?.compactMap(\.string) ?? [] }
-    public var assetPaths: [String] { [rgbPath, depthPath, confidencePath, maskPath].compactMap { $0 } + originalPlanePaths }
+    public var assetPaths: [String] { [rgbPath, depthPath, confidencePath, maskPath].compactMap { $0 } + originalPlanePaths + (additionalAssets ?? []) }
 }
 
 public struct CaptureSegment: Codable, Sendable, Equatable {
@@ -134,7 +140,7 @@ public struct CaptureManifest: Codable, Sendable, Equatable {
                 try CaptureIO.validatedRelativePath(path)
             }
         }
-        guard schemaVersion == 1, !scanID.isEmpty, ["synthetic", "arkit", "camera_manual"].contains(source), frameCount >= 0, frameCount <= 10000 else { throw CoreError.invalid("Invalid capture manifest.") }
+        guard schemaVersion == 1, !scanID.isEmpty, ["synthetic", "arkit", "camera_manual", "multicam_rgbd"].contains(source), frameCount >= 0, frameCount <= 10000 else { throw CoreError.invalid("Invalid capture manifest.") }
         guard !segments.isEmpty, Set(segments.map(\.segmentID)).count == segments.count else { throw CoreError.invalid("Segment identifiers must be present and unique.") }
         for segment in segments { try Geometry.validateRigidTransform(segment.objectWorld) }
     }

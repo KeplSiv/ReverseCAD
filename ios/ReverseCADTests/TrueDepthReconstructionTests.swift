@@ -5,7 +5,7 @@ import UIKit
 @testable import ReverseCAD
 
 final class TrueDepthReconstructionTests:XCTestCase {
-    func fixture(step:Bool=false) throws -> URL {
+    static func fixture(step:Bool=false) throws -> URL {
         let root=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
         let w=32,h=24;var frames=[[String:Any]](),entries=[[String:Any]]()
@@ -46,7 +46,7 @@ final class TrueDepthReconstructionTests:XCTestCase {
         XCTAssertEqual(TrueDepthReconstruction.stableDepth(Array(repeating:0.5,count:8))?.median,0.5)
     }
     func testEachFramesOwnCalibrationAndMirroringRejection() throws {
-        let root=try fixture();defer {try? FileManager.default.removeItem(at:root)}
+        let root=try Self.fixture();defer {try? FileManager.default.removeItem(at:root)}
         let path=root.appendingPathComponent("session.json")
         var session=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(contentsOf:path)) as? [String:Any])
         var entries=try XCTUnwrap(session["av_depth"] as? [[String:Any]])
@@ -61,7 +61,7 @@ final class TrueDepthReconstructionTests:XCTestCase {
         XCTAssertThrowsError(try TrueDepthReconstruction.build(dataset:root))
     }
     func testBuildMeasuresDirectPointsAndExportsSelectionWithoutAffectingCalibration() throws {
-        let root=try fixture();defer {try? FileManager.default.removeItem(at:root)}
+        let root=try Self.fixture();defer {try? FileManager.default.removeItem(at:root)}
         let surface=try TrueDepthReconstruction.build(dataset:root)
         XCTAssertEqual(surface.vertices.count,30*22);XCTAssertGreaterThan(surface.triangles.count,0)
         let a=try XCTUnwrap(surface.sample(at:[0.25,0.25])),b=try XCTUnwrap(surface.sample(at:[0.5,0.25]))
@@ -75,7 +75,7 @@ final class TrueDepthReconstructionTests:XCTestCase {
         let top=surface.vertices[a].color;XCTAssertGreaterThan(top.x,top.z)
     }
     func testTrianglesDoNotBridgeDepthDiscontinuities() throws {
-        let root=try fixture(step:true);defer {try? FileManager.default.removeItem(at:root)}
+        let root=try Self.fixture(step:true);defer {try? FileManager.default.removeItem(at:root)}
         let surface=try TrueDepthReconstruction.build(dataset:root)
         for i in stride(from:0,to:surface.triangles.count,by:3) {
             let z=(0..<3).map {surface.vertices[Int(surface.triangles[i+$0])].position.z}

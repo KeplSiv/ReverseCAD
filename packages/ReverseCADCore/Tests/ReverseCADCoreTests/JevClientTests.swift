@@ -80,6 +80,33 @@ final class JevClientTests: XCTestCase {
         }
     }
 
+    func testReferenceReviewUsesDirectKeyAndRejectsWeakOrMalformedApproval() async throws {
+        func data(_ choice:String="adequate",_ confidence:Double=0.96) throws -> Data {
+            try JSONSerialization.data(withJSONObject:["model":"jev-1.14.0","answers":[
+                "suitability":["choice":choice,"confidence":confidence],
+                "target":["box":["left":0.2,"right":0.8,"top":0.2,"bottom":0.8],"confidence":0.95]]])
+        }
+        let client=client(response:try data())
+        let review=try await client.reviewReference(jpeg:Data([1,2]),box:CGRect(x:0.3,y:0.3,width:0.4,height:0.4),apiKey:"test-only-key")
+        XCTAssertTrue(review.accepted)
+        XCTAssertFalse(try JevClient.interpretReference(data:data("texture"),jpeg:Data([1])).accepted)
+        XCTAssertFalse(try JevClient.interpretReference(data:data("adequate",0.3),jpeg:Data([1])).accepted)
+        XCTAssertThrowsError(try JevClient.interpretReference(data:data("invented"),jpeg:Data([1])))
+        let request=try XCTUnwrap(JevStubProtocol.received)
+        XCTAssertEqual(request.url,JevClient.endpoint)
+        XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer test-only-key")
+        let encoded=try JSONEncoder().encode(review)
+        XCTAssertFalse(String(decoding:encoded,as:UTF8.self).contains("test-only-key"))
+    }
+
+    func testOptInLiveFirstUseReview() async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard let keyPath=env["JEV_REFERENCE_TEST_KEY_FILE"],let imagePath=env["JEV_REFERENCE_TEST_IMAGE"] else {throw XCTSkip("Explicit first-use reference API check required")}
+        let key=try String(contentsOfFile:keyPath).trimmingCharacters(in:.whitespacesAndNewlines)
+        let result=try await JevClient().reviewReference(jpeg:Data(contentsOf:URL(fileURLWithPath:imagePath)),box:CGRect(x:0.1,y:0.1,width:0.8,height:0.8),apiKey:key)
+        print("REFERENCE_REVIEW_API_OK model=\(result.model) decision=\(result.decision)")
+    }
+
     func testOptInSavedViewReferenceRequest() async throws {
         let env = ProcessInfo.processInfo.environment
         guard let keyPath = env["JEV_LIVE_TEST_KEY_FILE"], let imagePath = env["JEV_LIVE_TEST_IMAGE"] else { throw XCTSkip("Explicit live fixture configuration required") }

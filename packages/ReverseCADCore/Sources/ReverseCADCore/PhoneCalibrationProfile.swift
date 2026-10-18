@@ -11,14 +11,14 @@ public struct PhoneCalibrationProfile: Codable, Equatable, Sendable {
     public let coordinateConvention: String
     public let frontToRearTransform: [Double]?
 
-    public init(referenceArchiveSHA256: String) throws {
+    public init(referenceArchiveSHA256: String, referenceApproved: Bool = false) throws {
         guard referenceArchiveSHA256.count == 64,
               referenceArchiveSHA256.allSatisfy({ $0.isHexDigit && !$0.isUppercase }) else {
             throw CoreError.invalid("Reference archive must have a SHA-256 digest.")
         }
         self.schemaVersion = 1; self.revision = UUID(); self.createdAt = Date()
         self.referenceArchiveSHA256 = referenceArchiveSHA256
-        self.status = "provisional_reference_only"
+        self.status = referenceApproved ? "front_reference_approved" : "provisional_reference_only"
         self.rearCalibration = "factory_per_frame; no fitted corrections"
         self.coordinateConvention = "front optical x right y down z forward in metres; rear ARKit transform recorded per frame"
         self.frontToRearTransform = nil

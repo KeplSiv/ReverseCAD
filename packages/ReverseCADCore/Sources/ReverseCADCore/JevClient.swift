@@ -149,6 +149,12 @@ public final class JevClient: @unchecked Sendable {
     }
 
     private func send(_ request: URLRequest, jpeg: Data, description: String, requestID: UUID, requireUnobstructed: Bool = false) async throws -> JevDetection {
+        let data = try await responseData(request)
+        return try Self.interpret(data: data, jpeg: jpeg, description: description, requestID: requestID, requireUnobstructed: requireUnobstructed)
+    }
+
+    // One transport for identification and first-use scene review. Never log response bodies or keys.
+    func responseData(_ request: URLRequest) async throws -> Data {
         try Task.checkCancellation()
         let data: Data
         let response: URLResponse
@@ -172,7 +178,7 @@ public final class JevClient: @unchecked Sendable {
         default: throw JevClientError.unavailable(http.statusCode)
         }
         guard data.count <= 1_000_000 else { throw JevClientError.invalidResponse }
-        return try Self.interpret(data: data, jpeg: jpeg, description: description, requestID: requestID, requireUnobstructed: requireUnobstructed)
+        return data
     }
 
     private struct Reply: Decodable {

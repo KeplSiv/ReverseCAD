@@ -96,6 +96,11 @@ def validate_capture(root: Path, scan: dict, max_bytes: int):
             if image.format not in {"JPEG","PNG"}:
                 raise ValueError("RGB image must be JPEG or PNG")
             image.verify()
+        if any(path not in actual for path in frame.additional_assets):
+            raise ValueError("Missing original sensor asset")
+        if frame.multi_camera is not None:
+            from .multicamera import validate_frame
+            validate_frame(root, frame.model_dump(), actual)
         if frame.depth_path:
             if frame.depth_path not in actual or actual[frame.depth_path].stat().st_size != frame.depth_row_bytes*frame.depth_height:
                 raise ValueError("Depth payload does not match dimensions/stride")

@@ -13,7 +13,24 @@ struct TwoPassScan: Codable {
     func save(_ project: URL) throws { try CaptureIO.atomicWrite(self,to:project.appendingPathComponent("two-pass.json")) }
     static func prepareDetail(project: URL,capture: URL) throws {
         guard var state=load(project) else {throw ServiceFailure(message:"The identification pass is missing. Your saved capture is preserved.")}
-        if state.stage == "detail_capturing" { return }
+        if state.stage == "detail_capturing" {
+            if FileManager.default.fileExists(atPath:capture.appendingPathComponent("manifest.json").path) {
+                guard (try CaptureIO.readFrames(directory:capture)).isEmpty else {throw ServiceFailure(message:"A saved detail pass is available. Reopen this scan to review it.")}
+                let preserved=project.appendingPathComponent("unfinished-detail-"+UUID().uuidString)
+                try FileManager.default.moveItem(at:capture,to:preserved)
+                do {
+                    try FileManager.default.createDirectory(at:capture,withIntermediateDirectories:true)
+                    try FileManager.default.copyItem(at:project.appendingPathComponent("identification-pass"),to:capture.appendingPathComponent("identification-pass"))
+                    let identity=project.appendingPathComponent("identification-object-identity.json")
+                    if FileManager.default.fileExists(atPath:identity.path) {try FileManager.default.copyItem(at:identity,to:capture.appendingPathComponent("identification-identity.json"))}
+                } catch {
+                    try? FileManager.default.removeItem(at:capture)
+                    try? FileManager.default.moveItem(at:preserved,to:capture)
+                    throw error
+                }
+            }
+            return
+        }
         guard state.stage == "identification_captured",let selected=try ObjectSelectionReference.load(project:project,capture:capture),selected.detection != nil else {throw ServiceFailure(message:"Identify the saved first pass before starting the detail pass.")}
         _=try ScanPackageWriter.validate(directory:capture)
         let original=project.appendingPathComponent("identification-pass",isDirectory:true)

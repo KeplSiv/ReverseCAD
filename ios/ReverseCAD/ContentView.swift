@@ -4,11 +4,21 @@ import ImageIO
 
 struct ContentView: View {
     var body: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-jevPhoneCheck") { PhoneJevValidationView() } else if ProcessInfo.processInfo.arguments.contains("-localModelCheck") { NativeValidationView() } else if ProcessInfo.processInfo.arguments.contains("-multiCameraCheck") { MultiCameraValidationView() } else if ProcessInfo.processInfo.arguments.contains("-sensorCheck") {SensorCaptureProbeView()}
+        else {mainContent}
+        #else
+        mainContent
+        #endif
+    }
+    @ViewBuilder private var mainContent: some View {
         #if SPARSE_RESEARCH
         UnifiedRepairView()
-        #else
+        #elseif DEBUG
         if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
         else { ObjectFlowHome() }
+        #else
+        ObjectFlowHome()
         #endif
     }
 }
@@ -65,28 +75,34 @@ struct LegacyContentView: View {
     }
 }
 
-struct SettingsView:View {
-    @EnvironmentObject var model:AppModel
-    @Environment(\.dismiss) var dismiss
-    var body:some View {NavigationStack {Form {
-        Section("Paired Mac service") {
-            TextField("http://your-mac.local:8767",text:$model.serverURL).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL).accessibilityIdentifier("serviceURL")
-            SecureField("Pairing token",text:$model.token).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("pairingToken")
-            Text("Use the Mac’s reachable LAN address on iPhone. Simulator can use 127.0.0.1. Read the private pairing-token file shown by the Mac startup script and enter its contents here.").font(.footnote).foregroundStyle(.secondary)
-            Button("Check connection"){model.checkConnection()}.disabled(model.busy).accessibilityIdentifier("checkConnection")
-            Label(model.connection,systemImage:model.connection.hasPrefix("Connected") ? "checkmark.circle":"network")
-        }.listRowBackground(RepairStyle.surface)
-        Section("Data and reasoning") {
-            Text("Scans stay in your project until processing is requested. The paired service reconstructs and generates CAD on your Mac. Live AI mode sends selected object images and the evidence table to the configured provider. Manual and fixture modes do not call a model.")
-            Text("The connection token is stored in Keychain. ReverseCAD identifies objects directly from this phone using its configured Jev key. Repair-provider keys stay on the Mac.").font(.footnote).foregroundStyle(RepairStyle.secondary)
-        }.listRowBackground(RepairStyle.surface)
-        Section("Validation status") {Text("Simulator uses synthetic RGB-D replay. Live sensing, dimensional accuracy, and printed fit need separate phone trials.")}.listRowBackground(RepairStyle.surface)
-    }.scrollContentBackground(.hidden).background(RepairStyle.background).foregroundStyle(RepairStyle.text)
-    .navigationTitle("Connection")
-    .toolbarBackground(RepairStyle.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
-    .alert("Action needs attention",isPresented:Binding(get:{model.error != nil},set:{if !$0 {model.error=nil}})){Button("OK",role:.cancel){model.error=nil}} message:{Text(model.error ?? "")}
-    .toolbar {ToolbarItem(placement:.confirmationAction){Button("Done"){model.saveSettings();dismiss()}}}}
-    .preferredColorScheme(.dark).tint(RepairStyle.accent)}
+struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("On this phone") {
+                    Text("ReverseCAD captures, builds the 3D model, and creates supported repairs on this phone.")
+                    Text("Original camera records remain inside the app. Save or share the finished model, repair CAD, and measurements.")
+                }.listRowBackground(RepairStyle.surface)
+                Section("Object identification") {
+                    Text("Jev checks selected images using the personal API key configured in this build. Internet is needed for identification.")
+                    Text("Captured geometry determines shape and dimensions. Jev identifies which object to include.")
+                        .font(.footnote).foregroundStyle(RepairStyle.secondary)
+                }.listRowBackground(RepairStyle.surface)
+                Section("Supported repairs") {
+                    Text("Flat rectangular parts can produce a proposed missing-region repair. Enter the measured material thickness and review the piece before saving it.")
+                    Text("Other shapes can be saved as observed 3D models. Unseen surfaces are not filled in.")
+                        .font(.footnote).foregroundStyle(RepairStyle.secondary)
+                }.listRowBackground(RepairStyle.surface)
+                Section("Measurements") {
+                    Text("Phone measurements and printed fit still need independent checks. Simulator checks do not validate physical accuracy.")
+                }.listRowBackground(RepairStyle.surface)
+            }.scrollContentBackground(.hidden).background(RepairStyle.background).foregroundStyle(RepairStyle.text)
+                .navigationTitle("About ReverseCAD")
+                .toolbarBackground(RepairStyle.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }.preferredColorScheme(.dark).tint(RepairStyle.accent)
+    }
 }
 
 struct ProjectView:View {

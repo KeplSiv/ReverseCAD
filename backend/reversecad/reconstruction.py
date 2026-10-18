@@ -160,7 +160,7 @@ def _mask(scan_dir: Path, frame: dict, depth: np.ndarray, annotations: dict) -> 
     return selected, source
 
 
-def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: dict, stage: str):
+def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: dict, stage: str, calibration: dict | None = None):
     accepted, rejected, warnings = [], [], []
     previous_time: dict[str, float] = {}
     timestamps_gaps = []
@@ -218,6 +218,8 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
         selected, mask_source = _mask(scan_dir, frame, depth, annotations)
         valid = np.isfinite(depth) & (depth > .04) & (depth < 3) & selected
         raw_valid = valid.copy()
+        if frame.get("multi_camera"):
+            warnings.append("native_confidence_unavailable: multi-camera depth uses a derived finite/local-consistency mask; measurement uncertainty remains unvalidated")
         if frame.get("confidence_path"):
             confidence = np.frombuffer(_asset(scan_dir, frame["confidence_path"]).read_bytes(), dtype=np.uint8)
             if confidence.size != width * height or np.any(confidence > 2):
@@ -226,6 +228,10 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
                 valid &= confidence.reshape(height, width) >= 1
         else:
             warnings.append("missing_confidence: native confidence unavailable; uncertainty remains uncalibrated")
+        if calibration and calibration.get("correction_applied") and calibration_mode in {"native_arkit", "pixel_center"}:
+            from .phone_calibration import rectify_observations
+            frame, depth, rgb, color_depth, selected, valid, raw_valid = rectify_observations(
+                frame, depth, rgb, color_depth, selected, valid, raw_valid, calibration)
         k = scaled_intrinsics(frame["intrinsics"], frame["intrinsics_width"],
                               frame["intrinsics_height"], width, height, mode=calibration_mode)
         if frame.get("depth_intrinsics") is not None:
@@ -633,6 +639,17 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     # Independent finite serialization check before annotations affect geometry.
     json.dumps(annotations, allow_nan=False)
     manifest, capture_frames, segments = _load_package(scan_dir)
+    calibration = None
+    if stage == "rgb_assisted" and manifest.get("source") in {"arkit", "multicam_rgbd"} and (scan_dir / "calibration/setup.json").exists():
+        from .phone_calibration import calibration_for_scan, read_json
+        calibration = calibration_for_scan(scan_dir, capture_frames, segments, output_dir)
+        if read_json(scan_dir / "calibration/setup.json").get("same_object_required") and not calibration.get("reference_registered"):
+            result = {"schema_version":1,"algorithm_version":VERSION,"scan_id":manifest["scan_id"],"source":manifest.get("source"),
+                      "unit":"mm","status":"needs_input","warnings":[calibration["guidance"]],"measurements":[],"primitives":[],
+                      "phone_calibration":calibration}
+            _json(output_dir / "scan_preview.json", {"vertices":[],"triangles":[],"colors":[],"normals":[],"unit":"mm"})
+            _json(output_dir / "reconstruction.json", result)
+            return result
     if annotations.get("repair_scope") != "standalone_scan" and (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1":
         from .object_selection import repair_selection_frames
         capture_frames = repair_selection_frames(scan_dir, capture_frames, annotations)
@@ -657,7 +674,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     if annotations.get("repair_scope") == "rectangular_planar":
         from .planar_repair import reconstruct_planar
         return reconstruct_planar(scan_dir, output_dir, manifest, capture_frames, annotations)
-    frames, rejected, warnings, gaps = _prepare(scan_dir, capture_frames, segments, annotations, stage)
+    frames, rejected, warnings, gaps = _prepare(scan_dir, capture_frames, segments, annotations, stage, calibration)
     if not manifest.get("complete"):
         warnings.append("incomplete_capture: committed views recovered; capture was not ended normally")
     if not (scan_dir / "checksums.json").exists():
@@ -674,7 +691,8 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                                  "total_frames":len(capture_frames),"legacy_frames_use_full_image":True,
                                  "guide_role": "framing_hint_only" if (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1" else "legacy_selection_boundary"},
             "metrics": {"accepted_frames": len(frames), "rejected_frames": len(rejected), "timestamp_gaps": gaps},
-            "physical_validation": {"phone_sensing": "not_tested", "dimension_accuracy": "not_calibrated", "printed_fit": "not_tested"}}
+            "physical_validation": {"phone_sensing": "not_tested", "dimension_accuracy": "not_calibrated", "printed_fit": "not_tested"},
+            "phone_calibration":calibration}
     if annotations.get("repair_scope") == "cube_exterior" and stage == "rgb_assisted":
         # A repeated face is solved from photographs before any dense surface
         # fusion. Hue and color-class gap detectors are never fallbacks here.
@@ -779,6 +797,14 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     if stage == "rgb_assisted" and geometry_consistent:
         from .photo_detail import refine_photos
         detail_report, detail_frames = refine_photos(frames, scan_dir)
+        if manifest.get("source") == "multicam_rgbd":
+            from .multicamera import refine_multicamera
+            camera_report, camera_details = refine_multicamera(frames, capture_frames, scan_dir, calibration)
+            detail_report["simultaneous_cameras"] = camera_report
+            detail_report["accepted_pixels"] += camera_report["accepted_pixels"]
+            if camera_details:
+                detail_report["status"] = "photo_detail_integrated"
+                detail_frames.extend(camera_details)
         if not detail_frames:
             warnings.append("photo_detail_unresolved: add slow overlapping close-up views with sharp, textured surfaces")
     from .photo_detail import integration_frames

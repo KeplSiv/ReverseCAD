@@ -145,12 +145,9 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
                 }
                 return
             }
-            let profile = try PhoneCalibrationProfile(referenceArchiveSHA256:CaptureIO.sha256(file:archive))
-            let profiles = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("PhoneCalibrationProfiles")
-            try profile.save(directory:profiles)
             DispatchQueue.main.async {
                 self.running = false; self.saved = archive; self.originalArchive = archive
-                self.message = "Reference saved. Factory rear calibration remains active. Front-to-rear fitting and independent validation are still required."
+                self.message = "Front depth saved. Checking that the first object and its surroundings are suitable."
             }
         } catch { fail(error) }
     }
@@ -167,50 +164,72 @@ final class PhoneReferenceCapture: NSObject, ObservableObject, AVCaptureDataOutp
 }
 
 struct PhoneReferenceSetup: View {
-    /// Attach this immutable archive to a subsequent rear scan as reference evidence only.
     var onSaved: ((URL) -> Void)? = nil
     static let archivePreferenceKey = "reversecad.referenceArchive.v1"
     @StateObject private var capture = PhoneReferenceCapture()
+    @StateObject private var review = FrontReferenceReviewModel()
+    @State private var box = SelectionBox.initial
+    @State private var saveError: String?
     @AppStorage("reversecad.referenceArchive.v1") private var referenceArchive = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment:.leading, spacing:20) {
-                    Text("Front depth reference").font(.largeTitle.bold())
-                    Text("Save front-camera color and TrueDepth samples for inspection. This does not calibrate the rear cameras or align the front and rear views.")
+                    Text("Set up with your first object").font(.largeTitle.bold())
+                    Text("Both Scan object and Repair damage use this setup. The selfie camera and infrared depth measure a reference first. Then turn the phone and scan the same object with the rear camera system.")
+                    Text("Place the object on a textured surface. Keep it and the surrounding features still. Hold the selfie camera steady, facing the object.")
+                        .foregroundStyle(RepairStyle.secondary)
                     Text(capture.message).foregroundStyle(RepairStyle.secondary)
                     if capture.running {
                         ReferenceCameraPreview(session:capture.session).frame(height:260).clipped().clipShape(RoundedRectangle(cornerRadius:22))
                         ProgressView().tint(RepairStyle.accent)
                         Button("Save and stop") { capture.stop() }.buttonStyle(RepairButtonStyle(secondary:true))
                     } else {
-                        if let archive = capture.originalArchive {
-                            ShareLink("Export original reference", item:archive).buttonStyle(RepairButtonStyle(secondary:true))
+                        if let image=review.image {
+                            Image(uiImage:image).resizable().aspectRatio(contentMode:.fit)
+                                .overlay { AdjustableObjectBox(box:$box,editable:!review.working) }
+                                .onChange(of:box) { _,_ in review.review=nil }
+                            Text("Adjust the box around your first object. Keep nearby texture visible too.").font(.caption)
                         }
-                        if let archive = capture.saved {
-                            Button("Use reference and continue") {
-                                referenceArchive = archive.path; onSaved?(archive); dismiss()
-                            }.buttonStyle(RepairButtonStyle())
+                        if review.working {
+                            ProgressView(review.message).tint(RepairStyle.accent)
+                            Button("Cancel check") { review.cancel() }.buttonStyle(RepairButtonStyle(secondary:true))
                         } else {
-                            Button("Capture front reference") { capture.start() }.buttonStyle(RepairButtonStyle())
+                            if !review.message.isEmpty {Text(review.message).foregroundStyle(RepairStyle.secondary)}
+                            if let archive=capture.saved,let root=capture.originalDirectory {
+                                if review.review?.accepted == true {
+                                    Button("Use reference — turn phone") {
+                                        do {
+                                            try PhoneSetupStore.save(root:root,archive:archive,review:review.review!)
+                                            referenceArchive=archive.path;onSaved?(archive);dismiss()
+                                        } catch {saveError=error.localizedDescription}
+                                    }.buttonStyle(RepairButtonStyle()).accessibilityIdentifier("useFrontReference")
+                                } else {
+                                    Button("Check saved reference") {review.check(root:root,box:box)}.buttonStyle(RepairButtonStyle())
+                                }
+                            }
+                            Button(capture.saved == nil ? "Capture front reference" : "Capture a new reference") {
+                                review.cancel();review.review=nil;saveError=nil;capture.start()
+                            }.buttonStyle(RepairButtonStyle(secondary:capture.saved != nil))
+                        }
+                        if capture.originalArchive != nil {
+                            Text("Your original reference is saved inside ReverseCAD.").font(.caption).foregroundStyle(RepairStyle.secondary)
                         }
                     }
-                    Text("Hold the selfie camera steady, facing the object and nearby features. Keep the scene unchanged when turning to the rear camera.").font(.footnote).foregroundStyle(RepairStyle.secondary)
-                    Text("Provisional reference only · No fitted rear-camera correction · Physical accuracy unverified")
+                    if let saveError {Text(saveError).foregroundStyle(.orange)}
+                    Text("Jev checks scene suitability. Captured depth and matching features determine distances. This phone builds the model and supported repairs; original camera records stay inside the app.")
                         .font(.caption).foregroundStyle(RepairStyle.secondary)
                 }.padding(20).foregroundStyle(RepairStyle.text)
             }.background(RepairStyle.background.ignoresSafeArea())
                 .navigationTitle("ReverseCAD").navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(RepairStyle.background, for:.navigationBar)
                 .toolbarBackground(.visible, for:.navigationBar)
-                .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Close") { capture.stop(); dismiss() } } }
-        }.preferredColorScheme(.dark).tint(RepairStyle.accent).interactiveDismissDisabled(capture.running)
-            .onDisappear { capture.stop() }
-            .onAppear {
-                if referenceArchive.isEmpty, let legacy = UserDefaults.standard.string(forKey:"prelude.referenceArchive.v1") {
-                    referenceArchive = legacy
-                }
+                .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Close") { review.cancel();capture.stop();dismiss() } } }
+        }.preferredColorScheme(.dark).tint(RepairStyle.accent).interactiveDismissDisabled(capture.running || review.working)
+            .onDisappear {review.cancel();capture.stop()}
+            .onChange(of:capture.saved) { _,saved in
+                if saved != nil,let root=capture.originalDirectory {review.check(root:root,box:box)}
             }
     }
 }

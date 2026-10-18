@@ -335,7 +335,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
         var maskPath: String?
         // Masks are native depth-size labels and derived from the original raw image with .up orientation.
-        if targetTracker != nil, accepted, objectInFrame, depthWidth > 0, var mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
+        if targetTracker != nil, accepted, objectInFrame, depthWidth > 0, var mask = Self.foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
             if let region {
                 mask.withUnsafeMutableBytes { raw in
                     let bytes = raw.bindMemory(to: UInt8.self)
@@ -458,7 +458,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let capacity = try? directory.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage, capacity < 256 * 1024 * 1024 { stopForBudget("Low device storage: capture stopped with committed data preserved.") }
     }
 
-    private func foregroundMask(rgb: CVPixelBuffer, point: CGPoint, width: Int, height: Int) -> Data? {
+    static func foregroundMask(rgb: CVPixelBuffer, point: CGPoint, width: Int, height: Int) -> Data? {
         let request = VNGenerateForegroundInstanceMaskRequest()
         let handler = VNImageRequestHandler(cvPixelBuffer: rgb, orientation: .up)
         do {

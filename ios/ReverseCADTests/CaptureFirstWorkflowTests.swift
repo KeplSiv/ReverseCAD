@@ -11,6 +11,7 @@ private final class SavedViewProtocol: URLProtocol {
     static var hold = false
     static var stopped = 0
     static var bodies = [[String: Any]]()
+    static var referenceMismatch = false
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -26,7 +27,9 @@ private final class SavedViewProtocol: URLProtocol {
         }
         if let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] { Self.bodies.append(object) }
         if Self.hold { return }
-        let data = try! JSONSerialization.data(withJSONObject: ["model": "fixture", "answers": ["present": ["noul": 0.99], "unobstructed": ["noul": 0.99], "instances": ["choice": Self.ambiguous ? "several" : "one", "confidence": 0.99], "category": ["choice": "tool", "confidence": 0.99], "target": ["box": ["left": 0.1,"right": 0.9,"top": 0.1,"bottom": 0.9], "confidence": 0.99]]])
+        let referenceCall = ((Self.bodies.last?["state"] as? [String:Any])?["requested_object"] as? String) == "the SAME first calibration object"
+        let ambiguous = Self.ambiguous || (referenceCall && Self.referenceMismatch)
+        let data = try! JSONSerialization.data(withJSONObject: ["model": "fixture", "answers": ["present": ["noul": 0.99], "unobstructed": ["noul": 0.99], "instances": ["choice": ambiguous ? "several" : "one", "confidence": 0.99], "category": ["choice": "tool", "confidence": 0.99], "target": ["box": ["left": 0.1,"right": 0.9,"top": 0.1,"bottom": 0.9], "confidence": 0.99]]])
         client?.urlProtocol(self, didReceive: HTTPURLResponse(url: request.url!, statusCode: Self.status, httpVersion: nil, headerFields: Self.status == 429 ? ["Retry-After":"2"] : nil)!, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data); client?.urlProtocolDidFinishLoading(self)
     }
@@ -36,7 +39,7 @@ private final class SavedViewProtocol: URLProtocol {
 @MainActor final class CaptureFirstWorkflowTests: XCTestCase {
     var root: URL!
     override func setUp() async throws {
-        SavedViewProtocol.count = 0; SavedViewProtocol.status = 200; SavedViewProtocol.ambiguous = false; SavedViewProtocol.hold = false; SavedViewProtocol.stopped = 0; SavedViewProtocol.bodies = []
+        SavedViewProtocol.count = 0; SavedViewProtocol.status = 200; SavedViewProtocol.ambiguous = false; SavedViewProtocol.hold = false; SavedViewProtocol.stopped = 0; SavedViewProtocol.bodies = [];SavedViewProtocol.referenceMismatch=false
         root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     }
@@ -113,6 +116,29 @@ private final class SavedViewProtocol: URLProtocol {
 
 
 extension CaptureFirstWorkflowTests {
+    func testFirstObjectMustMatchFrontReferenceAndRetryKeepsRearCapture() async throws {
+        let directory=try capture(),front=directory.appendingPathComponent("calibration/front")
+        try FileManager.default.createDirectory(at:front,withIntermediateDirectories:true)
+        let jpeg=try Data(contentsOf:directory.appendingPathComponent("rgb/0.jpg"))
+        try jpeg.write(to:front.appendingPathComponent("front.jpg"))
+        try cameraJSONWrite(["rgb":"front.jpg"],front.appendingPathComponent("reference-evidence.json"))
+        try cameraJSONWrite(["same_object_required":true,"evidence_sha256":"fixture"],directory.appendingPathComponent("calibration/setup.json"))
+        try cameraJSONWrite(["model":"fixture","imageSHA256":"fixture","decision":"adequate","confidence":0.99,"box":["left":0.1,"top":0.1,"right":0.9,"bottom":0.9]],front.appendingPathComponent("scene-review.json"))
+        let reference=ObjectSelectionReference(imageSHA256:CaptureIO.sha256(jpeg),rawBox:[0.1,0.1,0.8,0.8],detection:nil)
+        try jpeg.write(to:directory.appendingPathComponent(reference.imagePath))
+        try CaptureIO.atomicWrite(reference,to:root.appendingPathComponent("object-selection.json"))
+        let before=try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl")),value=workflow()
+        SavedViewProtocol.referenceMismatch=true
+        value.find(project:root,capture:directory,description:"");try await settle(value)
+        XCTAssertTrue(value.failure?.contains("front reference") == true)
+        XCTAssertEqual(SavedViewProtocol.count,12)
+        XCTAssertFalse(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/object-link.json").path))
+        SavedViewProtocol.referenceMismatch=false
+        value.find(project:root,capture:directory,description:"");try await settle(value)
+        XCTAssertEqual(value.phase,"identified")
+        XCTAssertTrue(FileManager.default.fileExists(atPath:directory.appendingPathComponent("calibration/object-link.json").path))
+        XCTAssertEqual(before,try CaptureIO.sha256(file:directory.appendingPathComponent("frames.jsonl")))
+    }
     func testAdjustableBoxIdentificationIsSavedAndReusedAfterCapture() async throws {
         let id=BoxObjectIdentifier(clientFactory:{
             let c=URLSessionConfiguration.ephemeral;c.protocolClasses=[SavedViewProtocol.self]

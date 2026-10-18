@@ -1,12 +1,12 @@
-# Reverse CAD iPhone application specification
+# ReverseCAD iPhone application specification
 
-> Current consolidated revision: [Adjustable selection and two app flows](docs/MAIN_CONSOLIDATED.md) on `main-consolidated` supersedes the ordering below. Jev uses the edited rectangle before scanning; the same reference is checked across saved views afterward. Scan and repair are separate flows; repair continues into the existing main-branch CAD component.
+## Current architecture — October 18, 2026
 
+[On-device reconstruction](docs/ON_DEVICE_RECONSTRUCTION.md) is normative for the current release on `main`. Both Scan object and Repair damage require the shared first-use front reference, adjustable framing, first orbit, direct-phone Jev identification, second detail orbit with live observed preview, and finished on-device model/export. Geometry and supported repair CAD do not require a Mac, service URL, pairing token or cloud reconstruction. Computers are optional export destinations. The existing app identity, saved projects, testers and restored main UI are retained.
 
-## Prelude capture-first revision (2026-10-18)
+[Consolidation and release evidence](docs/MAIN_CONSOLIDATED.md) records implementation and validation boundaries. The following original specification is retained as historical design context; companion-service, broad CAD-generator and older ARKit acquisition requirements below are superseded by the current architecture.
 
-The standalone Prelude scanner on `pranav-dev` follows **Frame object → Scan around it → Identify object → Build 3D model → Preview and export**. Its normative workflow, direct-phone Jev contract, saved-session masks, backend requirement and verification boundaries are in [PRELUDE_SCANNER.md](docs/PRELUDE_SCANNER.md). This supersedes any earlier identify-before-capture or continuously polled Jev flow for Prelude. Descriptions are optional; the center rule-of-thirds cell is a framing hint, never a crop. Full calibrated capture happens locally before identification. Original geometry, supported scale and refined same-instance masks drive reconstruction; category-shaped completion is prohibited. Work and release stay on `pranav-dev`; private sensor experiments and `main` remain separate.
-
+## Historical specification
 
 Version 1.0 · October 16, 2026 · Implementation brief for Codex
 

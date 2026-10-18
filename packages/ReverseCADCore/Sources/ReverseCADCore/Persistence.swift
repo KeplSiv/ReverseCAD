@@ -209,6 +209,9 @@ public final class ScanPackageWriter: @unchecked Sendable {
         guard let rgbSize = size(frame.rgbPath), rgbSize > 0 else { throw CoreError.integrity("Missing RGB keyframe.") }
         if let path = frame.depthPath, size(path) != frame.depthRowBytes * frame.depthHeight { throw CoreError.integrity("Depth file size does not match calibrated dimensions and stride.") }
         for path in [frame.confidencePath,frame.maskPath].compactMap({$0}) { guard size(path) == frame.depthWidth * frame.depthHeight else { throw CoreError.integrity("Confidence/mask dimensions do not match native depth.") } }
+        for path in frame.additionalAssets ?? [] {
+            guard let count=size(path),count>0 else {throw CoreError.integrity("Missing original sensor asset.")}
+        }
         for (index, path) in frame.originalPlanePaths.enumerated() {
             guard size(path) == frame.rgbWidth * frame.rgbHeight / (index == 0 ? 1 : 2) else {
                 throw CoreError.integrity("Original NV12 plane size does not match image dimensions.")
