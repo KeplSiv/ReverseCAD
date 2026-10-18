@@ -9,7 +9,7 @@ The TestFlight target uses public ARKit processed scene depth and a physical rea
 - Release simulator build passed; the actual running home screen was inspected.
 - The final signed Prelude 0.1.0 (26) archive, export and IPA checks passed with bundle `com.pranavmuralitharan.prelude` and team `5B3Y68ZB2Y`.
 - The final IPA SHA-256 is `ecedea28575da5e45e69bc1a8f7972e36e8145f87ee067320bc6fe0a3098955a`.
-- Apple accepted upload `8be2427a-f0d6-42c4-b923-2a680e9b1807`; TestFlight processing is checked separately below.
+- Apple accepted upload `8be2427a-f0d6-42c4-b923-2a680e9b1807`, completed processing (`VALID`), and reports the build as `IN_BETA_TESTING` for the existing Prelude Personal internal group.
 - Offline tests cover absent/ambiguous Jev results, invalid probabilities and boxes, millimetre STEP roundtrip, preservation of an open surface, insufficient-reconstruction export gating, authenticated service delivery and exported-asset hashes.
 - Both public RGB-D and sparse synthetic fixtures are exercised through the standalone service boundary. Large/noisy public meshes retain their full STL when a bounded STEP approximation fails its deviation gate; that is an explicit per-format limitation.
 
@@ -23,6 +23,6 @@ A live Jev request succeeded using the private key file supplied by the user. Th
 
 The paired service is running on the Mac at port 8769 with the existing private pairing token. It must remain reachable for identification and reconstruction. The phone's original recorded sessions were not intentionally modified; the detailed inventory report is under `reports/sparse-reconstruction/phone-recording-preservation.json`.
 
-Apple upload and internal availability are recorded separately in `release-status.json` once verified.
+Apple upload and internal availability are recorded in `release-status.json`. Build 26 is present in the Prelude Personal internal group's build list, and the group contains the existing tester. The tester's account state is `INSTALLED`; that account-level state does not prove build 26 is installed on the phone. The update is available through TestFlight, and installation of this specific build remains unverified.
 
 The same live Jev request also succeeded through the authenticated companion endpoint (HTTP 200), with the key loaded from the configured private file. The environment-parser regression check passed.
