@@ -37,7 +37,7 @@ def run(input_path: Path) -> int:
         progress("validating_input", 0.05, "Validated capture and immutable evidence snapshot")
         if request["kind"] == "reconstruction":
             from .reconstruction import reconstruct
-            progress("reconstructing", 0.15, "Fusing calibrated RGB-D observations")
+            progress("reconstructing", 0.15, "Finding the original rectangle and missing regions" if annotations.get("repair_scope") == "rectangular_planar" else "Fusing calibrated RGB-D observations")
             result = reconstruct(scan_dir, output, annotations)
             if not isinstance(result, dict):
                 raise ValueError("Reconstruction returned an invalid result")

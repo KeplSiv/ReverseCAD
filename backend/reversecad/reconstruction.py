@@ -19,7 +19,7 @@ import numpy as np
 from .geometry import (AR_TO_CV, dot, fit_cylinder_frustum, fit_plane, project,
                        rigid_transform, scaled_intrinsics, transform_points, unproject)
 
-VERSION = "rgbd-1.3.0"
+VERSION = "rgbd-1.4.0"
 MAX_FRAMES = 240
 MAX_SCAN_BYTES = 512 * 1024 * 1024
 MAX_DEPTH_PIXELS = 640 * 480
@@ -248,6 +248,7 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
                          "frame_id": fid, "segment_id": frame["segment_id"], "depth": np.where(valid, depth, 0),
                          "color": color_depth, "k": k, "pose": pose, "feature_rgb": feature_rgb,
                          "feature_k": feature_k, "mask_source": mask_source,
+                         "foreground_mask": selected,
                          "depth_calibration_mode": calibration_mode,
                          "points": points[indices], "colors": color_depth[pixels[indices, 1], pixels[indices, 0]] / 255.,
                          "raw_points": raw_points[raw_indices],
@@ -604,6 +605,9 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
     # Independent finite serialization check before annotations affect geometry.
     json.dumps(annotations, allow_nan=False)
     manifest, capture_frames, segments = _load_package(scan_dir)
+    if annotations.get("repair_scope") == "rectangular_planar":
+        from .planar_repair import reconstruct_planar
+        return reconstruct_planar(scan_dir, output_dir, manifest, capture_frames, annotations)
     frames, rejected, warnings, gaps = _prepare(scan_dir, capture_frames, segments, annotations, stage)
     if not manifest.get("complete"):
         warnings.append("incomplete_capture: committed views recovered; capture was not ended normally")
@@ -740,7 +744,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
         warnings.append("surface_mesh_unavailable: observed colored point cloud retained")
     _json(output_dir / "scan_preview.json", preview)
     counterpart = {"status": "blocked_inconsistent_scan", "reason": "The captured views do not agree in 3D. No replacement piece was generated. Keep the object stationary on a textured surface and move the phone slowly around it; start about 30 cm away."} if not geometry_consistent else {"status": "not_requested"}
-    if stage == "rgb_assisted" and geometry_consistent:
+    if stage == "rgb_assisted" and geometry_consistent and annotations.get("repair_scope") != "cube_exterior":
         if mesh is not None and len(mesh.triangles) >= 100:
             from .pattern_completion import export_pattern_hypotheses
             base["pattern_hypotheses"] = export_pattern_hypotheses(mesh, output_dir, scale)
@@ -780,7 +784,7 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                             "segmentation_sources": sorted({f["mask_source"] for f in frames})})
     # Native fusion stays diagnostic when inconsistent. Independently align the
     # photographs and attempt a clearly labeled constrained exterior hypothesis.
-    if stage == "rgb_assisted" and not geometry_consistent and manifest.get("source") == "arkit":
+    if stage == "rgb_assisted" and (not geometry_consistent or annotations.get("repair_scope") == "cube_exterior") and manifest.get("source") == "arkit":
         from .photo_alignment import align_photos
         from .photo_cube import estimate_cube
         photo_alignment = {"status": "unavailable"}
@@ -791,7 +795,8 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                 # aligned photographs. Recover diagnostic patches without mixing
                 # inconsistent native geometry back into them or claiming a repair.
                 from .photo_detail import refine_photos, cross_validate_details
-                recovery, stereo_frames = refine_photos(photo_frames, scan_dir)
+                recovery, stereo_frames = refine_photos(photo_frames, scan_dir, max_pairs=16, trust_native_depth=False)
+                recovered_mesh = None
                 supported, checks = cross_validate_details(stereo_frames)
                 recovery.update(checks)
                 recovery["scale_source"] = "COLMAP_camera_baselines_scaled_by_native_depth_correspondences"
@@ -809,18 +814,36 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
                             recovery["surface_unit"] = "m"
                 base["photo_recovery"] = recovery
                 _json(output_dir / "photo_recovery.json", recovery)
-                estimate = estimate_cube(photo_frames, scan_dir, output_dir, photo_alignment)
+                if annotations.get("repair_scope") == "cube_exterior":
+                    if recovered_mesh is None or not len(recovered_mesh.triangles):
+                        raise ValueError("Photographs did not recover enough exterior geometry. Add sharp overlapping views of the gap and an intact edge.")
+                    # Keep failed native integration separately, and show the
+                    # independently recovered photo surface in the same frame.
+                    for name in ("scan_preview.json", "observed_surface.stl", "observed_surface_mm.ply"):
+                        source=output_dir/name
+                        if source.exists(): source.replace(output_dir/("native_"+name))
+                    photo_preview = _surface_outputs(recovered_mesh, output_dir, 1.0)
+                    _json(output_dir / "scan_preview.json", photo_preview)
+                    from .cube_exterior import repair_cube_exterior
+                    base["surface"] = {"kind":"photo_recovered_surface", "unit":"mm", "editable_parametric_cad":False,
+                        "exports":["observed_surface.stl","observed_surface_mm.ply"], "note":"Independently matched photo surface; native depth is only scale evidence."}
+                    base["photo_detail"] = {"status":"photo_detail_integrated", "accepted_pixels":checks["cross_pair_supported_pixels"],
+                        "limitations":"Captured donor detail plus explicitly inferred planar interiors and flat inner caps. Fine-feature accuracy and fit are unverified."}
+                    estimate = repair_cube_exterior(recovered_mesh, supported, output_dir)
+                else:
+                    estimate = estimate_cube(photo_frames, scan_dir, output_dir, photo_alignment)
+                    base["surface"] = {"kind":"inferred_cube_context", "unit":"mm", "editable_parametric_cad":False, "exports":[]}
+                    base["photo_detail"] = {"status":"outline_estimate_only", "accepted_pixels":0,
+                        "limitations":"Fine surface relief unresolved; rounded exterior and unseen sides are inferred."}
                 base["counterpart"] = estimate
                 base["status"] = "proposal_needs_review"
-                base["surface"] = {"kind": "inferred_cube_context", "unit": "mm",
-                    "editable_parametric_cad": False, "exports": [],
-                    "note": "Structural context from photos; failed native scan is not displayed as valid geometry."}
-                base["photo_detail"] = {"status": "outline_estimate_only", "accepted_pixels": 0,
-                    "limitations": "Fine surface relief unresolved; rounded exterior and unseen sides are inferred."}
-                base["warnings"].append("estimated_exterior: Photo-aligned repeated outline; automatic scale, hidden closures and physical fit are unverified.")
+                recovery["replacement_generated"] = True
+                _json(output_dir / "photo_recovery.json", recovery)
+                base["warnings"].append("estimated_exterior: Review the donor-derived exterior; flat hidden closures have no internal connector and physical fit is unverified.")
         except (ValueError, RuntimeError, ImportError) as exc:
             photo_alignment["repair_failure"] = str(exc)
-            base["counterpart"]["reason"] += " Photo reconstruction: " + str(exc)
+            base["counterpart"]["reason"] = "Photo reconstruction: " + str(exc)
+            base["status"] = "needs_input"
             # Never leave partial printable artifacts after a failed proposal.
             for name in ("printable_edge.stl", "printable_edge.3mf", "printable_edge.json", "counterpart_preview.json"):
                 (output_dir/name).unlink(missing_ok=True)

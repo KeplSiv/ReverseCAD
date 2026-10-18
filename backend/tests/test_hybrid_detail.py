@@ -188,3 +188,15 @@ def test_cross_pair_support_rejects_duplicate_pairs_and_inconsistent_depth():
     supported,report=cross_validate_details([a,agree])
     assert len(supported)==2 and report['cross_pair_supported_pixels']>200
     assert np.all(a['depth']==.3)  # original evidence remains immutable
+
+
+def test_independent_photo_recovery_survives_failed_native_depth_but_requires_foreground():
+    a,b=stereo_observations()
+    a['depth'][:]=.3;b['depth'][:]=.3
+    assert stereo_pair(a,b) is None
+    recovered=stereo_pair(a,b,trust_native_depth=False)
+    assert recovered is not None
+    depths=recovered['depth'];depths=depths[depths>0]
+    assert len(depths)>500 and abs(np.median(depths)-.24)<.001
+    a['depth'][:]=0;b['depth'][:]=0
+    assert stereo_pair(a,b,trust_native_depth=False) is None

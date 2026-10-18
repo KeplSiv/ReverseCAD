@@ -5,7 +5,7 @@ import ImageIO
 struct ContentView: View {
     var body: some View {
         if ProcessInfo.processInfo.arguments.contains("-legacyWorkflow") { LegacyContentView() }
-        else { CubeDemoView() }
+        else { PlanarRepairView() }
     }
 }
 

@@ -9,7 +9,7 @@ import numpy as np
 from .geometry import dot, project, transform_points
 
 
-def stereo_pair(a, b):
+def stereo_pair(a, b, *, trust_native_depth=True):
     """Return a rectified, masked high-resolution depth frame, or no refinement."""
     relative = np.linalg.inv(b['pose']) @ a['pose']
     baseline = np.linalg.norm(relative[:3, 3])
@@ -29,6 +29,18 @@ def stereo_pair(a, b):
     maps = [cv2.initUndistortRectifyMap(f['image_k'], None, r, p[:, :3], (w, h), cv2.CV_32FC1)
             for f, r, p in ((a, r1, p1), (b, r2, p2))]
     left, right = [cv2.remap(im, *m, cv2.INTER_LINEAR) for im, m in zip((image_a, image_b), maps)]
+    mask_a = a.get('foreground_mask')
+    mask_b = b.get('foreground_mask')
+    if mask_a is not None and mask_b is not None:
+        # Rectify the phone's foreground masks with the same calibration as the
+        # photos. Without this, stereo happily reconstructs the tabletop and
+        # background; the resulting scene-sized cloud makes small-part fitting
+        # fail (or, worse, fit the wrong planes).
+        rect_masks = [cv2.remap(mask.astype(np.uint8), *m, cv2.INTER_NEAREST,
+                                borderMode=cv2.BORDER_CONSTANT, borderValue=0) > 0
+                      for mask, m in zip((mask_a, mask_b), maps)]
+    else:
+        rect_masks = None
     gray_l, gray_r = [cv2.cvtColor(im, cv2.COLOR_RGB2GRAY) for im in (left, right)]
     if vertical:
         # SGBM searches horizontally. Transpose only the matching images;
@@ -59,6 +71,11 @@ def stereo_pair(a, b):
     valid = inside & (disparity > 1) & (disparity < maximum-1) & (lr_error < .75) & (variance > 25)
     # Stereo must also reproduce the same appearance in both images.
     valid &= abs(gray_l.astype(float) - gray_r[yy, xr].astype(float)) < 22
+    if rect_masks is not None:
+        ml, mr = rect_masks
+        if vertical:
+            ml, mr = ml.T.copy(), mr.T.copy()
+        valid &= ml & mr[yy, xr]
     # SGBM's discrete cost curve biases subpixel steps towards integer disparity.
     # Refine only already-validated matches by local photometric alignment.
     initial = disparity.copy()
@@ -93,7 +110,12 @@ def stereo_pair(a, b):
         in_frame = (uv[:, 0] >= 0) & (uv[:, 0] < dw) & (uv[:, 1] >= 0) & (uv[:, 1] < dh)
         uv = np.clip(uv, 0, [dw-1, dh-1])
         measured = frame['depth'][uv[:, 1], uv[:, 0]]
-        good &= in_frame & (measured > 0) & (abs(z-measured) < np.minimum(.008, np.maximum(.003, measured*.025)))
+        # A failed depth surface cannot veto independent photo geometry. In
+        # recovery mode depth supplies the foreground footprint only; independent
+        # stereo pairs must subsequently confirm the recovered surface.
+        good &= in_frame & (measured > 0)
+        if trust_native_depth:
+            good &= abs(z-measured) < np.minimum(.008, np.maximum(.003, measured*.025))
     depth = np.zeros((h, w), dtype=np.float32)
     depth[rows[good], cols[good]] = xyz[rows[good], cols[good], 2]
     if np.count_nonzero(depth) < 100:
@@ -103,12 +125,13 @@ def stereo_pair(a, b):
             'median_lr_error_px': float(np.median(lr_error[rows[good], cols[good]]))}
 
 
-def refine_photos(frames, scan_dir: Path, max_pairs=8):
+def refine_photos(frames, scan_dir: Path, max_pairs=8, *, trust_native_depth=True):
     """Load a bounded set of original photos; emit detail depth in fixed metric poses."""
     report = {'status': 'insufficient_photo_evidence', 'method': 'calibrated_bidirectional_stereo',
               'scale_source': 'ARKit_metric_camera_baseline_and_native_depth_check',
               'accuracy_calibrated': False, 'pairs': [], 'accepted_pixels': 0,
               'limitations': 'Textureless, reflective or unseen details are unresolved. Stereo does not infer missing geometry.'}
+    report['native_surface_gate'] = 'enabled' if trust_native_depth else 'disabled_failed_native_surface'
     results = []
     cache = {}
     def load(frame):
@@ -124,7 +147,22 @@ def refine_photos(frames, scan_dir: Path, max_pairs=8):
         image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
         # image_k is calibrated to the original image, with OpenCV resize offsets.
         resize = np.array([[size[0]/w, 0, (size[0]/w-1)/2], [0, size[1]/h, (size[1]/h-1)/2], [0, 0, 1.]])
-        result = {**frame, 'image': image, 'image_k': resize @ frame['image_k']}
+        foreground = frame.get('foreground_mask')
+        if foreground is not None:
+            foreground = cv2.resize(foreground.astype(np.uint8), size, interpolation=cv2.INTER_NEAREST) > 0
+        mask_path = frame.get('mask_path')
+        if mask_path:
+            raw = np.fromfile(scan_dir / mask_path, dtype=np.uint8)
+            if raw.size == frame['rgb_width'] * frame['rgb_height']:
+                foreground = raw.reshape(frame['rgb_height'], frame['rgb_width'])
+            elif raw.size == frame.get('depth_width', 0) * frame.get('depth_height', 0):
+                foreground = cv2.resize(raw.reshape(frame['depth_height'], frame['depth_width']),
+                                        (frame['rgb_width'], frame['rgb_height']),
+                                        interpolation=cv2.INTER_NEAREST)
+            if foreground is not None:
+                foreground = cv2.resize(foreground, size, interpolation=cv2.INTER_NEAREST) > 0
+        result = {**frame, 'image': image, 'image_k': resize @ frame['image_k'],
+                  'foreground_mask': foreground}
         cache[frame['frame_id']] = result
         return result
     # Small overlapping baselines preserve common visibility. Never use distant
@@ -137,7 +175,7 @@ def refine_photos(frames, scan_dir: Path, max_pairs=8):
             if .006 <= baseline <= .06 and np.dot(a['pose'][:3, 2], b['pose'][:3, 2]) > .97:
                 candidates.append((abs(baseline-.018), a, b))
     uses = {}; attempted = []
-    while candidates and len(attempted) < 12 and len(results) < max_pairs:
+    while candidates and len(attempted) < max(12, max_pairs * 2) and len(results) < max_pairs:
         # Spend the bounded budget on distinct pairs and spread support across views.
         candidates.sort(key=lambda item: (uses.get(item[1]['frame_id'],0)+uses.get(item[2]['frame_id'],0), item[0]))
         _, a, b = candidates.pop(0)
@@ -146,8 +184,8 @@ def refine_photos(frames, scan_dir: Path, max_pairs=8):
         for frame_id in pair: uses[frame_id] = uses.get(frame_id,0)+1
         aa, bb = load(a), load(b)
         if aa is None or bb is None: continue
-        detail = stereo_pair(aa, bb)
-        if detail is None: detail = stereo_pair(bb, aa)
+        detail = stereo_pair(aa, bb, trust_native_depth=trust_native_depth)
+        if detail is None: detail = stereo_pair(bb, aa, trust_native_depth=trust_native_depth)
         if detail is not None:
             results.append(detail)
             report['pairs'].append({'frame_ids': detail['source_frames'], 'pixels': int(np.count_nonzero(detail['depth'])),

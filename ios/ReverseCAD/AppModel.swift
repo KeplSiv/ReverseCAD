@@ -50,6 +50,8 @@ struct RepairProject: Codable, Identifiable {
     var created = Date()
     var family = "bridge_handle"
     var source = "synthetic"
+    var repairScope: String?
+    var planarThicknessMM: Double?
     var stage = "Ready to capture"
     var scanID: String?
     var jobID: String?
@@ -172,6 +174,7 @@ final class AppModel: ObservableObject {
     @Published var patternReviewed = false
     var selectedPattern: PatternRepairOption? { patternRepairs.first { $0.id == selectedPatternID } }
     @Published var counterpartPrintable = false
+    @Published var planarRepair: [String: Any]?
     @Published var scanNeedsRescan = false
     @Published var scanFailureTitle = "Scan didn’t line up"
     @Published var exteriorEstimated = false
@@ -260,7 +263,7 @@ final class AppModel: ObservableObject {
     func loadDerived() {
         comparison=nil;selectedComparisonID=nil;comparisonScan=nil;comparisonPart=nil;comparisonReviewed=false
         patternRepairs=[];selectedPatternID=nil;patternMesh=nil;patternReviewed=false
-        counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
+        planarRepair=nil;counterpartMesh=nil;counterpartPrintable=false;scanNeedsRescan=false;exteriorEstimated=false;repairMessage="";photoDetailStatus="";scanMesh=nil;partMesh=nil;measurements=[];warnings=[];validation=[:];artifacts=[];candidates=[];candidateQuestions=[];candidateNotes=[]
         guard let dir=projectDirectory else{return}
         counterpartMesh=try? JSONDecoder().decode(MeshPreview.self,from:Data(contentsOf:dir.appendingPathComponent("counterpart_preview.json")))
         if let data=try? Data(contentsOf:dir.appendingPathComponent("reconstruction.json")),let info=try? JSONSerialization.jsonObject(with:data) as? [String:Any] { updatePhotoDetail(info) }
@@ -322,11 +325,39 @@ final class AppModel: ObservableObject {
     func annotationJSON()->[String:Any] {
         guard let p=project else{return [:]}
         var d:[String:Any]=["contacts":p.contacts.map{["id":$0.id,"point_m":$0.point,"normal":$0.normal,"radius_mm":$0.radius,"normal_source":$0.normalSource ?? "scan_patch_estimate","normal_confirmed":$0.normalConfirmed ?? false]},"damage_points_m":p.damage,"measurements":p.dimensions.map{["id":$0.id,"name":$0.name,"value":$0.value,"unit":"mm","source":"manual","confirmed":$0.confirmed,"critical":$0.critical,"uncertainty_mm":$0.uncertainty,"observation_ids":[]] as [String:Any]},"attachment_method":p.attachment,"evidence_state":p.evidence]
+        d["repair_scope"] = p.repairScope ?? "general"
+        if let thickness = p.planarThicknessMM { d["planar_thickness_mm"] = thickness }
         if p.cropEnabled {d["crop_min_m"]=p.cropMin.map{$0/1000};d["crop_max_m"]=p.cropMax.map{$0/1000}}
         if p.scaleMeasured>0 && p.scaleObserved>0 {d["scale_reference"]=["measured_mm":p.scaleMeasured,"observed_mm":p.scaleObserved,"uncertainty_mm":p.scaleUncertainty]}
         if p.symmetryConfirmed {d["symmetry"]=["confirmed":true,"axis":p.symmetryAxis,"counterpart_points_m":p.counterpartPoints ?? [],"offset_m":(p.symmetryOffset ?? 0)/1000,"source":"user_confirmed_counterpart"]}
         d["fragment_points_m"]=p.fragmentPoints ?? []
         return d
+    }
+    func reconstructRectangle(thickness: Double? = nil) {
+        update { $0.repairScope = "rectangular_planar"; $0.planarThicknessMM = thickness }
+        uploadAndReconstruct(compareMethods: false)
+    }
+    func planarImageURL(ghost: Bool) -> URL? {
+        guard let (folder, infos) = try? observedArtifactLocation() else { return nil }
+        let name = ghost ? "planar_overlay.jpg" : "planar_original.jpg"
+        return infos.contains(where: { $0.name == name }) ? folder.appendingPathComponent(name) : nil
+    }
+    func exportPlanar() { perform {
+        guard self.counterpartPrintable, let report = self.planarRepair,
+              let names = report["exports"] as? [String], !names.isEmpty else {
+            throw ServiceFailure(message: "Enter measured thickness and create the solid first.")
+        }
+        let (folder, infos) = try self.observedArtifactLocation()
+        guard names.allSatisfy({ name in infos.contains { $0.name == name } }) else {
+            throw ServiceFailure(message: "Replacement files are incomplete. Rebuild the patch.")
+        }
+        try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: folder) }.value
+        self.shareURLs = (names + ["planar_repair.json"]).map { folder.appendingPathComponent($0) }
+        self.showingShare = true
+    }}
+    func reconstructCubeExterior() {
+        update { $0.repairScope = "cube_exterior" }
+        uploadAndReconstruct(compareMethods: false)
     }
     func uploadAndReconstruct(compareMethods: Bool = true) {perform {
         guard let dir=self.scanDirectory,let p=self.project else{return}
@@ -486,6 +517,7 @@ final class AppModel: ObservableObject {
         return false
     }
     private func updatePhotoDetail(_ info: [String: Any]) {
+        planarRepair = info["planar_repair"] as? [String: Any]
         selectedComparisonID = nil; comparisonScan = nil; comparisonPart = nil; comparisonReviewed = false
         if let value = info["comparison"], let data = try? JSONSerialization.data(withJSONObject: value) {
             comparison = try? JSONDecoder().decode(ComparisonReport.self, from: data)
@@ -512,7 +544,7 @@ final class AppModel: ObservableObject {
         }
         counterpartPrintable = (info["counterpart"] as? [String: Any])?["watertight_replacement"] as? Bool ?? false
         let detail = info["photo_detail"] as? [String: Any] ?? [:]
-        photoDetailStatus = exteriorEstimated ? "Photo-aligned outline estimate · fine surface relief unresolved" : scanNeedsRescan ? (photosAligned ? "\(alignedCount) photos aligned. Fine surface geometry and the missing part remain unresolved." : "Photo alignment needs more overlapping, sharp views.") : detail["status"] as? String == "photo_detail_integrated"
+        photoDetailStatus = exteriorEstimated ? "Cubie exterior · captured donor geometry with inferred flat regions" : scanNeedsRescan ? (photosAligned ? "\(alignedCount) photos aligned. Fine surface geometry and the missing part remain unresolved." : "Photo alignment needs more overlapping, sharp views.") : detail["status"] as? String == "photo_detail_integrated"
             ? "Photo detail matched across views · accuracy uncalibrated"
             : "Fine photo detail unresolved. Try closer, sharp overlapping views."
     }
