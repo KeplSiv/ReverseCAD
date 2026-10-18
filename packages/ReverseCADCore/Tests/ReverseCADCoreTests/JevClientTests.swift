@@ -80,6 +80,16 @@ final class JevClientTests: XCTestCase {
         }
     }
 
+    func testOptInSavedViewReferenceRequest() async throws {
+        let env = ProcessInfo.processInfo.environment
+        guard let keyPath = env["JEV_LIVE_TEST_KEY_FILE"], let imagePath = env["JEV_LIVE_TEST_IMAGE"] else { throw XCTSkip("Explicit live fixture configuration required") }
+        let key = try String(contentsOfFile: keyPath).trimmingCharacters(in: .whitespacesAndNewlines)
+        let jpeg = try Data(contentsOf: URL(fileURLWithPath: imagePath))
+        let result = try await JevClient().identifySavedView(jpeg: jpeg, reference: jpeg, description: "", anchor: CGPoint(x: 0.5,y: 0.5), requestID: UUID(), apiKey: key)
+        XCTAssertNotNil(result.box)
+        print("SAVED_REFERENCE_JEV_OK model=\(result.model) category=\(result.category)")
+    }
+
     func testOptInLiveTypeSafeRequest() async throws {
         let env = ProcessInfo.processInfo.environment
         guard let keyPath = env["JEV_LIVE_TEST_KEY_FILE"], let imagePath = env["JEV_LIVE_TEST_IMAGE"] else {

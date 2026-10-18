@@ -4,122 +4,34 @@ Scope revision: 2026-10-18. Branch: `pranav-dev`.
 
 ## 1. Product boundary
 
-Pranav's component is a standalone **describe → identify → scan → measure → export** workflow. The user scans an existing physical object and receives an inspectable, metrically scaled 3D representation of what was observed.
+Pranav's component is a standalone **frame → scan → identify → build → preview/export** workflow. The user scans an existing physical object and receives an inspectable, metrically scaled 3D representation of what was observed.
 
 This component does not propose a repair, invent a missing part, generate a replacement, or enter the main application's repair workflow. Integration into `main` is deferred. Work belongs on `pranav-dev` or an isolated feature branch until separately requested.
 
 The delivery is the scanned object: a colored point cloud, supported surface model, inspectable dimensions, and downloadable 3D/CAD files. No ruler, printed calibration board, manual object dimensions, three-camera rig or TrueDepth calibration is a normal scanning prerequisite.
 
-**Implementation update (2026-10-18):** the isolated `PreludeScanner` target now implements the describe-object screen, automatic live Jev checks targeting 100 ms with category/box overlays and tap-to-scan confirmation, manual box fallback, tracking/segmentation, standalone 3D review, measurements and observed STL/PLY/conditional STEP export. TestFlight uses the separately labelled public processed-depth mode; intercepted sparse capture remains Debug-only. Jev credentials and a live fixture request are verified; a fresh physical scan remains unverified. The richer point/surface toggles, coordinate triad and interactive 3D crop controls below remain follow-up requirements. See [Prelude build notes](PRELUDE_SCANNER.md) for the exact delivered boundary. No code has been merged into `main`.
+**Capture-first revision (2026-10-18):** The public TestFlight workflow is specified in [PRELUDE_SCANNER.md](PRELUDE_SCANNER.md). It supersedes the previous live-Jev flow. Capture and identification require no Mac. Reconstruction still requires the existing backend; the app states this before processing. Private intercepted sparse capture remains separate and Debug-only.
 
-## 2. User journey
+## 2. Capture and identify
 
-### A. Describe the object
+Open the public camera with a guide covering the center third of preview width and height, mapped using the actual display transform. Say “Place one object inside the box.” Description is optional. Start one session with “Keep the object still. Walk slowly around it, keeping it inside the box.” Save full images, available depth/confidence, intrinsics, poses and timestamps locally. The guide is never a destructive crop. Show guidance from actual motion and accepted views. Finish without a compulsory second orbit.
 
-The first screen asks **“What are you about to scan?”** Accept a short natural-language description such as “this small plastic box,” “a mug,” or “the metal bracket.” Store the description with the scan. Do not ask the user to choose a repair family or describe a replacement part.
+After Finish, show “Finding your object…” and choose roughly 8–10 sharp separated saved views. Preserve the initial centered usable view as reference. Direct Jev calls compare that physical instance with every selected view. Ask category, same-instance presence, ambiguity, box and hand obstruction. Use multi-view consensus; if ambiguous, show a saved image for one tap. Retry or cancellation preserves the session.
 
-Object description directs identification and foreground selection. It is not evidence for dimensions, hidden surfaces, material properties or a presumed complete shape.
+## 3. Selection, reconstruction and export
 
-### B. Identify it in the camera view
+The phone refines boxes through local Vision masks and short-range tracking. Store derived masks separately with original-image hashes. The matching backend excludes unconfirmed views, checks measured cross-view consistency and removes supported surrounding horizontal planes. Full images are retained for camera tracking. Jev selects the object; observed geometry and supported scale determine its dimensions. The app explicitly discloses Mac reconstruction before Build. Use the original capture with these derived masks; do not scan again merely because identification occurred later.
 
-Open the physical rear 1× camera and use **TypeSafe Jev** for live category recognition and object bounding boxes, requesting a fresh frame approximately every 100 ms while the camera screen is active. The prototype requests `jev-preview` and records the returned model `jev-1.14.0`, which supports `choice`, `noul` and `box` questions. User clarification identifies the intended low-cost classification model; its Box capability is confirmed in [TypeSafe’s documentation](https://docs.typesafe.ai/primitives/box).
+Reuse observed preview/export. Preserve actual holes and missing surfaces. Export STL/PLY and measurements; offer STEP when the existing faceted-surface exporter passes its limits. Never replace missing geometry with a category template. Preserve insufficient captures and describe additional views needed. Keep keys in the existing ignored personal-build configuration, out of exports and logs.
 
-Show the proposed target with a visible box and, when supported, a foreground outline. Let the user confirm the correct object or tap a different one. If several objects match, ask which one. If none matches reliably, ask the user to reframe, improve lighting or refine the description. Manual target selection must remain available if identification is unavailable.
-
-The box is a **selection overlay**. It must not turn every scanned item into a cuboid. A box-shaped object should reconstruct as a box because of its observations; a mug or irregular object should retain its observed shape.
-
-### C. Scan
-
-After target confirmation, enable **Start scan**. The user keeps the object stationary and moves the phone through overlapping viewpoints. Keep the chosen object highlighted as the viewpoint changes; do not silently switch to another instance.
-
-Use short guidance: “Move sideways,” “Show the other side,” “Slow down,” “Add light,” and “Keep the object still.” Show useful coverage without implying that unseen surfaces have been captured. If the target is lost, stop accepting object measurements until it is found again; preserve already recorded originals.
-
-The existing prototype's bounded 18-second/48-stored-view pass is the initial capture budget. A further pass may add missing views only when registration to the same stationary object is verified. Do not fuse an unrelated second scan simply because its object label matches.
-
-### D. Review the measured scan
-
-Show the actual reconstructed object in a 3D viewer with rotate, pan and zoom. Provide point-cloud and surface views; color is preferred where supported. Display a coordinate triad, units and measurement overlays. Offer a background-removal/crop correction and a way to capture missing views.
-
-The main action is **Export scan**. No repair recommendation, replacement-part ghost, missing-geometry proposal or “Continue to repair” action belongs in this component.
-
-### E. Export the object
-
-Export a package containing supported observed geometry, CAD representation, dimensions and provenance. If geometry is incomplete, say so and export an honest open surface or point cloud where possible. If metric scale is unsupported, do not label arbitrary units as mm or enable a measured CAD export.
-
-## 3. Jev classification and bounding-box contract
-
-**Provider resolved: TypeSafe AI’s Jev.** Use the documented HTTP endpoint `POST https://api.typesafe.ai/v1/systemone`, called directly by the iPhone with the user-authorized TypeSafe key. The personal internal TestFlight build includes a generated, Git-ignored key resource at the user's explicit request. Keep the key out of capture packages, logs and repository source. This supersedes the earlier companion-only credential design. The response identifies the actual model and token usage. [API reference](https://docs.typesafe.ai/api)
-
-The account model list exposes `jev-latest` and `jev-preview`; request `jev-preview` for Box and retain the returned concrete model (verified as `jev-1.14.0`). Check the account’s model list before integration and retain the returned model ID. Image-bearing calls need `TypeSafe-Danger-Zone-Images: true`. Send JPEG/PNG through documented assets, preserving the original-to-request image transform. These image capabilities are experimental. [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images)
-
-One request can ask for category, target presence, instance count and location. `choice` supplies a selected label, option probabilities and confidence; include an explicit fallback category. [Choice](https://docs.typesafe.ai/primitives/choice)
-
-`box` supplies normalized `top`, `bottom`, `left`, `right` edges and confidence, one target per question. It takes no `criteria` and **always returns a rectangle, including when the target is absent**. Gate use of the box on the local presence/instance decisions and user confirmation. [Box](https://docs.typesafe.ai/primitives/box)
-
-The following is an adapter request template, with an image reference generated uniquely for each real request. Replace `BASE64_JPEG_BYTES` with actual encoded data. The question wording and categories are application choices to evaluate on scan scenes, not a provider guarantee:
-
-```json
-{
-  "model": "jev-1.14.0",
-  "state": {
-    "photo": "ac83f921-scan-frame",
-    "object_description": "the small plastic box on the table"
-  },
-  "assets": {
-    "ac83f921-scan-frame": {
-      "type": "image",
-      "format": "jpg",
-      "data_base64": "BASE64_JPEG_BYTES"
-    }
-  },
-  "questions": {
-    "category": {
-      "type": "choice",
-      "instructions": "Which category describes the visible object matching `object_description` in `photo`?",
-      "criteria": {
-        "box": "Box, case or rectangular container",
-        "cup": "Cup or mug",
-        "bottle": "Bottle or cylindrical vessel",
-        "bracket": "Bracket or mounting component",
-        "other": "Another visible object category",
-        "not_visible": "The requested object is not visible"
-      }
-    },
-    "present": {
-      "type": "noul",
-      "instructions": "Is the object described by `object_description` visible in `photo`?"
-    },
-    "instances": {
-      "type": "choice",
-      "instructions": "How many visible objects in `photo` match `object_description`?",
-      "criteria": {
-        "none": "No matching object",
-        "one": "Exactly one matching object",
-        "several": "Multiple matching objects"
-      }
-    },
-    "target_box": {
-      "type": "box",
-      "instructions": "Locate the object described by `object_description` in `photo`."
-    }
-  }
-}
-```
-
-**Application handling:** associate `answers.category`, `answers.present`, `answers.instances` and `answers.target_box` with the exact source frame. Reject nonfinite/reversed/out-of-bounds edges and stale frame responses. With absent or ambiguous targets, suppress automatic lock and request a clearer description or user selection. Tune decision thresholds on representative scans; no arbitrary threshold is claimed validated.
-
-Convert normalized box edges to request-image pixels, undo any resize/padding/crop, then apply the recorded camera-to-screen transform for the visible overlay. Keep those transforms and detection provenance. A category/box result must not replace the object with a category-shaped primitive.
-
-The Jev box initializes local foreground segmentation and tracking. The rectangle itself is not a pixel mask or a 3D boundary. Produce per-view masks and check instance continuity as the camera moves. Run Jev repeatedly at a target 100 ms dispatch interval, including during capture. Display the latest fresh eligible label and box over the live camera. Allow at most four concurrent requests, skip opportunities when full, and do not queue old frames or replay catch-up requests. Discard out-of-order, expired and pose-stale replies; stop requests when the screen closes or the app backgrounds. Measurement tracking stays on the user-confirmed instance even as Jev refreshes the overlay. Actual displayed rate depends on inference/network latency and motion. The earlier 200 ms, 12-request integration check measured a 185.8 ms median and 839.1 ms maximum on a synthetic image; live-phone behavior and physical accuracy remain to be verified.
-
-Store original images and derived selections separately. Jev selects the object; measured camera/sparse geometry determines its dimensions. No Jev label, confidence or rectangle may supply metric scale, hidden dimensions, fabricated depth or unseen surfaces. The user explicitly authorized including the private key in their personal internal app, so Jev calls no longer depend on the Mac. Live Swift-client fixture checks have succeeded. The key remains excluded from source control and capture exports.
+Provider contract: [TypeSafe API](https://docs.typesafe.ai/api), [images](https://docs.typesafe.ai/images), [Box](https://docs.typesafe.ai/primitives/box). The actual two-image request is `JevClient.identifySavedView`, bounded to ten sequential calls per attempt. See the normative scanner document for timeouts, consensus and retry rules.
 
 ## 4. Module architecture
 
 ```mermaid
 flowchart LR
-    P[What are you scanning?] --> V[Jev category and Box plus user confirmation]
-    V --> T[Target box and foreground tracking]
+    P[Frame and capture object locally] --> V[Saved-view Jev identity consensus]
+    V --> T[Refined same-instance masks]
     A[Physical rear 1x images] --> C[Checksummed capture package]
     B[Timed sparse range packets] --> C
     T --> C
@@ -177,7 +89,7 @@ The outer capture schema stays version 1. Sparse observations use a separate opt
 
 Status is `capturing`, `available` or `unavailable`. Available means packets were observed, not that accuracy or reconstruction passed. Per-frame `sensor_observation` holds absolute monotonic source time, nullable arrival time, camera identity, pixel hashes and original-plane paths. Existing `timestamp_s` remains capture-relative. Sparse packets are not stored as ordinary ARKit depth images.
 
-Add a separately versioned **object-selection** record for the description, user-confirmed target, frame-linked Jev detections, masks and tracking states. This record is a required new addition. It must reference immutable source frames and explicit image transforms; it does not alter original pixel or packet bytes.
+Add a separately versioned **object-selection** record for the description, user-confirmed target, frame-linked Jev detections, masks and tracking states. The public capture-first implementation stores this record separately from original observations. It must reference immutable source frames and explicit image transforms; it does not alter original pixel or packet bytes.
 
 Checksums cover all assets except the checksum manifest itself. Validate versions, paths, size bounds, contiguous indexed packet intervals, per-packet hashes, source ports, unique sequences, strictly increasing source timestamps, clock relation and image-plane hashes/sizes. Reject trailing unindexed packet bytes. Serialize nonfinite metadata as null; binary originals remain unchanged.
 

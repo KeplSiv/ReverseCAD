@@ -74,6 +74,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
     private var previousKeyframePose: simd_float4x4?
     private var stats = CaptureProgress()
     private var viewBins = Set<Int>()
+    private var acceptedCameraPositions = [SIMD3<Float>]()
     private var scanGuide = ScanGuidance()
     private var guideTarget: SIMD3<Float>?
     private var guideSelection = CGPoint(x: 0.5, y: 0.5)
@@ -187,11 +188,9 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         default: displayRotation = nil
         }
         let region: [Double]?
+        let imageToDisplay = layout.map { frame.displayTransform(for: $0.2, viewportSize: $0.1) }
         if let (rect, viewport, orientation) = layout {
-            let normalized = CGRect(x: rect.minX/viewport.width, y: rect.minY/viewport.height,
-                                    width: rect.width/viewport.width, height: rect.height/viewport.height)
-            let raw = normalized.applying(frame.displayTransform(for: orientation, viewportSize: viewport).inverted())
-                .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+            let raw = CaptureFraming.rawRegion(rect: rect, viewport: viewport, displayTransform: frame.displayTransform(for: orientation, viewportSize: viewport))
             region = [Double(raw.minX), Double(raw.minY), Double(raw.width), Double(raw.height)]
         } else { region = nil }
         if elapsed >= limits.durationSeconds {
@@ -252,13 +251,13 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             defer { slots.signal() }
             autoreleasepool {
                 do {
-                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch, region: region, displayRotation: displayRotation, sensor: sensor)
+                    try process(rgb: rgb, depth: depth, confidence: confidence, pose: pose, intrinsics: intrinsics, resolution: resolution, timestamp: timestamp, segment: currentSegment, tracking: tracking, trackingReason: trackingReason, point: point, exposureDuration: exposureDuration, exposureOffset: exposureOffset, anchors: anchors, epoch: epoch, region: region, displayRotation: displayRotation, sensor: sensor, imageToDisplay: imageToDisplay)
                 } catch { stopForBudget(error.localizedDescription); failure = error.localizedDescription }
             }
         }
     }
 
-    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String, region: [Double]?, displayRotation: Int?, sensor: JSONValue?) throws {
+    private func process(rgb: CVPixelBuffer, depth: CVPixelBuffer?, confidence: CVPixelBuffer?, pose: simd_float4x4, intrinsics: simd_float3x3, resolution: CGSize, timestamp: Double, segment: String, tracking: String, trackingReason: String?, point: CGPoint, exposureDuration: Double, exposureOffset: Float, anchors: [ARMeshAnchor], epoch: String, region: [Double]?, displayRotation: Int?, sensor: JSONValue?, imageToDisplay: CGAffineTransform?) throws {
         guard !stats.finished else { return }
         lock.lock(); stats.dropped += pendingDrops; pendingDrops = 0; lock.unlock()
         try appendVideo(rgb, timestamp: timestamp)
@@ -334,7 +333,7 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         if let confidenceData, let confidencePath { assets[confidencePath] = confidenceData }
         var maskPath: String?
         // Masks are native depth-size labels and derived from the original raw image with .up orientation.
-        if accepted, objectInFrame, depthWidth > 0, var mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
+        if targetTracker != nil, accepted, objectInFrame, depthWidth > 0, var mask = foregroundMask(rgb: rgb, point: detailPoint, width: depthWidth, height: depthHeight) {
             if let region {
                 mask.withUnsafeMutableBytes { raw in
                     let bytes = raw.bindMemory(to: UInt8.self)
@@ -378,13 +377,14 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
         exposureRecords.append(["frame_id": id, "exposure_duration_s": exposureDuration, "exposure_offset_ev": exposureOffset, "confidence_available": confidence != nil, "depth_source": useDepth ? "native_sceneDepth" : "absent_camera_manual", "valid_depth_fraction": validDepthFraction, "mask_available": maskPath != nil])
         if accepted {
             stats.accepted += 1; previousKeyframePose = pose
+            if acceptedCameraPositions.allSatisfy({ simd_distance($0, pose.columns.3.xyz) >= 0.025 }) { acceptedCameraPositions.append(pose.columns.3.xyz) }
             let azimuth = atan2(pose.columns.2.x, pose.columns.2.z)
             let elevation = asin(min(1, max(-1, pose.columns.2.y)))
             let bin = Int((azimuth + .pi) / (2 * .pi) * 12) + 12 * Int((elevation + .pi / 2) / .pi * 3)
             viewBins.insert(bin)
         } else { stats.rejected += 1 }
         stats.bytes = writer.bytesWritten
-        stats.coverageViews = viewBins.count
+        stats.coverageViews = acceptedCameraPositions.count
         if point != guideSelection { guideTarget = nil; scanGuide = ScanGuidance(); guideSelection = point }
         if guideTarget == nil, accepted, let depthData, let confidenceData {
             let cx = min(depthWidth - 1, max(0, Int(point.x * Double(depthWidth))))
@@ -407,12 +407,14 @@ final class ARKitCaptureProvider: NSObject, CaptureProvider, ARSessionDelegate, 
             let local = simd_inverse(pose) * SIMD4<Float>(target, 1)
             let pixel = intrinsics * SIMD3<Float>(local.x, -local.y, -local.z)
             // Camera screen is portrait: raw sensor y becomes horizontal, x vertical.
-            let screen = SIMD2<Float>(1 - pixel.y / pixel.z / Float(resolution.height), pixel.x / pixel.z / Float(resolution.width))
+            let rawPoint = CGPoint(x: Double(pixel.x / pixel.z) / resolution.width, y: Double(pixel.y / pixel.z) / resolution.height)
+            let displayPoint = rawPoint.applying(imageToDisplay ?? .identity)
+            let screen = SIMD2<Float>(Float(displayPoint.x), Float(displayPoint.y))
             stats.guidance = scanGuide.update(camera: pose.columns.3.xyz, target: target, screenPoint: screen,
                 sharp: objectBlur >= 7, tracking: tracking == "normal", reliableDepth: !poorConfidence && validDepthFraction >= 0.1, accepted: accepted && objectBlur >= 7)
             stats.coverageViews = scanGuide.covered.count
         } else {
-            stats.guidance = reasons.first ?? "Tap the object. Hold still while depth finds its position."
+            stats.guidance = reasons.first ?? "Keep the object still. Walk slowly around it, keeping it inside the box."
         }
         #if SPARSE_RESEARCH
         let sparseStatus = SRStatus()

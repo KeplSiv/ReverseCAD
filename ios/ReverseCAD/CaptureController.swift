@@ -69,7 +69,7 @@ enum CaptureFailure: LocalizedError {
     deinit { if let backgroundObserver { NotificationCenter.default.removeObserver(backgroundObserver) } }
 
     func startPreview() async throws {
-        guard hasLiDAR else { throw CaptureFailure.unavailable("3D scanning needs a LiDAR iPhone or iPad. You can still import a photo for a simple cube prototype.") }
+        guard hasAR else { throw CaptureFailure.unavailable("This device does not support camera world tracking.") }
         guard await AVCaptureDevice.requestAccess(for: .video) else {
             throw CaptureFailure.unavailable("Allow camera access in Settings to scan.")
         }
@@ -81,7 +81,7 @@ enum CaptureFailure: LocalizedError {
         #if PRELUDE_SCANNER
         if let format = ARWorldTrackingConfiguration.supportedVideoFormats.filter({ $0.captureDeviceType == .builtInWideAngleCamera && $0.captureDevicePosition == .back && $0.framesPerSecond == 30 }).min(by: { abs($0.imageResolution.width-1280) < abs($1.imageResolution.width-1280) }) { configuration.videoFormat = format }
         #endif
-        configuration.frameSemantics.insert(.sceneDepth)
+        if hasLiDAR { configuration.frameSemantics.insert(.sceneDepth) }
         session.run(configuration)
     }
 
@@ -271,8 +271,7 @@ final class GuidedARView: ARView {
     var onGuide: ((CGRect, CGSize, UIInterfaceOrientation) -> Void)?
     private let guide = CAShapeLayer()
     static func guideRect(in bounds: CGRect) -> CGRect {
-        let size = CGSize(width: min(270, bounds.width * 0.8), height: min(300, bounds.height * 0.85))
-        return CGRect(x: bounds.midX-size.width/2, y: bounds.midY-size.height/2, width: size.width, height: size.height)
+        CaptureFraming.centerCell(in: bounds)
     }
     override func layoutSubviews() {
         super.layoutSubviews()

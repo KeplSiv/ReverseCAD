@@ -59,7 +59,7 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: '0.1.0'
-        CURRENT_PROJECT_VERSION: '30'
+        CURRENT_PROJECT_VERSION: '31'
   ReverseCADSparseResearch:
     type: application
     platform: iOS

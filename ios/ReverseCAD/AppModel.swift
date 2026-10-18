@@ -433,6 +433,12 @@ final class AppModel: ObservableObject {
         let scanID=manifest["scan_id"] as? String ?? p.id
         self.progress="Connecting to your Mac…"
         _ = try await self.object("v1/health")
+        if p.repairScope == "standalone_scan" {
+            let capabilities = try await self.object("v1/capabilities")
+            guard capabilities["capture_first_masks"] as? Bool == true else {
+                throw ServiceFailure(message: "Update the Mac reconstruction service to the capture-first version on pranav-dev. This scan is saved; the older service cannot apply its object masks.")
+            }
+        }
         self.progress="Checking saved scan and resuming missing uploads…"
         self.update{$0.scanID=scanID;$0.stage="Uploading"}
         guard let url=URL(string:self.serverURL) else{throw ServiceFailure(message:"Invalid service address")}
@@ -704,7 +710,17 @@ final class AppModel: ObservableObject {
         return (dir.appendingPathComponent(folder), infos)
     }
 
-    func exportStandaloneScan() { perform {
+    var standaloneExportFormats: [String] {
+        guard let (directory, _) = try? observedArtifactLocation(),
+              let data = try? Data(contentsOf: directory.appendingPathComponent("scan_export.json")),
+              let report = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              report["status"] as? String == "ready", let files = report["files"] as? [String] else { return [] }
+        return ["STL", "PLY", "STEP", "Measurements"].filter { format in
+            files.contains { format == "Measurements" ? $0 == "measurements.json" : $0.lowercased().hasSuffix("." + format.lowercased()) }
+        }
+    }
+
+    func exportStandaloneScan(format: String? = nil) { perform {
         let (directory, infos) = try self.observedArtifactLocation()
         let report = try JSONSerialization.jsonObject(with: Data(contentsOf: directory.appendingPathComponent("scan_export.json"))) as? [String: Any]
         guard report?["status"] as? String == "ready", let names = report?["files"] as? [String],
@@ -712,7 +728,12 @@ final class AppModel: ObservableObject {
             throw ServiceFailure(message: "This scan needs more usable views before measured export. The original capture is still available.")
         }
         try await Task.detached { try VerifiedArtifactStore.verify(infos: infos, directory: directory) }.value
-        self.shareURLs = (names + ["scan_export.json", "input_provenance.json"]).filter { name in infos.contains { $0.name == name } }.map { directory.appendingPathComponent($0) }
+        let selectedNames = names.filter { name in
+            guard let format else { return true }
+            return format == "Measurements" ? name == "measurements.json" : name.lowercased().hasSuffix("." + format.lowercased())
+        }
+        guard !selectedNames.isEmpty else { throw ServiceFailure(message: "This reconstruction cannot export \(format ?? "that format"). Other supported formats and the original capture remain available.") }
+        self.shareURLs = (selectedNames + ["scan_export.json", "input_provenance.json"]).filter { name in infos.contains { $0.name == name } }.map { directory.appendingPathComponent($0) }
         self.showingShare = true
     }}
 

@@ -13,6 +13,7 @@
 		039D0C2BCE352CD02628E895 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36B0EA4A58C5E7D1FBFED931 /* ReverseCADCore */; };
 		09F380E56EE14394DF694C6D /* SparseCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = D14695A268513D7C8F33BDCA /* SparseCapture.m */; };
 		11045D078E4A54BA03ACD609 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
+		128D5F2945AF5655296DFC8B /* CapturedObjectWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */; };
 		134C9E2B4BD8A11E063E5A5F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
 		141C54F9E4710D75FE088E81 /* UnifiedRepairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89474A50E120CE9DFB8CF08A /* UnifiedRepairView.swift */; };
 		14D3106DFAA1497A257A2827 /* PreludeJevConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = 571081B7078295C20D3CE8C5 /* PreludeJevConfig.plist */; };
@@ -36,6 +37,7 @@
 		4D18B6CF5E57F071189CB431 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
 		4E53CF9A6FF11FC2E757370D /* LiveGhost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45E261024AC9CAA356A06F1 /* LiveGhost.swift */; };
 		5130FDEC4384D8EE7DB45EFA /* StandaloneScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A731D074412D5B6581BE5C7 /* StandaloneScanView.swift */; };
+		534D7CA80FB93E9BF00BD606 /* CapturedObjectWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */; };
 		54445C0F07B618816ADCB07E /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
 		57FA4B2ACFBBF26CAF92C877 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
 		586004D32B2F738468EDEBD0 /* ReverseCADApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D214CCC12922586EB05086 /* ReverseCADApp.swift */; };
@@ -45,6 +47,7 @@
 		6408C0A62CE509821A5D08EA /* PreludeJevConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94891FF58190CD1A7FAE40A5 /* PreludeJevConfiguration.swift */; };
 		6F5C096E703294B30ABA0B35 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE93717EBC7FBAAD9179530D /* AppModel.swift */; };
 		6FADC732DD2EF459BEB9DD51 /* ComparisonResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */; };
+		74D865F5FF5F02BDFDC9C33A /* CaptureFirstWorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDD5560918913EBC1D82587 /* CaptureFirstWorkflowTests.swift */; };
 		75C2F2628FEFBB5D4D4A1BDE /* CaptureARKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84696686C7DD94C3B948F938 /* CaptureARKit.swift */; };
 		76BCAC0242AADB8F68DFFA06 /* LiveObjectIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4591C1D974295CB5DFA7EC /* LiveObjectIdentifier.swift */; };
 		79DA1E350113D8BF497090E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF39E9701704FC422CE5D383 /* Assets.xcassets */; };
@@ -57,6 +60,7 @@
 		9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */; };
 		919CFD01F563AC8BABC55197 /* GeometryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C40035D0B380A29E0CCCC3 /* GeometryPreview.swift */; };
 		9501D20ECEC35513E51D8139 /* ReverseCADCore in Frameworks */ = {isa = PBXBuildFile; productRef = 843C4BFDFE8C7BFEC1B6FF51 /* ReverseCADCore */; };
+		9559B67949EF730889CC5555 /* CapturedObjectWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */; };
 		99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C4B8D600B0E72F9EF6D166 /* ContentView.swift */; };
 		9BB7E3A54DE762D9648B0DF4 /* VerifiedArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651A78B4AEDCB75B404B915 /* VerifiedArtifacts.swift */; };
 		9C41DCDD2007259C42C5F517 /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44149E87E66872F41062845F /* DesignView.swift */; };
@@ -133,6 +137,8 @@
 		D2D0D54998690284CC538D50 /* ReverseCADSparseResearch.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ReverseCADSparseResearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC11C96B99A9F65AA03B8DE5 /* SparseCapture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SparseCapture.h; sourceTree = "<group>"; };
 		E8925DB27A66F56068E98FE2 /* SampleScan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleScan; path = ReverseCAD/SampleScan; sourceTree = SOURCE_ROOT; };
+		EEDD5560918913EBC1D82587 /* CaptureFirstWorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFirstWorkflowTests.swift; sourceTree = "<group>"; };
+		F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedObjectWorkflow.swift; sourceTree = "<group>"; };
 		F30484792CA155DC21C8792D /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -211,6 +217,7 @@
 				AF39E9701704FC422CE5D383 /* Assets.xcassets */,
 				84696686C7DD94C3B948F938 /* CaptureARKit.swift */,
 				CD62E45CC23E859803453CF8 /* CaptureController.swift */,
+				F094F3406371528AC27E3745 /* CapturedObjectWorkflow.swift */,
 				5F4306B3BFEE99F4E58D4827 /* ComparisonResults.swift */,
 				62C4B8D600B0E72F9EF6D166 /* ContentView.swift */,
 				6A8EA8B882887DA468C342D7 /* CubeDemoView.swift */,
@@ -255,6 +262,7 @@
 		F2CED649D766DE0532119BB7 /* ReverseCADTests */ = {
 			isa = PBXGroup;
 			children = (
+				EEDD5560918913EBC1D82587 /* CaptureFirstWorkflowTests.swift */,
 				CD495AA0DD470634824266B4 /* CaptureTests.swift */,
 				C3D820EE547C9D7F1B466D52 /* PatternRepairTests.swift */,
 				56275D5F03CEA763130656DC /* SurfacePatchNormalTests.swift */,
@@ -486,6 +494,7 @@
 				6F5C096E703294B30ABA0B35 /* AppModel.swift in Sources */,
 				1C9856CDBD9611662ABFE08D /* CaptureARKit.swift in Sources */,
 				B835CD978CFFFD5F84F62DE8 /* CaptureController.swift in Sources */,
+				128D5F2945AF5655296DFC8B /* CapturedObjectWorkflow.swift in Sources */,
 				6FADC732DD2EF459BEB9DD51 /* ComparisonResults.swift in Sources */,
 				11045D078E4A54BA03ACD609 /* ContentView.swift in Sources */,
 				9CC91226134A2FFC4F2C1811 /* CubeDemoView.swift in Sources */,
@@ -511,6 +520,7 @@
 				CE41C752E673FB0CA6A1D0CE /* AppModel.swift in Sources */,
 				75C2F2628FEFBB5D4D4A1BDE /* CaptureARKit.swift in Sources */,
 				EE03577A4722013635D2D62E /* CaptureController.swift in Sources */,
+				534D7CA80FB93E9BF00BD606 /* CapturedObjectWorkflow.swift in Sources */,
 				382B1323D6C03CCB1D864576 /* ComparisonResults.swift in Sources */,
 				4D18B6CF5E57F071189CB431 /* ContentView.swift in Sources */,
 				2C1E2B8A11DCE0D492E4C146 /* CubeDemoView.swift in Sources */,
@@ -535,6 +545,7 @@
 				54445C0F07B618816ADCB07E /* AppModel.swift in Sources */,
 				0012BC8DCA94B371528B6D45 /* CaptureARKit.swift in Sources */,
 				23627AAF03BB48432B0DA106 /* CaptureController.swift in Sources */,
+				9559B67949EF730889CC5555 /* CapturedObjectWorkflow.swift in Sources */,
 				C9A6AFECA509CE403658C7A0 /* ComparisonResults.swift in Sources */,
 				99D2A0DD493095A4F3996AB1 /* ContentView.swift in Sources */,
 				8D40E2AB13C534BE078B2BFF /* CubeDemoView.swift in Sources */,
@@ -564,6 +575,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74D865F5FF5F02BDFDC9C33A /* CaptureFirstWorkflowTests.swift in Sources */,
 				A4DED7D88DED593E3022DA16 /* CaptureTests.swift in Sources */,
 				D58FF7302F5449EE7163D89F /* PatternRepairTests.swift in Sources */,
 				9129114B0883CA58E683C5B7 /* SurfacePatchNormalTests.swift in Sources */,
@@ -875,7 +887,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -898,7 +910,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 5B3Y68ZB2Y;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;

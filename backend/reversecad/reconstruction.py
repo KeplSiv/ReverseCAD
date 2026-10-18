@@ -19,7 +19,7 @@ import numpy as np
 from .geometry import (AR_TO_CV, dot, fit_cylinder_frustum, fit_plane, project,
                        rigid_transform, scaled_intrinsics, transform_points, unproject)
 
-VERSION = "rgbd-1.6.0"
+VERSION = "rgbd-1.7.0"
 MAX_FRAMES = 240
 MAX_SCAN_BYTES = 512 * 1024 * 1024
 MAX_DEPTH_PIXELS = 640 * 480
@@ -111,6 +111,10 @@ def _read_depth(scan_dir: Path, frame: dict) -> np.ndarray:
 def _mask(scan_dir: Path, frame: dict, depth: np.ndarray, annotations: dict) -> tuple[np.ndarray, str]:
     from .capture_region import region_mask, capture_bounds
     height, width = depth.shape
+    target = annotations.get("object_target") or {}
+    if target.get("workflow") == "capture_first_v1":
+        from .object_selection import selection_mask
+        return selection_mask(scan_dir, frame, depth.shape, target)
     guide = region_mask(frame.get('capture_region'), depth.shape)
     if frame.get("mask_path"):
         raw = np.frombuffer(_asset(scan_dir, frame["mask_path"]).read_bytes(), dtype=np.uint8)
@@ -227,6 +231,12 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
         if frame.get("depth_intrinsics") is not None:
             k = scaled_intrinsics(frame["depth_intrinsics"], width, height, width, height)
         pose = dot(dot(segments[frame["segment_id"]], rigid_transform(frame["T_world_camera"])), AR_TO_CV)
+        capture_first = (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1"
+        if capture_first:
+            from .object_selection import remove_support_plane
+            selected = remove_support_plane(depth, selected, k, pose)
+            valid &= selected
+            raw_valid &= selected
         # Crop in the registered metric frame, never in a display orientation.
         if crop is not None:
             points, pixels = unproject(depth, k, pose, raw_valid)
@@ -247,7 +257,7 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
         fw, fh = round(rgb.shape[1] * feature_scale), round(rgb.shape[0] * feature_scale)
         feature_rgb = cv2.resize(rgb, (fw, fh), interpolation=cv2.INTER_AREA)
         from .capture_region import masked_photo
-        feature_rgb = masked_photo(feature_rgb, frame.get('capture_region'))
+        feature_rgb = masked_photo(feature_rgb, None if capture_first else frame.get('capture_region'))
         feature_k = scaled_intrinsics(frame["intrinsics"], frame["intrinsics_width"],
                                       frame["intrinsics_height"], fw, fh)
         accepted.append({"rgb_path": frame["rgb_path"], "image_size": (rgb.shape[1], rgb.shape[0]),
@@ -256,13 +266,19 @@ def _prepare(scan_dir: Path, frames: list[dict], segments: dict, annotations: di
                          "color": color_depth, "k": k, "pose": pose, "feature_rgb": feature_rgb,
                          "feature_k": feature_k, "mask_source": mask_source,
                          "foreground_mask": selected,
-                         "capture_region": frame.get('capture_region'),
+                         "capture_region": None if capture_first else frame.get('capture_region'),
                          "depth_calibration_mode": calibration_mode,
                          "points": points[indices], "colors": color_depth[pixels[indices, 1], pixels[indices, 0]] / 255.,
                          "raw_points": raw_points[raw_indices],
                          "raw_colors": color_depth[raw_pixels[raw_indices, 1], raw_pixels[raw_indices, 0]] / 255.,
                          "valid_depth_fraction": float(np.count_nonzero(valid) / valid.size),
                          "native_foreground_samples": len(points)})
+    if (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1":
+        from .object_selection import consistent_views
+        accepted, disjoint = consistent_views(accepted)
+        rejected.extend({"frame_id": f["frame_id"], "reason": "object_geometry_not_supported_by_other_views"} for f in disjoint)
+        if disjoint:
+            warnings.append("object_identity_geometry_disagrees: add sharp overlapping views of the same stationary object; saved capture preserved")
     if timestamps_gaps:
         warnings.append("timestamp_gaps: recorded views contain gaps over 2 seconds; inspect missing coverage")
     return accepted, rejected, warnings, timestamps_gaps
@@ -652,7 +668,8 @@ def reconstruct(scan_dir: Path, output_dir: Path, annotations: dict | None = Non
             "measurements": list(annotations.get("measurements", [])), "primitives": [],
             "observations": {"accepted_frames": [f["frame_id"] for f in frames], "rejected_frames": rejected},
             "capture_boundary": {"guided_frames":sum(f.get('capture_region') is not None for f in capture_frames),
-                                 "total_frames":len(capture_frames),"legacy_frames_use_full_image":True},
+                                 "total_frames":len(capture_frames),"legacy_frames_use_full_image":True,
+                                 "guide_role": "framing_hint_only" if (annotations.get("object_target") or {}).get("workflow") == "capture_first_v1" else "legacy_selection_boundary"},
             "metrics": {"accepted_frames": len(frames), "rejected_frames": len(rejected), "timestamp_gaps": gaps},
             "physical_validation": {"phone_sensing": "not_tested", "dimension_accuracy": "not_calibrated", "printed_fit": "not_tested"}}
     if annotations.get("repair_scope") == "cube_exterior" and stage == "rgb_assisted":

@@ -1,5 +1,10 @@
 # Reverse CAD iPhone application specification
 
+## Prelude capture-first revision (2026-10-18)
+
+The standalone Prelude scanner on `pranav-dev` follows **Frame object → Scan around it → Identify object → Build 3D model → Preview and export**. Its normative workflow, direct-phone Jev contract, saved-session masks, backend requirement and verification boundaries are in [PRELUDE_SCANNER.md](docs/PRELUDE_SCANNER.md). This supersedes any earlier identify-before-capture or continuously polled Jev flow for Prelude. Descriptions are optional; the center rule-of-thirds cell is a framing hint, never a crop. Full calibrated capture happens locally before identification. Original geometry, supported scale and refined same-instance masks drive reconstruction; category-shaped completion is prohibited. Work and release stay on `pranav-dev`; private sensor experiments and `main` remain separate.
+
+
 Version 1.0 · October 16, 2026 · Implementation brief for Codex
 
 Build a native iPhone application that captures a broken rigid object, estimates its measured geometry, helps the user specify a repair, constructs an editable replacement part, and exports files for 3D printing. Deliver the complete application and processing service, with every test possible without a physical phone executed before handoff.
