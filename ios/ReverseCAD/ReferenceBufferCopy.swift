@@ -38,13 +38,49 @@ enum ReferenceBufferCopy {
         return result
     }
     static func sample(_ source:CMSampleBuffer)throws->CMSampleBuffer {
-        guard let image=CMSampleBufferGetImageBuffer(source),let format=CMSampleBufferGetFormatDescription(source) else{throw CameraLabError.message("A reference sample is incomplete.")}
+        guard let image=CMSampleBufferGetImageBuffer(source),let sourceFormat=CMSampleBufferGetFormatDescription(source) else {
+            throw CameraLabError.message("A reference sample is incomplete.")
+        }
         let copy=try pixel(image)
-        var timing=CMSampleTimingInfo(),result:CMSampleBuffer?
-        guard CMSampleBufferGetSampleTimingInfo(source,at:0,timingInfoOut:&timing)==noErr,
-              CMSampleBufferCreateReadyWithImageBuffer(allocator:kCFAllocatorDefault,imageBuffer:copy,formatDescription:format,sampleTiming:&timing,sampleBufferOut:&result)==noErr,let result else{throw CameraLabError.message("Could not preserve reference timing.")}
+        var timing=CMSampleTimingInfo()
+        let timingStatus=CMSampleBufferGetSampleTimingInfo(source,at:0,timingInfoOut:&timing)
+        guard timingStatus==noErr else {throw CameraLabError.message("Could not read reference timing (CoreMedia \(timingStatus)).")}
+
+        var format=sourceFormat
+        if !CMVideoFormatDescriptionMatchesImageBuffer(format,imageBuffer:copy) {
+            // Owned planar storage has identical plane strides and bytes but a
+            // different aggregate row size. Preserve every format extension except that
+            // storage-specific row size, which must describe this allocation.
+            var extensions=CMFormatDescriptionGetExtensions(sourceFormat) as? [String:Any] ?? [:]
+            extensions[kCMFormatDescriptionExtension_BytesPerRow as String]=CVPixelBufferGetBytesPerRow(copy)
+            var compatible:CMVideoFormatDescription?
+            let formatStatus=CMVideoFormatDescriptionCreate(allocator:kCFAllocatorDefault,
+                codecType:CVPixelBufferGetPixelFormatType(copy),width:Int32(CVPixelBufferGetWidth(copy)),height:Int32(CVPixelBufferGetHeight(copy)),
+                extensions:extensions as CFDictionary,formatDescriptionOut:&compatible)
+            guard formatStatus==noErr,let compatible else {throw CameraLabError.message("Could not preserve reference format (CoreMedia \(formatStatus)).")}
+            guard CMVideoFormatDescriptionMatchesImageBuffer(compatible,imageBuffer:copy) else {
+                throw CameraLabError.message("Reference format does not match its preserved image (CoreMedia \(kCMSampleBufferError_InvalidMediaFormat)).")
+            }
+            format=compatible
+        }
+        var result:CMSampleBuffer?
+        let sampleStatus=CMSampleBufferCreateReadyWithImageBuffer(allocator:kCFAllocatorDefault,imageBuffer:copy,
+            formatDescription:format,sampleTiming:&timing,sampleBufferOut:&result)
+        guard sampleStatus==noErr,let result else {throw CameraLabError.message("Could not preserve reference sample (CoreMedia \(sampleStatus)).")}
         for mode in [kCMAttachmentMode_ShouldPropagate,kCMAttachmentMode_ShouldNotPropagate] {
-            if let attachments=CMCopyDictionaryOfAttachments(allocator:kCFAllocatorDefault,target:source,attachmentMode:mode) {CMSetAttachments(result,attachments:attachments,attachmentMode:mode)}
+            if let attachments=CMCopyDictionaryOfAttachments(allocator:kCFAllocatorDefault,target:source,attachmentMode:mode) {
+                CMSetAttachments(result,attachments:attachments,attachmentMode:mode)
+            }
+        }
+        if let attachments=CMSampleBufferGetSampleAttachmentsArray(source,createIfNecessary:false) as? [[AnyHashable:Any]],!attachments.isEmpty {
+            guard let destination=CMSampleBufferGetSampleAttachmentsArray(result,createIfNecessary:true) as? [NSMutableDictionary],
+                  destination.count==attachments.count else {throw CameraLabError.message("Could not preserve reference sample attachments.")}
+            for (source,destination) in zip(attachments,destination) {destination.addEntries(from:source)}
+        }
+        let outputTime=CMSampleBufferGetOutputPresentationTimeStamp(source)
+        if outputTime.isValid {
+            let outputStatus=CMSampleBufferSetOutputPresentationTimeStamp(result,newValue:outputTime)
+            guard outputStatus==noErr else {throw CameraLabError.message("Could not preserve reference output timing (CoreMedia \(outputStatus)).")}
         }
         return result
     }

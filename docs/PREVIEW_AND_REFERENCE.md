@@ -37,3 +37,9 @@ Build 40 retains build 39's native rear preview and permission handling. It remo
 ## Selfie flow regression coverage
 
 The current regression checks cover bounded reference windows at 5, 7, 10, 15 and 30 Hz, stale and non-increasing timestamps, saving originals with invalid depth, retaining the saved image after a failed depth check, and the top calibration hint and Save scan layout. These are simulator/code checks; physical continuous preview and volume-button capture still require the connected phone.
+
+## Preserving NV12 samples
+
+Owned NV12 buffers can report a different aggregate row size from the camera allocation even when every plane's dimensions, stride, padding and image bytes are unchanged. Reusing the original format description then fails CoreMedia's image/format check with `kCMSampleBufferError_InvalidMediaFormat` (`-12743`). The old combined error mislabeled that failure as reference timing and stopped the selfie session before saving.
+
+The copy now preserves every original format extension except the allocation-specific aggregate row size, which is set from the owned buffer and checked before creating the sample. Original presentation/decode/duration timestamps, output presentation time, intrinsics, pixel attachments, buffer attachments and per-sample attachments are retained. A regression constructs the failing aligned NV12 case, verifies the former `-12743` result, checks the corrected copy and writes its PNG without changing the source planes.
